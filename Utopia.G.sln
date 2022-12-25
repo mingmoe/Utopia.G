@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.G", "Utopia.G\Utopia.G.csproj", "{F602FB2A-C703-4180-BE3C-3AF16095C7D6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Test", "Utopia.Test\Utopia.Test.csproj", "{6C477D41-DA73-4990-9E68-37A8BC489902}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Core", "Utopia.Core\Utopia.Core.csproj", "{BE7E1414-D1C5-42FD-BC65-B2C5E5F09206}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Server", "Utopia.Server\Utopia.Server.csproj", "{1076BBC5-F8F7-426F-A2A2-1E92B6340032}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		ExportDebug|Any CPU = ExportDebug|Any CPU
+		ExportRelease|Any CPU = ExportRelease|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F602FB2A-C703-4180-BE3C-3AF16095C7D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F602FB2A-C703-4180-BE3C-3AF16095C7D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F602FB2A-C703-4180-BE3C-3AF16095C7D6}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{F602FB2A-C703-4180-BE3C-3AF16095C7D6}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{F602FB2A-C703-4180-BE3C-3AF16095C7D6}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{F602FB2A-C703-4180-BE3C-3AF16095C7D6}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{F602FB2A-C703-4180-BE3C-3AF16095C7D6}.Release|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{F602FB2A-C703-4180-BE3C-3AF16095C7D6}.Release|Any CPU.Build.0 = ExportRelease|Any CPU
+		{6C477D41-DA73-4990-9E68-37A8BC489902}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C477D41-DA73-4990-9E68-37A8BC489902}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C477D41-DA73-4990-9E68-37A8BC489902}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C477D41-DA73-4990-9E68-37A8BC489902}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{6C477D41-DA73-4990-9E68-37A8BC489902}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{6C477D41-DA73-4990-9E68-37A8BC489902}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{6C477D41-DA73-4990-9E68-37A8BC489902}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C477D41-DA73-4990-9E68-37A8BC489902}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE7E1414-D1C5-42FD-BC65-B2C5E5F09206}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE7E1414-D1C5-42FD-BC65-B2C5E5F09206}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE7E1414-D1C5-42FD-BC65-B2C5E5F09206}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE7E1414-D1C5-42FD-BC65-B2C5E5F09206}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{BE7E1414-D1C5-42FD-BC65-B2C5E5F09206}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{BE7E1414-D1C5-42FD-BC65-B2C5E5F09206}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{BE7E1414-D1C5-42FD-BC65-B2C5E5F09206}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE7E1414-D1C5-42FD-BC65-B2C5E5F09206}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {85B2FA83-16F9-498F-932A-6ABE548619E1}
+	EndGlobalSection
+EndGlobal

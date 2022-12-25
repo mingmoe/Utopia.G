@@ -1,0 +1,10 @@
+[gd_resource type="FontVariation" load_steps=4 format=3 uid="uid://w7chw70wp1e0"]
+
+[ext_resource type="FontFile" uid="uid://bcpwc6v6cg88g" path="res://fonts/SourceHanSans-VF.otf.ttc" id="1_bg8me"]
+[ext_resource type="FontFile" uid="uid://bjh4qivfon0s8" path="res://fonts/NotoSans-Regular.ttf" id="2_n4n44"]
+[ext_resource type="FontFile" uid="uid://cpqj5wn36u5tk" path="res://fonts/NotoNaskhArabic-VariableFont_wght.ttf" id="3_tpphs"]
+
+[resource]
+base_font = ExtResource("1_bg8me")
+fallbacks = [ExtResource("2_n4n44"), ExtResource("3_tpphs")]
+variation_face_index = 3

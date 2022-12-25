@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://dosydykymex8g"]
+
+[ext_resource type="Script" path="res://Loading.cs" id="1_voblf"]
+
+[sub_resource type="CanvasTexture" id="CanvasTexture_ewrkx"]
+
+[node name="Loading" type="Node2D"]
+script = ExtResource("1_voblf")
+
+[node name="Background" type="Sprite2D" parent="."]
+scale = Vector2(2041.65, 1000)
+texture = SubResource("CanvasTexture_ewrkx")
+
+[node name="Image" type="Sprite2D" parent="Background"]
+position = Vector2(-1.16777e-10, 0)
+scale = Vector2(0.000225308, 0.0004)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+current = true

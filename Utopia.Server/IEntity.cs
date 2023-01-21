@@ -5,13 +5,6 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Utopia.Core
 {
@@ -24,7 +17,7 @@ namespace Utopia.Core
     public interface IEntity
     {
         /// <summary>
-        /// 实体名称，用于显示给玩家。通常是翻译id（为了国际化）。
+        /// 实体名称，用于显示给玩家。通常是翻译id。
         /// </summary>
         string Name { get; set; }
 
@@ -36,15 +29,17 @@ namespace Utopia.Core
         /// <summary>
         /// 实体是否可和其他可碰撞的实体进行碰撞。
         /// </summary>
-        bool Collidable { get; set; }   
+        bool Collidable { get; set; }
 
         /// <summary>
         /// 对于每一种实体，都需要一种Id与其对应，作为唯一标识符。
         /// </summary>
         Guuid Id { get; set; }
 
-
-
+        /// <summary>
+        /// 每个逻辑帧调用。一秒20个逻辑帧，可能从不同线程发起调用。
+        /// </summary>
+        void LogicUpdate();
     }
 
 }

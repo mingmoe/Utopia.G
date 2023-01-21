@@ -6,13 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 using Standart.Hash.xxHash;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Utopia.Core
 {
@@ -36,12 +31,14 @@ namespace Utopia.Core
         {
             if (string.IsNullOrEmpty(name))
             {
-                return false;   
+                return false;
             }
 
             return true;
         }
 
+        ///
+        /// <exception cref="ArgumentException">如果root或者nodes不符合规范则抛出</exception>
         public Guuid(string root, params string[] nodes)
         {
             ArgumentNullException.ThrowIfNull(root, nameof(root));
@@ -52,7 +49,7 @@ namespace Utopia.Core
             {
                 throw new ArgumentException("the root name is illegal");
             }
-            foreach(var node in nodes)
+            foreach (var node in nodes)
             {
                 if (!CheckNameIllegal(node))
                 {
@@ -97,7 +94,7 @@ namespace Utopia.Core
         /// 从字符串解析Guuid
         /// </summary>
         /// <param name="s">字符串应该是来自Guuid的ToString()的结果。</param>
-        /// <returns></returns>
+        /// <exception cref="ArgumentException">参数异常</exception>
         public static Guuid ParseString(string s)
         {
             if (string.IsNullOrEmpty(s))
@@ -107,7 +104,7 @@ namespace Utopia.Core
 
             var strs = s.Split(':');
 
-            if(strs.Length < 2)
+            if (strs.Length < 2)
             {
                 throw new ArgumentException("the guuid format is illegal");
             }
@@ -133,7 +130,7 @@ namespace Utopia.Core
                 low = BitConverter.ToUInt64(rno, 8);
             }
 
-            return new Guuid("unique",string.Format("{0:X16}{1:X16}",high,low));
+            return new Guuid("unique", string.Format("{0:X16}{1:X16}", high, low));
         }
 
         public override bool Equals(object? obj)

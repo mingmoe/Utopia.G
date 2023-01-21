@@ -7,50 +7,49 @@
 //===--------------------------------------------------------------===//
 
 using Godot;
-using System;
 
 namespace Utopia.G
 {
-	public partial class Menu : Node
-	{
-		Camera2D? camera;
-		Viewport? Viewport;
-		Sprite2D? background;
-		Button? play;
-		Button? exit;
+    public partial class Menu : Node
+    {
+        Camera2D? camera;
+        Viewport? Viewport;
+        Sprite2D? background;
+        Button? play;
+        Button? exit;
 
-		public override void _Ready()
-		{
-			if(Loading.player != null)
-				this.AddChild(Loading.player);
+        public override void _Ready()
+        {
+            if (Loading.player != null)
+                this.AddChild(Loading.player);
 
-			camera = GetNode<Camera2D>("Camera2D");
+            camera = GetNode<Camera2D>("Camera2D");
 
-			Viewport = GetViewport();
+            Viewport = GetViewport();
 
-			background = (Sprite2D)GetNode("Background");
-			Utility.SetBackground(this, background);
-
-
-			exit = (Button)GetNode("Control/GridContainer/CenterContainerExit/Exit");
-			play = (Button)GetNode("Control/GridContainer/CenterContainerPlay/Play");
-
-			exit.Pressed += () =>
-			{
-				GetTree().Quit();
-			};
-
-			play.Pressed += () =>
-			{
-				this.GetTree().ChangeSceneToFile("res://Main.tscn");
-			};
-		}
+            background = (Sprite2D)GetNode("Background");
+            Utility.SetBackground(this, background);
 
 
-		public override void _Process(double delta)
-		{
+            exit = (Button)GetNode("Control/GridContainer/CenterContainerExit/Exit");
+            play = (Button)GetNode("Control/GridContainer/CenterContainerPlay/Play");
+
+            exit.Pressed += () =>
+            {
+                GetTree().Quit();
+            };
+
+            play.Pressed += () =>
+            {
+                this.GetTree().ChangeSceneToFile("res://Main.tscn");
+            };
+        }
 
 
-		}
-	}
+        public override void _Process(double delta)
+        {
+
+
+        }
+    }
 }

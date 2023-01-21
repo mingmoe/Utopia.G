@@ -6,13 +6,15 @@
 //
 //===--------------------------------------------------------------===//
 
-namespace Utopia.Server
+namespace Utopia.Core
 {
-    internal class Program
+    /// <summary>
+    /// 监控一个变量是否已更改
+    /// </summary>
+    public interface IEventVariable<T>
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Hello, World!");
-        }
+        T Value { get; set; }
+
+        IEventManager<IEvent> ModifyEvent { get; }
     }
 }

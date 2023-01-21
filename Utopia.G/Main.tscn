@@ -1,3 +1,17 @@
-[gd_scene format=3 uid="uid://t8j5wxauje20"]
+[gd_scene load_steps=3 format=3 uid="uid://t8j5wxauje20"]
 
-[node name="main" type="Node2D"]
+[ext_resource type="Texture2D" uid="uid://cu0mtw5wuq5tq" path="res://images/textures/player.png" id="1_am0in"]
+
+[sub_resource type="TileSet" id="TileSet_lkh1p"]
+
+[node name="Main" type="Node2D"]
+
+[node name="Camera" type="Camera2D" parent="."]
+current = true
+
+[node name="TileMap" type="TileMap" parent="."]
+tile_set = SubResource("TileSet_lkh1p")
+format = 2
+
+[node name="PlayerSprite" type="Sprite2D" parent="."]
+texture = ExtResource("1_am0in")

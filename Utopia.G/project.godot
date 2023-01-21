@@ -21,3 +21,7 @@ config/icon="res://icon.png"
 
 project/assembly_name="Utopia.G"
 project/solution_directory="../"
+
+[editor]
+
+export/convert_text_resources_to_binary=true

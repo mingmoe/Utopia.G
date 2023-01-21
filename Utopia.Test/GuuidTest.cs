@@ -5,31 +5,44 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Utopia.Core;
 
 namespace Utopia.Test
 {
-    class GuuidTest
+    public class GuuidTest
     {
 
-        [Test]
+        [Fact]
         public void TestGuuidToStringAndParseStringWorksWell()
         {
-            var guuid = new Guuid("root","node");
+            var guuid = new Guuid("root", "node");
             var str = guuid.ToString();
+
 
             var parsed = Guuid.ParseString(str);
 
-            Assert.That(parsed, Is.EqualTo(guuid));
+
+            Assert.Equal(guuid, parsed);
         }
 
+        [Fact]
 
+        public void CheckIllegalNames()
+        {
+            var parsed = Guuid.CheckNameIllegal(string.Empty);
 
+            Assert.False(parsed);
+        }
 
+        [Theory]
+        [InlineData("", "non-empty")]
+        [InlineData("non-empty", "")]
+        public void TestGuuidParseStringParseIllegal(string root, string node)
+        {
+            Assert.Throws<ArgumentException>(() =>
+            {
+                _ = new Guuid(root, node);
+            });
+        }
     }
 }

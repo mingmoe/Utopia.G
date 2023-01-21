@@ -6,9 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 using Godot;
-using System;
 using System.Diagnostics;
-using static System.Formats.Asn1.AsnWriter;
+using Utopia.Core;
 
 namespace Utopia.G
 {
@@ -27,12 +26,11 @@ namespace Utopia.G
 
         public override void _Ready()
         {
-            stopwatch.Start();
-
             player = new();
             this.AddChild(player);
-            player.Stream =  (Godot.AudioStream)ResourceLoader.Load("res://music/main.ogg");
+            player.Stream = (Godot.AudioStream)ResourceLoader.Load("res://music/main.ogg");
             player.Play();
+            stopwatch.Start();
 
             logo = (CompressedTexture2D)ResourceLoader.Load("res://images/utopia.png");
             license_logo = (CompressedTexture2D)ResourceLoader.Load("res://images/agplv3.png");
@@ -42,6 +40,8 @@ namespace Utopia.G
             Utility.SetBackground(this, background);
 
             next = ResourceLoader.Load<PackedScene>("res://Menu.tscn");
+
+            LogManager.Init(true);
         }
 
         public override void _Process(double delta)
@@ -55,22 +55,22 @@ namespace Utopia.G
                 image!.Texture = logo;
                 first_logo = false;
             }
-            else if(mc >= 3800 && mc <= 7050 && second_logo)
+            else if (mc >= 3800 && mc <= 7050 && second_logo)
             {
                 image!.Texture = license_logo;
-                image.Scale = new Vector2(0.002f,0.003f);
+                image.Scale = new Vector2(0.002f, 0.003f);
                 second_logo = false;
             }
-            else if(mc > 7100 && !first_logo && !second_logo)
+            else if (mc > 7100 && !first_logo && !second_logo)
             {
                 image!.Texture = null;
             }
 
             // change scene after show logos
-            if(mc > 7100)
+            if (mc > 7100)
             {
-                this.GetTree().ChangeSceneToPacked(next);
                 this.RemoveChild(player);
+                this.GetTree().ChangeSceneToPacked(next);
             }
         }
     }

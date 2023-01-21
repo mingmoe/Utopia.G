@@ -6,8 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 
-using System;
 using Godot;
+using System;
 
 namespace Utopia.G
 {
@@ -31,7 +31,7 @@ namespace Utopia.G
                 var rect = viewport.GetVisibleRect().Size;
                 var t_rect = background?.Texture?.GetSize();
 
-                if(!t_rect.HasValue)
+                if (!t_rect.HasValue)
                 {
                     return;
                 }

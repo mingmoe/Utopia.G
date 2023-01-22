@@ -45,5 +45,15 @@ namespace Utopia.Core.Net
         /// 关闭套接字
         /// </summary>
         void Close();
+
+        /// <summary>
+        /// 套接字地址，人类可读
+        /// </summary>
+        string SocketAddress { get; }
+
+        /// <summary>
+        /// 链接是否存在
+        /// </summary>
+        bool Connected { get; }
     }
 }

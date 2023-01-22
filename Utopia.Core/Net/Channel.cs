@@ -16,10 +16,24 @@ namespace Utopia.Core.Net
 
         public List<IHandler> Handlers { get; } = new List<IHandler>();
 
+        public string ChannelId { get; set; } = "Channel";
+
+        private IChannelRoot root;
+
+        public Channel(IChannelRoot root)
+        {
+            this.root = root;
+        }
+
         public async Task FireRead()
         {
+            // get data from the root
+            await this.FireRead(await root.Read());
+        }
+
+        public async Task FireRead(object? data)
+        {
             var ctx = new ChannelContext(this, Handlers);
-            object? data = null;
             do
             {
                 ctx.NextHandle();
@@ -38,6 +52,9 @@ namespace Utopia.Core.Net
                 ctx.NextHandle();
                 data = await ctx.Current.Write(ctx, data);
             } while (ctx.HasNext());
+
+            // write the data at last
+            root.Write(data);
         }
 
         public async Task FireConnect()

@@ -7,6 +7,7 @@
 //===--------------------------------------------------------------===//
 
 using Utopia.Core;
+using Utopia.Core.Net;
 
 namespace Utopia.Server
 {
@@ -22,12 +23,25 @@ namespace Utopia.Server
         public class LauncherOption
         {
 
+            /// <summary>
+            /// 服务器端口
+            /// </summary>
             public int Port { get; set; } = 23344;
 
+            /// <summary>
+            /// 是否跳过初始化log系统
+            /// </summary>
             public bool SkipInitLog { get; set; } = false;
 
+            /// <summary>
+            /// 是否关闭RegexLog
+            /// </summary>
             public bool DisableRegexLog { get; set; } = false;
 
+            /// <summary>
+            /// 如果为非null，则直接连接到此客户端。
+            /// </summary>
+            public ISocket? ClientSocket { get; set; } = null;
         }
 
         /// <summary>
@@ -79,7 +93,7 @@ namespace Utopia.Server
         {
             ArgumentNullException.ThrowIfNull(option, nameof(option));
 
-            Thread.CurrentThread.Name = "ServerMain";
+            Thread.CurrentThread.Name = "Server Main";
 
             if (!option.SkipInitLog)
             {

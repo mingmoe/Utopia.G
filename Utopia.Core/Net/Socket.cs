@@ -5,24 +5,34 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
+using System.Net;
 using System.Net.Sockets;
 
 namespace Utopia.Core.Net
 {
     public class Socket : ISocket
     {
-        System.Net.Sockets.Socket socket;
+        readonly System.Net.Sockets.Socket socket;
 
         public Socket(System.Net.Sockets.Socket socket)
         {
             ArgumentNullException.ThrowIfNull(socket, nameof(socket));
             this.socket = socket;
+
+            var ip = socket.RemoteEndPoint as IPEndPoint;
+            this.SocketAddress = string.Format("{0} Addr:{1} Port:{2}", 
+                ip?.AddressFamily.ToString() ?? "unknown",
+                ip?.Address?.ToString() ?? "unknown",
+                ip?.Port.ToString() ?? "unknown");
         }
+
+        public string SocketAddress { get; init; }
 
         public void Close()
         {
             socket.Shutdown(SocketShutdown.Both);
             socket.Close();
+            socket.Dispose();
         }
 
         public void Flush()

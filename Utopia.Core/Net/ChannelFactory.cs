@@ -23,10 +23,14 @@ namespace Utopia.Core.Net
         /// </summary>
         public List<Func<ISocket, IHandler>> HandlerFactories { get; } = new();
 
+        public Func<ISocket, IChannelRoot> ChannelRootFactory = (s) => { return new SocketChannelRoot(s); };
+
         public IChannel Create(ISocket socket)
         {
-            var channel = new Channel();
-            channel.Handlers.Add(new SocketHandle(socket));
+            var channel = new Channel
+            {
+                ChannelId = socket.SocketAddress
+            };
 
             HandlerFactories.ForEach((f) => { channel.Handlers.Add(f.Invoke(socket)); });
 

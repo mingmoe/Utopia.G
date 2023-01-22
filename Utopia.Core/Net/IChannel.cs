@@ -20,9 +20,14 @@ namespace Utopia.Core.Net
         Task FireWrite(object? data);
 
         /// <summary>
-        /// 发起Read调用链
+        /// 从ChannelRoot中发起Read调用链
         /// </summary>
         Task FireRead();
+
+        /// <summary>
+        /// 发起Read调用链
+        /// </summary>
+        Task FireRead(object? data);
 
         /// <summary>
         /// 发起Connect调用链
@@ -33,5 +38,10 @@ namespace Utopia.Core.Net
         /// 发起Disconnect调用链
         /// </summary>
         Task FireDisconnect();
+
+        /// <summary>
+        /// 通道的标识符，人类可读
+        /// </summary>
+        string ChannelId { get; }
     }
 }

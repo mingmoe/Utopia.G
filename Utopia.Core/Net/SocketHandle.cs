@@ -12,55 +12,41 @@ namespace Utopia.Core.Net
     /// <summary>
     /// 套接字接口
     /// </summary>
-    public class SocketHandle : IHandler
+    public class SocketChannelRoot : IChannelRoot
     {
-        private readonly ISocket socket;
-        private readonly Pipe pipe = new();
-        private readonly PipeWriter writer;
-        private readonly PipeReader reader;
+        public ISocket Socket { get; private set; }
 
-        public const int PIPE_BUFFER_SIZE = 1024;
+        public const int READ_BUFFER_SIZE = 1024;
 
-        public SocketHandle(ISocket socket)
+        public SocketChannelRoot(ISocket socket)
         {
             ArgumentNullException.ThrowIfNull(socket, nameof(socket));
-            this.socket = socket;
-            this.writer = this.pipe.Writer;
-            this.reader = this.pipe.Reader;
+            this.Socket = socket;
         }
 
-        public async Task<object?> Write(IChannelContext ctx, object? input)
+        public async Task Write(object? input)
         {
             if (input == null)
             {
-                socket.Flush();
+                Socket.Flush();
             }
             else if (input is Memory<byte> m)
             {
-                await socket.Write(m);
+                await Socket.Write(m);
             }
             else
             {
                 throw new ArgumentException("unknown type of output");
             }
-
-            // we should has no next handler
-            return null;
         }
 
-        public async Task<object?> Read(IChannelContext ctx, object? input)
+        public async Task<object?> Read()
         {
-            // write pipe
-            var buffer = writer.GetMemory(PIPE_BUFFER_SIZE);
-            var read = await socket.Read(buffer);
-            writer.Advance(read);
-            await writer.FlushAsync();
+            var buf = new byte[READ_BUFFER_SIZE];
 
-            // continue to next handle with a reader
-            return reader;
+            var size = await Socket.Read(buf);
+
+            return buf.AsMemory(0)[..size];
         }
-
-        public Task Disconnect(IChannelContext ctx) { return new Task(() => { socket.Close(); }); }
-
     }
 }

@@ -37,7 +37,7 @@ namespace Utopia.Test.Translate
 
             var str = id.ToString();
 
-            Assert.Equal("zho-chn", str);
+            Assert.Equal("zho_chn", str);
         }
     }
 }

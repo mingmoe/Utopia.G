@@ -27,7 +27,7 @@ namespace Utopia.Core.Net
 
         public IChannel Create(ISocket socket)
         {
-            var channel = new Channel
+            var channel = new Channel(ChannelRootFactory.Invoke(socket))
             {
                 ChannelId = socket.SocketAddress
             };

@@ -44,6 +44,12 @@ namespace Utopia.Core
                 events.Remove(handler);
         }
 
+        public void ClearRegister()
+        {
+            lock (locker)
+                events.Clear();
+        }
+
         /// <summary>
         /// 抛出事件。每个EventManager只允许同时存在一个事件链，其他线程的Fire调用将被堵塞。
         /// </summary>

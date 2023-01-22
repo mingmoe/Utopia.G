@@ -34,6 +34,24 @@ namespace Utopia.Core.Net
             {
                 await Socket.Write(m);
             }
+            else if (input is ReadOnlyMemory<byte> rm)
+            {
+                var mem = new Memory<byte>(new byte[rm.Length]);
+                rm.CopyTo(mem);
+                await Socket.Write(mem);
+            }
+            else if (input is byte[] b)
+            {
+                await Socket.Write(b);
+            }
+            else if(input is ArraySegment<byte> a)
+            {
+                await Socket.Write(a);
+            }
+            else if(input is IEnumerable<byte> be)
+            {
+                await Socket.Write(be.ToArray());
+            }
             else
             {
                 throw new ArgumentException("unknown type of output");

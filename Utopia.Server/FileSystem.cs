@@ -5,18 +5,16 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Utopia.Core
+namespace Utopia.Server
 {
-    /// <summary>
-    /// 事件管理器
-    /// </summary>
-    public interface IEventManager<EventT>
+    public class FileSystem : Core.FileSystem
     {
-        delegate void Handler(EventT e);
-        void Register(Handler handler);
-        void Unregister(Handler handler);
-        void ClearRegister();
-        void Fire(EventT e);
+        public override string Root => System.Reflection.Assembly.GetExecutingAssembly().Location ?? ".";
     }
 }

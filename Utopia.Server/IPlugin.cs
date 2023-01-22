@@ -5,18 +5,19 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Utopia.Core
+namespace Utopia.Server
 {
     /// <summary>
-    /// 事件管理器
+    /// 服务端插件
     /// </summary>
-    public interface IEventManager<EventT>
+    public interface IPlugin
     {
-        delegate void Handler(EventT e);
-        void Register(Handler handler);
-        void Unregister(Handler handler);
-        void ClearRegister();
-        void Fire(EventT e);
+
     }
 }

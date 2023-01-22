@@ -30,6 +30,11 @@ namespace Utopia.Core.Net
         void NextHandle();
 
         /// <summary>
+        /// 移动到上一个handle
+        /// </summary>
+        void PrevHandle();
+
+        /// <summary>
         /// 获取当前Handler
         /// </summary>
         IHandler Current { get; }
@@ -38,5 +43,10 @@ namespace Utopia.Core.Net
         /// 检查是否还有下一个handle
         /// </summary>
         bool HasNext();
+
+        /// <summary>
+        /// 检查是否还有上一个handle
+        /// </summary>
+        bool HasPrev();
     }
 }

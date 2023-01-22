@@ -6,6 +6,11 @@
 //
 //===--------------------------------------------------------------===//
 
+using Autofac;
+using Castle.Components.DictionaryAdapter.Xml;
+using Castle.Core.Logging;
+using Castle.Services.Logging.NLogIntegration;
+using NLog;
 using Utopia.Core;
 using Utopia.Core.Net;
 
@@ -95,11 +100,54 @@ namespace Utopia.Server
 
             Thread.CurrentThread.Name = "Server Main";
 
+            // 初始化日志系统
             if (!option.SkipInitLog)
             {
-                LogManager.Init(!option.DisableRegexLog);
+                Core.LogManager.Init(!option.DisableRegexLog);
             }
 
+            // 初始化依赖注入和服务提供者
+            ServiceProvider provider = new();
+            ContainerBuilder builder = new();
+
+            void Register<T>(object instance) where T : notnull
+            {
+                provider.TryRegisterService<T>((T)instance);
+                builder.RegisterInstance(instance).As<T>().ExternallyOwned();
+            }
+
+            Register<IChannelFactory>(new ChannelFactory());
+            Register<IFileSystem>(new FileSystem());
+            Register<ILoggerFactory>(new NLogFactory(true));
+            Register<Core.IServiceProvider>(provider);
+            Register<IPluginLoader>(new PluginLoader());
+
+            builder.Register((c, p) =>
+            {
+                return provider.GetService<ILoggerFactory>().Create(c.GetComponentType().FullName);
+            }).ExternallyOwned();
+
+            var container = builder.Build();
+
+            // 加载插件
+            var loader = provider.GetService<IPluginLoader>();
+            var fs = provider.GetService<IFileSystem>();
+            foreach (var f in Directory.GetFiles(fs.Plugins, "*.dll", SearchOption.AllDirectories))
+            {
+                loader.Load(f);
+            }
+            loader.Active(container);
+
+            // 加载存档
+
+
+            // 设置逻辑线程
+
+
+            // 设置网络线程
+
+
+            // 
 
         }
 

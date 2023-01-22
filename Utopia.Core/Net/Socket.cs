@@ -28,6 +28,8 @@ namespace Utopia.Core.Net
 
         public string SocketAddress { get; init; }
 
+        public bool Connected => socket.Connected;
+
         public void Close()
         {
             socket.Shutdown(SocketShutdown.Both);

@@ -40,6 +40,11 @@ namespace Utopia.Core.Net
             return handlers.Count == 0 || ptr < (handlers.Count - 1);
         }
 
+        public bool HasPrev()
+        {
+            return handlers.Count != 0;
+        }
+
         public void NextHandle()
         {
             if (begin)
@@ -52,6 +57,12 @@ namespace Utopia.Core.Net
             }
         }
 
+        public void PrevHandle()
+        {
+            if (ptr != 0)
+                ptr--;
+        }
+
         public async Task Write(object? obj)
         {
             var ctx = new ChannelContext(this.Channel, this.handlers)
@@ -61,7 +72,7 @@ namespace Utopia.Core.Net
 
             while (ctx.ptr != 0)
             {
-                ctx.ptr--;
+                ctx.PrevHandle();
                 obj = await ctx.Current.Write(ctx, obj);
             }
         }

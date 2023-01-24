@@ -37,7 +37,7 @@ public class ChannelContext : IChannelContext
 
     public bool HasNext()
     {
-        return _handlers.Count == 0 || _ptr < (_handlers.Count - 1);
+        return (_ptr + 1) < _handlers.Count;
     }
 
     public bool HasPrev()
@@ -77,5 +77,7 @@ public class ChannelContext : IChannelContext
             ctx.PrevHandle();
             obj = await ctx.Current.Write(ctx, obj);
         }
+
+        await this.Channel.Root.Write(obj);
     }
 }

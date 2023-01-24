@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -6,28 +6,27 @@
 //
 //===--------------------------------------------------------------===//
 
-namespace Utopia.Core
+namespace Utopia.Core;
+
+/// <summary>
+/// 代表一个图块，是地图上每个坐标的所指。
+/// </summary>
+public interface IBlock
 {
-    /// <summary>
-    /// 代表一个图块，是地图上每个坐标的所指。
-    /// </summary>
-    public interface IBlock
-    {
 
-        bool TryAddEntity(IEntity entity);
+    bool TryAddEntity(IEntity entity);
 
-        void RemoveEntity(IEntity entity);
+    void RemoveEntity(IEntity entity);
 
-        bool Contains(IEntity entity);
+    bool Contains(IEntity entity);
 
-        bool IsEmpty();
+    bool IsEmpty();
 
-        long EntityCount();
+    long EntityCount();
 
-        IReadOnlyCollection<IEntity> GetAllEntities();
+    IReadOnlyCollection<IEntity> GetAllEntities();
 
-        bool Collidable { get; }
+    bool Collidable { get; }
 
-        bool Accessable { get; }
-    }
+    bool Accessable { get; }
 }

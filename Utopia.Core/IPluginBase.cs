@@ -10,23 +10,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utopia.Core.Net;
+using Utopia.Core.Translate;
 
-namespace Utopia.G;
+namespace Utopia.Core;
 
 /// <summary>
-/// 本地服务器
+/// 插件基础
 /// </summary>
-public class NativeClient : IClient
+public interface IPluginBase
 {
-    public ISocket? Server { get; private set; } = null;
+    /// <summary>
+    /// 插件的人类可读名称
+    /// </summary>
+    TranslateKey Name { get; }
 
-    public ISocket Connect(string hostname, int port)
-    {
-        var (server, client) = NativeSocket.Create();
+    /// <summary>
+    /// 插件的描述
+    /// </summary>
+    TranslateKey Description { get; }
 
-        this.Server = server;
-
-        return client;
-    }
 }

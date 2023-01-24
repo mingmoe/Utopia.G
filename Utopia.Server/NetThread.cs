@@ -13,63 +13,62 @@ using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core.Net;
 
-namespace Utopia.Server
+namespace Utopia.Server;
+
+/// <summary>
+/// 网络线程
+/// </summary>
+public class NetThread
 {
-    /// <summary>
-    /// 网络线程
-    /// </summary>
-    public class NetThread
+    readonly object _locker = new();
+    bool _shutdown = true;
+    readonly System.Net.Sockets.Socket _socket;
+    readonly IChannelFactory _factory;
+    readonly List<ChannelControlr> _controllers = new();
+
+    public NetThread(System.Net.Sockets.Socket serverSocket, IChannelFactory factory)
     {
-        readonly object _locker = new();
-        bool _shutdown = true;
-        readonly System.Net.Sockets.Socket _socket;
-        readonly IChannelFactory _factory;
-        readonly List<ChannelControlr> _controllers = new();
+        ArgumentNullException.ThrowIfNull(serverSocket);
+        ArgumentNullException.ThrowIfNull(factory);
+        this._socket = serverSocket;
+        this._factory = factory;
+        Thread.CurrentThread.Name = "Server Net Manager";
+    }
 
-        public NetThread(System.Net.Sockets.Socket serverSocket, IChannelFactory factory)
+    public void Shutdown()
+    {
+        _shutdown = true;
+        lock (_locker)
         {
-            ArgumentNullException.ThrowIfNull(serverSocket);
-            ArgumentNullException.ThrowIfNull(factory);
-            this._socket = serverSocket;
-            this._factory = factory;
-            Thread.CurrentThread.Name = "Server Net Manager";
+            foreach(var c in _controllers)
+            {
+                c.StopFireLoopAndDisconnect();
+            }
+            _controllers.Clear();
         }
+    }
 
-        public void Shutdown()
+    public void Run()
+    {
+        _shutdown = false;
+
+        while (!_shutdown)
         {
-            _shutdown = true;
+            var s = _socket.Accept();
+            var ss = new Socket(s);
+            var channel = _factory.Create(ss);
+
+            var controlr = new ChannelControlr(channel, ss);
+
             lock (_locker)
             {
-                foreach(var c in _controllers)
+                if (_shutdown)
                 {
-                    c.StopFireLoopAndDisconnect();
+                    ss.Close();
+                    return;
                 }
-                _controllers.Clear();
-            }
-        }
-
-        public void Run()
-        {
-            _shutdown = false;
-
-            while (!_shutdown)
-            {
-                var s = _socket.Accept();
-                var ss = new Socket(s);
-                var channel = _factory.Create(ss);
-
-                var controlr = new ChannelControlr(channel, ss);
-
-                lock (_locker)
-                {
-                    if (_shutdown)
-                    {
-                        ss.Close();
-                        return;
-                    }
-                    _controllers.Add(controlr);
-                    controlr.FireLoop();
-                }
+                _controllers.Add(controlr);
+                controlr.FireLoop();
             }
         }
     }

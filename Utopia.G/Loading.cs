@@ -9,69 +9,68 @@ using Godot;
 using System.Diagnostics;
 using Utopia.Core;
 
-namespace Utopia.G
+namespace Utopia.G;
+
+public partial class Loading : Node2D
 {
-    public partial class Loading : Node2D
+    readonly Stopwatch _stopwatch = new();
+    CompressedTexture2D? _logo;
+    CompressedTexture2D? _license_logo;
+    bool _first_logo = true;
+    bool _second_logo = true;
+    Sprite2D? _image;
+    Sprite2D? _background;
+    PackedScene? _next;
+
+    public static Godot.AudioStreamPlayer? Player { get; set; }
+
+    public override void _Ready()
     {
-        readonly Stopwatch _stopwatch = new();
-        CompressedTexture2D? _logo;
-        CompressedTexture2D? _license_logo;
-        bool _first_logo = true;
-        bool _second_logo = true;
-        Sprite2D? _image;
-        Sprite2D? _background;
-        PackedScene? _next;
+        Player = new();
+        this.AddChild(Player);
+        Player.Stream = (Godot.AudioStream)ResourceLoader.Load("res://music/main.ogg");
+        Player.Play();
+        _stopwatch.Start();
 
-        public static Godot.AudioStreamPlayer? Player { get; set; }
+        _logo = (CompressedTexture2D)ResourceLoader.Load("res://images/utopia.png");
+        _license_logo = (CompressedTexture2D)ResourceLoader.Load("res://images/agplv3.png");
+        _image = this.GetNode<Sprite2D>("Background/Image");
+        _background = this.GetNode<Sprite2D>("Background");
 
-        public override void _Ready()
+        Utility.SetBackground(this, _background);
+
+        _next = ResourceLoader.Load<PackedScene>("res://Menu.tscn");
+
+        LogManager.Init(true);
+    }
+
+    public override void _Process(double delta)
+    {
+
+        var mc = _stopwatch.ElapsedMilliseconds;
+
+        // switch logo
+        if (mc >= 500 && mc <= 3800 && _first_logo)
         {
-            Player = new();
-            this.AddChild(Player);
-            Player.Stream = (Godot.AudioStream)ResourceLoader.Load("res://music/main.ogg");
-            Player.Play();
-            _stopwatch.Start();
-
-            _logo = (CompressedTexture2D)ResourceLoader.Load("res://images/utopia.png");
-            _license_logo = (CompressedTexture2D)ResourceLoader.Load("res://images/agplv3.png");
-            _image = GetNode<Sprite2D>("Background/Image");
-            _background = GetNode<Sprite2D>("Background");
-
-            Utility.SetBackground(this, _background);
-
-            _next = ResourceLoader.Load<PackedScene>("res://Menu.tscn");
-
-            LogManager.Init(true);
+            _image!.Texture = _logo;
+            _first_logo = false;
+        }
+        else if (mc >= 3800 && mc <= 7050 && _second_logo)
+        {
+            _image!.Texture = _license_logo;
+            _image.Scale = new Vector2(0.002f, 0.003f);
+            _second_logo = false;
+        }
+        else if (mc > 7100 && !_first_logo && !_second_logo)
+        {
+            _image!.Texture = null;
         }
 
-        public override void _Process(double delta)
+        // change scene after show logos
+        if (mc > 7100)
         {
-
-            var mc = _stopwatch.ElapsedMilliseconds;
-
-            // switch logo
-            if (mc >= 500 && mc <= 3800 && _first_logo)
-            {
-                _image!.Texture = _logo;
-                _first_logo = false;
-            }
-            else if (mc >= 3800 && mc <= 7050 && _second_logo)
-            {
-                _image!.Texture = _license_logo;
-                _image.Scale = new Vector2(0.002f, 0.003f);
-                _second_logo = false;
-            }
-            else if (mc > 7100 && !_first_logo && !_second_logo)
-            {
-                _image!.Texture = null;
-            }
-
-            // change scene after show logos
-            if (mc > 7100)
-            {
-                this.RemoveChild(Player);
-                this.GetTree().ChangeSceneToPacked(_next);
-            }
+            this.RemoveChild(Player);
+            this.GetTree().ChangeSceneToPacked(_next);
         }
     }
 }

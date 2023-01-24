@@ -9,17 +9,52 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Utopia.Core.Translate;
 
 /// <summary>
-/// 默认翻译管理器，线程安全。
+/// 默认翻译管理器，非线程安全。
 /// </summary>
 public class TranslateManager : ITranslateManager
 {
-    private readonly ConcurrentDictionary<Guuid, ITranslateProvider> _translate = new();
+    private readonly Dictionary<Guuid, ITranslateProvider> _translate = new();
+
+    public long TranslateID { get; private set; }
+
+    public TranslateManager()
+    {
+        // 使用加密安全随机数填充初始翻译ID，只填充一个int
+        this.TranslateID =
+            RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
+    }
+
+    public string ActivateTranslateKey(TranslateKey key, TranslateIdentifence id)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(id);
+
+        if (key.Id.Cached != null && key.Id.Id == this.TranslateID)
+        {
+            return key.Id.Cached;
+        }
+
+        if (this.TryGetTranslate(id, key.TranslateProviderId, key.TranslateItemId, out string? result))
+        {
+            key.Id = new(result, this.TranslateID);
+            return result!;
+        }
+
+        // not found translate
+        return string.Format("{0} -> {1}", key.TranslateProviderId?.ToString() ?? "all", key.TranslateItemId.ToString());
+    }
+
+    public void UpdateCache()
+    {
+        this.TranslateID++;
+    }
 
     public bool ContainsTranslateItem(TranslateIdentifence language, Guuid? translateProviderId, Guuid translateItemId)
     {

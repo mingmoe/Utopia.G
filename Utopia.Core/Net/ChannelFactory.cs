@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -11,30 +11,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Core.Net
+namespace Utopia.Core.Net;
+
+/// <summary>
+/// 通道工厂实现
+/// </summary>
+public class ChannelFactory : IChannelFactory
 {
     /// <summary>
-    /// 通道工厂实现
+    /// Handler工厂
     /// </summary>
-    public class ChannelFactory : IChannelFactory
+    public List<Func<ISocket, IHandler>> HandlerFactories { get; } = new();
+
+    public Func<ISocket, IChannelRoot> ChannelRootFactory = (s) => { return new SocketChannelRoot(s); };
+
+    public IChannel Create(ISocket socket)
     {
-        /// <summary>
-        /// Handler工厂
-        /// </summary>
-        public List<Func<ISocket, IHandler>> HandlerFactories { get; } = new();
-
-        public Func<ISocket, IChannelRoot> ChannelRootFactory = (s) => { return new SocketChannelRoot(s); };
-
-        public IChannel Create(ISocket socket)
+        var channel = new Channel(ChannelRootFactory.Invoke(socket))
         {
-            var channel = new Channel(ChannelRootFactory.Invoke(socket))
-            {
-                ChannelId = socket.SocketAddress
-            };
+            ChannelId = socket.SocketAddress
+        };
 
-            HandlerFactories.ForEach((f) => { channel.Handlers.Add(f.Invoke(socket)); });
+        this.HandlerFactories.ForEach((f) => { channel.Handlers.Add(f.Invoke(socket)); });
 
-            return channel;
-        }
+        return channel;
     }
 }

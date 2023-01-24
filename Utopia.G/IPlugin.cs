@@ -10,23 +10,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utopia.Core.Net;
 
 namespace Utopia.G;
 
 /// <summary>
-/// 本地服务器
+/// 插件接口
 /// </summary>
-public class NativeClient : IClient
+public interface IPlugin
 {
-    public ISocket? Server { get; private set; } = null;
 
-    public ISocket Connect(string hostname, int port)
-    {
-        var (server, client) = NativeSocket.Create();
-
-        this.Server = server;
-
-        return client;
-    }
 }

@@ -12,57 +12,56 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Core
+namespace Utopia.Core;
+
+public class ServiceProvider : IServiceProvider
 {
-    public class ServiceProvider : IServiceProvider
+    readonly ConcurrentDictionary<Type, object> _services = new();
+
+    public bool TryGetService<T>(out T? service)
     {
-        readonly ConcurrentDictionary<Type, object> _services = new();
-
-        public bool TryGetService<T>(out T? service)
+        if (this._services.TryGetValue(typeof(T), out object? value))
         {
-            if (this._services.TryGetValue(typeof(T), out object? value))
-            {
-                service = (T)value;
-                return true;
-            }
-            else
-            {
-                service = default;
-                return false;
-            }
+            service = (T)value;
+            return true;
         }
-        public T GetService<T>()
+        else
         {
-            if(this.TryGetService<T>(out T? obj))
-            {
-                return obj!;
-            }
-            else
-            {
-                throw new InvalidOperationException("the type of the service has not beed registered");
-            }
+            service = default;
+            return false;
         }
-
-        public IReadOnlyCollection<object> GetServices()
+    }
+    public T GetService<T>()
+    {
+        if(this.TryGetService<T>(out T? obj))
         {
-            return _services.Values.ToArray();
+            return obj!;
         }
-
-        public bool HasService<T>()
+        else
         {
-            return _services.ContainsKey(typeof(T));
+            throw new InvalidOperationException("the type of the service has not beed registered");
         }
+    }
 
-        public void RemoveService<T>()
-        {
-            _services.Remove(typeof(T), out _);
-        }
+    public IReadOnlyCollection<object> GetServices()
+    {
+        return _services.Values.ToArray();
+    }
 
-        public bool TryRegisterService<T>(T service)
-        {
-            ArgumentNullException.ThrowIfNull(service);
+    public bool HasService<T>()
+    {
+        return _services.ContainsKey(typeof(T));
+    }
 
-            return _services.TryAdd(typeof(T), service);
-        }
+    public void RemoveService<T>()
+    {
+        _services.Remove(typeof(T), out _);
+    }
+
+    public bool TryRegisterService<T>(T service)
+    {
+        ArgumentNullException.ThrowIfNull(service);
+
+        return _services.TryAdd(typeof(T), service);
     }
 }

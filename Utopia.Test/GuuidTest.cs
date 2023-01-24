@@ -18,9 +18,7 @@ public class GuuidTest
         var guuid = new Guuid("root", "node");
         var str = guuid.ToString();
 
-
         var parsed = Guuid.ParseString(str);
-
 
         Assert.Equal(guuid, parsed);
     }

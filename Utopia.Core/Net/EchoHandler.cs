@@ -10,23 +10,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utopia.Core.Net;
 
-namespace Utopia.G;
+namespace Utopia.Core.Net;
 
 /// <summary>
-/// 本地服务器
+/// 通常是Debug使用，回写所有接收到的数据
 /// </summary>
-public class NativeClient : IClient
+public class EchoHandler : IHandler
 {
-    public ISocket? Server { get; private set; } = null;
-
-    public ISocket Connect(string hostname, int port)
+    public async Task<object?> Read(IChannelContext ctx, object? input)
     {
-        var (server, client) = NativeSocket.Create();
+        await ctx.Write(input);
+        return input;
+    }
 
-        this.Server = server;
-
-        return client;
+    public async Task Connect(IChannelContext ctx) {
+        var m = new Memory<byte>(Encoding.UTF8.GetBytes("connected"));
+        await ctx.Write(m);
     }
 }

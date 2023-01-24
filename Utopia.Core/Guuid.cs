@@ -42,7 +42,6 @@ public class Guuid
         ArgumentNullException.ThrowIfNull(root, nameof(root));
         ArgumentNullException.ThrowIfNull(nodes, nameof(nodes));
 
-
         if (!CheckNameIllegal(root))
         {
             throw new ArgumentException("the root name is illegal");
@@ -71,13 +70,12 @@ public class Guuid
         return c1.Root != c2.Root || !Enumerable.SequenceEqual(c1.Nodes, c2.Nodes);
     }
 
-
     public override string ToString()
     {
         StringBuilder builder = new();
 
         builder.Append(this.Root.Replace("\\", "\\\\").Replace(":", "\\:"));
-        foreach (var node in Nodes)
+        foreach (var node in this.Nodes)
         {
             builder.Append(':');
             builder.Append(node.Replace("\\", "\\\\").Replace(":", "\\:"));

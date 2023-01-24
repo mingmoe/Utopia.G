@@ -42,7 +42,7 @@ public class ChannelControlr
     /// 在套接字关闭之后需要触发Disconnect调用链，
     /// 因此不能单纯地检查套接字是否关闭来检查是否需要继续调用Fire。
     /// </summary>
-    public bool IsDone { get; private set; } = false;
+    public bool HaveDone { get; private set; } = false;
 
     private bool _firedConnected = false;
 
@@ -57,7 +57,7 @@ public class ChannelControlr
 
             if (!_firedDisconnected)
             {
-                IsDone = true;
+                this.HaveDone = true;
                 _firedDisconnected = true;
                 await _channel.FireDisconnect();
             }
@@ -89,21 +89,21 @@ public class ChannelControlr
     {
         var t = async () =>
         {
-            await Fire();
-        };
-
-        Task.Factory.StartNew(t, CancellationToken.None,
-        TaskCreationOptions.None,
-        TaskScheduler.Default).ContinueWith((result) =>
-        {
-            if(result.IsFaulted)
+            while (!this.HaveDone)
             {
-                _logger.Error(result.Exception, "failed to fire the channel");
+                try
+                {
+                    await this.Fire();
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e, "failed to fire the channel");
+                }
+                // 事不过三
+                await Task.Delay(3);
             }
 
-            if (!this.IsDone) {
-                this.FireLoop();
-            }
-        });
+        };
+        Task.Factory.StartNew(t);
     }
 }

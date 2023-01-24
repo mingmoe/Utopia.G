@@ -6,38 +6,37 @@
 //
 //===--------------------------------------------------------------===//
 
-namespace Utopia.Core
+namespace Utopia.Core;
+
+/// <summary>
+/// 平面位置
+/// </summary>
+public struct FlatPosition
 {
-    /// <summary>
-    /// 平面位置
-    /// </summary>
-    public struct FlatPosition
-    {
-        public long X;
-        public long Y;
-    }
+    public long X;
+    public long Y;
+}
 
-    /// <summary>
-    /// 三维位置
-    /// </summary>
-    public struct Position
-    {
-        public long X;
-        public long Y;
-        public long Z;
-    }
+/// <summary>
+/// 三维位置
+/// </summary>
+public struct Position
+{
+    public long X;
+    public long Y;
+    public long Z;
+}
 
+/// <summary>
+/// 世界位置
+/// </summary>
+public struct WorldPosition
+{
+    public long X;
+    public long Y;
+    public long Z;
     /// <summary>
-    /// 世界位置
+    /// stand for the World ID
     /// </summary>
-    public struct WorldPosition
-    {
-        public long X;
-        public long Y;
-        public long Z;
-        /// <summary>
-        /// stand for the World ID
-        /// </summary>
-        public long Id;
-    }
+    public long Id;
 }

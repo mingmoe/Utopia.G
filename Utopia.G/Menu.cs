@@ -8,48 +8,45 @@
 
 using Godot;
 
-namespace Utopia.G
+namespace Utopia.G;
+
+public partial class Menu : Node
 {
-    public partial class Menu : Node
+    Camera2D? _camera;
+    Viewport? _viewport;
+    Sprite2D? _background;
+    Button? _play;
+    Button? _exit;
+
+    public override void _Ready()
     {
-        Camera2D? camera;
-        Viewport? Viewport;
-        Sprite2D? background;
-        Button? play;
-        Button? exit;
-
-        public override void _Ready()
+        if (Loading.Player != null)
         {
-            if (Loading.player != null)
-                this.AddChild(Loading.player);
-
-            camera = GetNode<Camera2D>("Camera2D");
-
-            Viewport = GetViewport();
-
-            background = (Sprite2D)GetNode("Background");
-            Utility.SetBackground(this, background);
-
-
-            exit = (Button)GetNode("Control/GridContainer/CenterContainerExit/Exit");
-            play = (Button)GetNode("Control/GridContainer/CenterContainerPlay/Play");
-
-            exit.Pressed += () =>
-            {
-                GetTree().Quit();
-            };
-
-            play.Pressed += () =>
-            {
-                this.GetTree().ChangeSceneToFile("res://Main.tscn");
-            };
+            this.AddChild(Loading.Player);
         }
 
+        _camera = this.GetNode<Camera2D>("Camera2D");
 
-        public override void _Process(double delta)
+        _viewport = this.GetViewport();
+
+        _background = (Sprite2D)this.GetNode("Background");
+        Utility.SetBackground(this, _background);
+
+        _exit = (Button)this.GetNode("Control/GridContainer/CenterContainerExit/Exit");
+        _play = (Button)this.GetNode("Control/GridContainer/CenterContainerPlay/Play");
+
+        _exit.Pressed += () =>
         {
+            this.GetTree().Quit();
+        };
 
+        _play.Pressed += () =>
+        {
+            this.GetTree().ChangeSceneToFile("res://Main.tscn");
+        };
+    }
 
-        }
+    public override void _Process(double delta)
+    {
     }
 }

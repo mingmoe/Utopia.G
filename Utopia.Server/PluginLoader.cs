@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -24,16 +24,16 @@ namespace Utopia.Server
         /// <summary>
         /// 已经加载的插件
         /// </summary>
-        List<Type> LoadedPlugins { get; } = new();
+        List<Type> _LoadedPlugins { get; } = new();
 
         /// <summary>
         /// 已经激活的插件
         /// </summary>
-        List<(Type, IPlugin)> ActivePlugins { get; } = new();
+        List<(Type, IPlugin)> _ActivePlugins { get; } = new();
 
-        IReadOnlyCollection<Type> IPluginLoader.LoadedPlugins => LoadedPlugins;
+        IReadOnlyCollection<Type> IPluginLoader.LoadedPlugins => _LoadedPlugins;
 
-        IReadOnlyCollection<(Type, IPlugin)> IPluginLoader.ActivePlugins => ActivePlugins;
+        IReadOnlyCollection<(Type, IPlugin)> IPluginLoader.ActivePlugins => _ActivePlugins;
 
 
         public void Load(string dllFile)
@@ -47,7 +47,7 @@ namespace Utopia.Server
             {
                 if (type.IsAssignableTo(typeof(IPlugin)))
                 {
-                    LoadedPlugins.Add(type);
+                    _LoadedPlugins.Add(type);
                 }
             }
         }
@@ -61,16 +61,16 @@ namespace Utopia.Server
                 throw new ArgumentException("the type couldn't assignable to IPlugin", nameof(type));
             }
 
-            LoadedPlugins.Add(type);
+            _LoadedPlugins.Add(type);
         }
 
         public void Active(IContainer container)
         {
-            foreach (var plugin in LoadedPlugins)
+            foreach (var plugin in _LoadedPlugins)
             {
                 var p = (IPlugin)container.Resolve(plugin);
 
-                this.ActivePlugins.Add((plugin, p));
+                this._ActivePlugins.Add((plugin, p));
             }
         }
     }

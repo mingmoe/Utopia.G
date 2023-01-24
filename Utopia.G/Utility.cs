@@ -15,10 +15,10 @@ namespace Utopia.G
     {
 
         /// <summary>
-        /// Îª³¡¾°ÉèÖÃ±³¾°Í¼Ïñ
+        /// ä¸ºåœºæ™¯è®¾ç½®èƒŒæ™¯å›¾åƒ
         /// </summary>
-        /// <param name="root">³¡¾°µÄroot½Úµã</param>
-        /// <param name="background">±³¾°Í¼Ïñ</param>
+        /// <param name="root">åœºæ™¯çš„rootèŠ‚ç‚¹</param>
+        /// <param name="background">èƒŒæ™¯å›¾åƒ</param>
         public static void SetBackground(Node root, Sprite2D background)
         {
             ArgumentNullException.ThrowIfNull(root);
@@ -29,16 +29,16 @@ namespace Utopia.G
             void lambda()
             {
                 var rect = viewport.GetVisibleRect().Size;
-                var t_rect = background?.Texture?.GetSize();
+                var tRect = background?.Texture?.GetSize();
 
-                if (!t_rect.HasValue)
+                if (!tRect.HasValue)
                 {
                     return;
                 }
 
                 // keep the background fill the viewport
-                background!.Scale = new(rect.x / t_rect.Value.x,
-                    rect.y / t_rect.Value.y);
+                background!.Scale = new(rect.x / tRect.Value.x,
+                    rect.y / tRect.Value.y);
             }
 
             viewport.SizeChanged += lambda;

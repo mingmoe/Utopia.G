@@ -16,7 +16,7 @@ namespace Utopia.Server
     public class NetServer
     {
 
-        Socket? socket = null;
+        public Socket? Socket = null;
 
         /// <summary>
         /// 监听端口
@@ -25,33 +25,33 @@ namespace Utopia.Server
         /// <exception cref="InvalidOperationException">该服务器已经监听了某个端口，并且未停机。</exception>
         public void Listen(int port)
         {
-            if (socket != null)
+            if (Socket != null)
             {
                 throw new InvalidOperationException("the server has listened and it's not closed");
             }
 
             // create the socket
-            socket = new Socket(AddressFamily.InterNetwork,
+            Socket = new Socket(AddressFamily.InterNetwork,
                                              SocketType.Stream,
                                              ProtocolType.Tcp);
 
             // bind the listening socket to the port
             IPAddress hostIP = Dns.GetHostEntry(IPAddress.Any.ToString()).AddressList[0];
             IPEndPoint ep = new(hostIP, port);
-            socket.Bind(ep);
+            Socket.Bind(ep);
 
             // start listening
-            socket.Listen(128);
+            Socket.Listen(128);
         }
 
         public async Task<Socket> Accept()
         {
-            if (socket == null)
+            if (Socket == null)
             {
                 throw new InvalidOperationException("the server hasn't listened");
             }
 
-            return await socket.AcceptAsync();
+            return await Socket.AcceptAsync();
         }
 
         /// <summary>
@@ -59,13 +59,13 @@ namespace Utopia.Server
         /// </summary>
         public void Shutdown()
         {
-            if (socket != null)
+            if (Socket != null)
             {
-                socket.Shutdown(SocketShutdown.Both);
-                socket.Close();
-                socket.Dispose();
+                Socket.Shutdown(SocketShutdown.Both);
+                Socket.Close();
+                Socket.Dispose();
             }
-            socket = null;
+            Socket = null;
         }
     }
 }

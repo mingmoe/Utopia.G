@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -12,6 +12,7 @@
     <PackageReference Include="Autofac" Version="6.5.0" />
     <PackageReference Include="Castle.Core" Version="5.1.1" />
     <PackageReference Include="Castle.Core-NLog" Version="5.1.1" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
     <PackageReference Include="NLog" Version="5.1.1" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
     <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />

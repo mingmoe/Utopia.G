@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -110,17 +110,19 @@ namespace Utopia.Server
             ServiceProvider provider = new();
             ContainerBuilder builder = new();
 
-            void Register<T>(object instance) where T : notnull
+            void register<T>(object instance) where T : notnull
             {
                 provider.TryRegisterService<T>((T)instance);
                 builder.RegisterInstance(instance).As<T>().ExternallyOwned();
             }
 
-            Register<IChannelFactory>(new ChannelFactory());
-            Register<IFileSystem>(new FileSystem());
-            Register<ILoggerFactory>(new NLogFactory(true));
-            Register<Core.IServiceProvider>(provider);
-            Register<IPluginLoader>(new PluginLoader());
+            register<IChannelFactory>(new ChannelFactory());
+            register<IFileSystem>(new FileSystem());
+            register<ILoggerFactory>(new NLogFactory(true));
+            register<Core.IServiceProvider>(provider);
+            register<IPluginLoader>(new PluginLoader());
+            register<IChannelFactory>(new ChannelFactory());
+            register<Core.Translate.ITranslateManager>(new Core.Translate.TranslateManager());
 
             builder.Register((c, p) =>
             {
@@ -139,15 +141,21 @@ namespace Utopia.Server
             loader.Active(container);
 
             // 加载存档
-
+            
 
             // 设置逻辑线程
 
 
             // 设置网络线程
+            new Thread(() =>
+            {
+                var ns = new NetServer();
+                ns.Listen(option.Port);
+                var nt = new NetThread(ns.Socket!, provider.GetService<IChannelFactory>());
+                nt.Run();
+            }).Start();
 
-
-            // 
+            // 等待
 
         }
 

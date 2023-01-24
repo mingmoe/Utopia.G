@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -20,8 +20,8 @@ namespace Utopia.Core.Translate
     /// </summary>
     public class SqliteTranslateProvider : ITranslateProvider
     {
-        readonly SQLiteConnection connect;
-        readonly Func<TranslateIdentifence, Guuid, string> provider = (language, id) =>
+        readonly SQLiteConnection _connect;
+        readonly Func<TranslateIdentifence, Guuid, string> _provider = (language, id) =>
         {
             return string.Format("SELECT * FROM @LANGUAGE WHERE ID == @ID;");
         };
@@ -29,21 +29,21 @@ namespace Utopia.Core.Translate
         public SqliteTranslateProvider(SQLiteConnection connect)
         {
             ArgumentNullException.ThrowIfNull(connect);
-            this.connect = connect;
+            this._connect = connect;
         }
 
         public SqliteTranslateProvider(string dbFile)
         {
             dbFile = Path.GetFullPath(dbFile);
-            connect = new SQLiteConnection(string.Format("Data Source={0};Version=3;", dbFile));
-            connect.Open();
+            _connect = new SQLiteConnection(string.Format("Data Source={0};Version=3;", dbFile));
+            _connect.Open();
         }
 
 
         public bool TryGetItem(TranslateIdentifence language, Guuid id, out string? result)
         {
-            var cmdStr = provider.Invoke(language, id);
-            var cmd = new SQLiteCommand(cmdStr, connect);
+            var cmdStr = _provider.Invoke(language, id);
+            var cmd = new SQLiteCommand(cmdStr, _connect);
 
             cmd.Parameters.AddWithValue("LANGUAGE", language.ToString());
             cmd.Parameters.AddWithValue("ID", id.ToString());

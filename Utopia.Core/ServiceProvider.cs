@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -16,11 +16,11 @@ namespace Utopia.Core
 {
     public class ServiceProvider : IServiceProvider
     {
-        readonly ConcurrentDictionary<Type, object> services = new();
+        readonly ConcurrentDictionary<Type, object> _services = new();
 
         public bool TryGetService<T>(out T? service)
         {
-            if (this.services.TryGetValue(typeof(T), out object? value))
+            if (this._services.TryGetValue(typeof(T), out object? value))
             {
                 service = (T)value;
                 return true;
@@ -45,24 +45,24 @@ namespace Utopia.Core
 
         public IReadOnlyCollection<object> GetServices()
         {
-            return services.Values.ToArray();
+            return _services.Values.ToArray();
         }
 
         public bool HasService<T>()
         {
-            return services.ContainsKey(typeof(T));
+            return _services.ContainsKey(typeof(T));
         }
 
         public void RemoveService<T>()
         {
-            services.Remove(typeof(T), out _);
+            _services.Remove(typeof(T), out _);
         }
 
         public bool TryRegisterService<T>(T service)
         {
             ArgumentNullException.ThrowIfNull(service);
 
-            return services.TryAdd(typeof(T), service);
+            return _services.TryAdd(typeof(T), service);
         }
     }
 }

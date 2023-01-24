@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -19,20 +19,20 @@ namespace Utopia.G
     /// </summary>
     public class NativeClient : IClient
     {
-        private ISocket? socket = null;
+        private ISocket? _socket = null;
 
         public ISocket? Server
         {
-            get { return this.socket; }
+            get { return this._socket; }
         }
 
         public ISocket Connect(string hostname, int port)
         {
-            var s = NativeSocket.Create();
+            var (server, client) = NativeSocket.Create();
 
-            this.socket = s.server;
+            this._socket = server;
 
-            return s.client;
+            return client;
         }
     }
 }

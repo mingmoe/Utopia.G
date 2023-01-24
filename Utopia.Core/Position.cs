@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -13,8 +13,8 @@ namespace Utopia.Core
     /// </summary>
     public struct FlatPosition
     {
-        public long x;
-        public long y;
+        public long X;
+        public long Y;
     }
 
     /// <summary>
@@ -22,9 +22,9 @@ namespace Utopia.Core
     /// </summary>
     public struct Position
     {
-        public long x;
-        public long y;
-        public long z;
+        public long X;
+        public long Y;
+        public long Z;
     }
 
     /// <summary>
@@ -33,11 +33,11 @@ namespace Utopia.Core
     public struct WorldPosition
     {
         public long X;
-        public long y;
-        public long z;
+        public long Y;
+        public long Z;
         /// <summary>
         /// stand for the World ID
         /// </summary>
-        public long id;
+        public long Id;
     }
 }

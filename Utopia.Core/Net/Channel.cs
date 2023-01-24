@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -18,17 +18,17 @@ namespace Utopia.Core.Net
 
         public string ChannelId { get; set; } = "Channel";
 
-        private IChannelRoot root;
+        private readonly IChannelRoot _root;
 
         public Channel(IChannelRoot root)
         {
-            this.root = root;
+            this._root = root;
         }
 
         public async Task FireRead()
         {
             // get data from the root
-            await this.FireRead(await root.Read());
+            await this.FireRead(await _root.Read());
         }
 
         public async Task FireRead(object? data)
@@ -54,7 +54,7 @@ namespace Utopia.Core.Net
             } while (ctx.HasNext());
 
             // write the data at last
-            root.Write(data);
+            await _root.Write(data);
         }
 
         public async Task FireConnect()

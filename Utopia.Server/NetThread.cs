@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -20,54 +20,54 @@ namespace Utopia.Server
     /// </summary>
     public class NetThread
     {
-        readonly object locker = new();
-        bool shutdown = true;
-        readonly System.Net.Sockets.Socket socket;
-        readonly ChannelFactory factory;
-        readonly List<ChannelControlr> controllers = new();
+        readonly object _locker = new();
+        bool _shutdown = true;
+        readonly System.Net.Sockets.Socket _socket;
+        readonly IChannelFactory _factory;
+        readonly List<ChannelControlr> _controllers = new();
 
-        public NetThread(System.Net.Sockets.Socket serverSocket, ChannelFactory factory)
+        public NetThread(System.Net.Sockets.Socket serverSocket, IChannelFactory factory)
         {
             ArgumentNullException.ThrowIfNull(serverSocket);
             ArgumentNullException.ThrowIfNull(factory);
-            this.socket = serverSocket;
-            this.factory = factory;
+            this._socket = serverSocket;
+            this._factory = factory;
             Thread.CurrentThread.Name = "Server Net Manager";
         }
 
         public void Shutdown()
         {
-            shutdown = true;
-            lock (locker)
+            _shutdown = true;
+            lock (_locker)
             {
-                foreach(var c in controllers)
+                foreach(var c in _controllers)
                 {
                     c.StopFireLoopAndDisconnect();
                 }
-                controllers.Clear();
+                _controllers.Clear();
             }
         }
 
         public void Run()
         {
-            shutdown = false;
+            _shutdown = false;
 
-            while (!shutdown)
+            while (!_shutdown)
             {
-                var s = socket.Accept();
+                var s = _socket.Accept();
                 var ss = new Socket(s);
-                var channel = factory.Create(ss);
+                var channel = _factory.Create(ss);
 
                 var controlr = new ChannelControlr(channel, ss);
 
-                lock (locker)
+                lock (_locker)
                 {
-                    if (shutdown)
+                    if (_shutdown)
                     {
                         ss.Close();
                         return;
                     }
-                    controllers.Add(controlr);
+                    _controllers.Add(controlr);
                     controlr.FireLoop();
                 }
             }

@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -30,20 +30,20 @@ namespace Utopia.Core.Net
             return new(new NativeSocket(client.Reader, server.Writer), new NativeSocket(server.Reader, client.Writer));
         }
 
-        private readonly PipeReader reader;
-        private readonly PipeWriter writer;
+        private readonly PipeReader _reader;
+        private readonly PipeWriter _writer;
 
-        private bool isConnected = true;
+        private bool _isConnected = true;
 
-        private void UpdateStatus(bool compeleted)
+        private void _UpdateStatus(bool compeleted)
         {
-            if(!this.isConnected)
+            if(!this._isConnected)
             {
                 return;
             }
             if (compeleted)
             {
-                this.isConnected = false;
+                this._isConnected = false;
             }
         }
 
@@ -54,37 +54,37 @@ namespace Utopia.Core.Net
             ArgumentNullException.ThrowIfNull(reader);
             ArgumentNullException.ThrowIfNull(writer);
 
-            this.reader = reader;
-            this.writer = writer;
+            this._reader = reader;
+            this._writer = writer;
         }
 
 
         public void Close()
         {
-            UpdateStatus(true);
-            writer.Complete();
-            reader.Complete();
+            _UpdateStatus(true);
+            _writer.Complete();
+            _reader.Complete();
         }
 
         public void Flush()
         {
-            var result = writer.FlushAsync().AsTask();
+            var result = _writer.FlushAsync().AsTask();
             result.Wait();
 
-            UpdateStatus(result.Result.IsCompleted);
+            _UpdateStatus(result.Result.IsCompleted);
         }
 
         public async Task<int> Read(Memory<byte> output)
         {
-            var result = await reader.ReadAsync();
+            var result = await _reader.ReadAsync();
             var buffer = result.Buffer;
 
-            UpdateStatus(result.IsCompleted);
+            _UpdateStatus(result.IsCompleted);
 
             if (output.Length >= buffer.Length)
             {
                 buffer.CopyTo(output.Span);
-                reader.AdvanceTo(buffer.End);
+                _reader.AdvanceTo(buffer.End);
 
                 return (int)buffer.Length;
             }
@@ -92,7 +92,7 @@ namespace Utopia.Core.Net
             {
                 buffer = buffer.Slice(0, output.Length);
                 buffer.CopyTo(output.Span);
-                reader.AdvanceTo(buffer.Start, buffer.End);
+                _reader.AdvanceTo(buffer.Start, buffer.End);
 
                 return output.Length;
             }
@@ -100,13 +100,13 @@ namespace Utopia.Core.Net
 
         public async Task Write(Memory<byte> data, int start, int length)
         {
-            var result = await writer.WriteAsync(data.Slice(start, length));
-            var fresult = await writer.FlushAsync();
+            var result = await this._writer.WriteAsync(data.Slice(start, length));
+            var fresult = await this._writer.FlushAsync();
 
-            UpdateStatus(result.IsCompleted);
-            UpdateStatus(fresult.IsCompleted);
+            this._UpdateStatus(result.IsCompleted);
+            this._UpdateStatus(fresult.IsCompleted);
         }
 
-        public bool Connected => isConnected;
+        public bool Connected => _isConnected;
     }
 }

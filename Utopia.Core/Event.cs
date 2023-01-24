@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -14,7 +14,7 @@ namespace Utopia.Core
     public class Event : IEvent
     {
 
-        private bool cancel;
+        private bool _cancel;
 
         /// <summary>
         /// 构造一个事件
@@ -41,7 +41,7 @@ namespace Utopia.Core
             {
                 if (this.CanCancel)
                 {
-                    cancel = true;
+                    _cancel = true;
                 }
                 else
                 {
@@ -50,7 +50,7 @@ namespace Utopia.Core
             }
             get
             {
-                return cancel;
+                return _cancel;
             }
         }
 

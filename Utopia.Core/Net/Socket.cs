@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -12,12 +12,12 @@ namespace Utopia.Core.Net
 {
     public class Socket : ISocket
     {
-        readonly System.Net.Sockets.Socket socket;
+        readonly System.Net.Sockets.Socket _socket;
 
         public Socket(System.Net.Sockets.Socket socket)
         {
             ArgumentNullException.ThrowIfNull(socket, nameof(socket));
-            this.socket = socket;
+            this._socket = socket;
 
             var ip = socket.RemoteEndPoint as IPEndPoint;
             this.SocketAddress = string.Format("{0} Addr:{1} Port:{2}", 
@@ -28,13 +28,13 @@ namespace Utopia.Core.Net
 
         public string SocketAddress { get; init; }
 
-        public bool Connected => socket.Connected;
+        public bool Connected => _socket.Connected;
 
         public void Close()
         {
-            socket.Shutdown(SocketShutdown.Both);
-            socket.Close();
-            socket.Dispose();
+            _socket.Shutdown(SocketShutdown.Both);
+            _socket.Close();
+            _socket.Dispose();
         }
 
         public void Flush()
@@ -46,7 +46,7 @@ namespace Utopia.Core.Net
         {
             ArgumentNullException.ThrowIfNull(output, nameof(output));
 
-            return await socket.ReceiveAsync(output, SocketFlags.None);
+            return await _socket.ReceiveAsync(output, SocketFlags.None);
         }
 
         public async Task Write(Memory<byte> data, int start, int length)
@@ -57,7 +57,7 @@ namespace Utopia.Core.Net
 
             while (true)
             {
-                var read = await socket.SendAsync(s, SocketFlags.None);
+                var read = await _socket.SendAsync(s, SocketFlags.None);
 
                 if (read != length)
                 {

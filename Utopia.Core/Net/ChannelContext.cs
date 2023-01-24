@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -6,75 +6,76 @@
 //
 //===--------------------------------------------------------------===//
 
-namespace Utopia.Core.Net
+namespace Utopia.Core.Net;
+
+public class ChannelContext : IChannelContext
 {
-    public class ChannelContext : IChannelContext
+    readonly IList<IHandler> _handlers;
+
+    /// <summary>
+    /// 我们将忽略第一次NextHandle()调用。
+    /// </summary>
+    bool _begin = false;
+
+    int _ptr = 0;
+
+    public ChannelContext(IChannel channel, IList<IHandler> handlers)
     {
-        readonly IList<IHandler> handlers;
+        this.Channel = channel;
+        this._handlers = handlers;
+    }
 
-        /// <summary>
-        /// 我们将忽略第一次NextHandle()调用。
-        /// </summary>
-        bool begin = false;
+    public IChannel Channel { get; init; }
 
-        int ptr = 0;
-
-        public ChannelContext(IChannel channel, IList<IHandler> handlers)
+    public IHandler Current
+    {
+        get
         {
-            this.Channel = channel;
-            this.handlers = handlers;
+            return _handlers[_ptr];
         }
+    }
 
-        public IChannel Channel { get; init; }
+    public bool HasNext()
+    {
+        return _handlers.Count == 0 || _ptr < (_handlers.Count - 1);
+    }
 
-        public IHandler Current
+    public bool HasPrev()
+    {
+        return _handlers.Count != 0;
+    }
+
+    public void NextHandle()
+    {
+        if (_begin)
         {
-            get
-            {
-                return handlers[ptr];
-            }
+            _ptr++;
         }
-
-        public bool HasNext()
+        else
         {
-            return handlers.Count == 0 || ptr < (handlers.Count - 1);
+            _begin = true;
         }
+    }
 
-        public bool HasPrev()
+    public void PrevHandle()
+    {
+        if (_ptr != 0)
         {
-            return handlers.Count != 0;
+            _ptr--;
         }
+    }
 
-        public void NextHandle()
+    public async Task Write(object? obj)
+    {
+        var ctx = new ChannelContext(this.Channel, this._handlers)
         {
-            if (begin)
-            {
-                ptr++;
-            }
-            else
-            {
-                begin = true;
-            }
-        }
+            _ptr = this._ptr
+        };
 
-        public void PrevHandle()
+        while (ctx._ptr != 0)
         {
-            if (ptr != 0)
-                ptr--;
-        }
-
-        public async Task Write(object? obj)
-        {
-            var ctx = new ChannelContext(this.Channel, this.handlers)
-            {
-                ptr = this.ptr
-            };
-
-            while (ctx.ptr != 0)
-            {
-                ctx.PrevHandle();
-                obj = await ctx.Current.Write(ctx, obj);
-            }
+            ctx.PrevHandle();
+            obj = await ctx.Current.Write(ctx, obj);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -6,112 +6,115 @@
 //
 //===--------------------------------------------------------------===//
 
-namespace Utopia.Core
+namespace Utopia.Core;
+
+public class Block : IBlock
 {
-    public class Block : IBlock
+    readonly List<IEntity> _entities = new();
+    readonly object _locker = new();
+
+    ulong _cannotAccessable = 0;
+    bool _collidable = false;
+
+    public bool Collidable
     {
-        readonly List<IEntity> entities = new();
-        readonly object locker = new();
-
-        ulong cannotAccessable = 0;
-        bool collidable = false;
-
-        public bool Collidable
+        get
         {
-            get
+            lock (_locker)
             {
-                lock (locker)
-                    return collidable;
+                return _collidable;
             }
         }
-
-        public bool Accessable
-        {
-            get
-            {
-                lock (locker)
-                    return cannotAccessable == 0;
-            }
-        }
-
-        public bool Contains(IEntity entity)
-        {
-            ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-            lock (locker)
-            {
-                return entities.Contains(entity);
-            }
-        }
-
-        public long EntityCount()
-        {
-            lock (locker)
-            {
-                return this.entities.Count;
-            }
-        }
-
-        public IReadOnlyCollection<IEntity> GetAllEntities()
-        {
-            lock (locker)
-            {
-                return entities;
-            }
-        }
-
-        public bool IsEmpty()
-        {
-            lock (locker)
-            {
-                return this.entities.Count == 0;
-            }
-        }
-
-        public void RemoveEntity(IEntity entity)
-        {
-            ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-            lock (locker)
-            {
-                var found = entities.Remove(entity);
-
-                if (!found)
-                {
-                    return;
-                }
-                // update
-                if (entity.Collidable)
-                {
-                    this.collidable = false;
-                }
-                if (entity.Accessible)
-                {
-                    return;
-                }
-
-                cannotAccessable--;
-            }
-        }
-
-        public bool TryAddEntity(IEntity entity)
-        {
-            ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-            lock (locker)
-            {
-                if (collidable && entity.Collidable)
-                {
-                    return false;
-                }
-                entities.Add(entity);
-
-                this.collidable = entity.Collidable;
-
-                if (!entity.Accessible)
-                {
-                    cannotAccessable++;
-                }
-            }
-            return true;
-        }
-
     }
+
+    public bool Accessable
+    {
+        get
+        {
+            lock (_locker)
+            {
+                return _cannotAccessable == 0;
+            }
+        }
+    }
+
+    public bool Contains(IEntity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+        lock (_locker)
+        {
+            return _entities.Contains(entity);
+        }
+    }
+
+    public long EntityCount()
+    {
+        lock (_locker)
+        {
+            return this._entities.Count;
+        }
+    }
+
+    public IReadOnlyCollection<IEntity> GetAllEntities()
+    {
+        lock (_locker)
+        {
+            return _entities;
+        }
+    }
+
+    public bool IsEmpty()
+    {
+        lock (_locker)
+        {
+            return this._entities.Count == 0;
+        }
+    }
+
+    public void RemoveEntity(IEntity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+        lock (_locker)
+        {
+            var found = _entities.Remove(entity);
+
+            if (!found)
+            {
+                return;
+            }
+            // update
+            if (entity.Collidable)
+            {
+                this._collidable = false;
+            }
+            if (entity.Accessible)
+            {
+                return;
+            }
+
+            _cannotAccessable--;
+        }
+    }
+
+    public bool TryAddEntity(IEntity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+        lock (_locker)
+        {
+            if (_collidable && entity.Collidable)
+            {
+                return false;
+            }
+            _entities.Add(entity);
+
+            this._collidable = entity.Collidable;
+
+            if (!entity.Accessible)
+            {
+                _cannotAccessable++;
+            }
+        }
+        return true;
+    }
+
 }

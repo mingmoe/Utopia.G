@@ -7,37 +7,31 @@
 //===--------------------------------------------------------------===//
 using Godot;
 
-namespace Utopia.G
+namespace Utopia.G;
+
+public partial class Main : Node
 {
-    public partial class Main : Node
+    /// <summary>
+    /// åœ¨_Readyä¸­åˆå§‹åŒ–ï¼Œè§†ä¸ºénullã€‚
+    /// </summary>
+    TileMap _map = null!;
+
+    Sprite2D _player = null!;
+
+    Camera2D _camera = null!;
+
+    TileSet _set = null!;
+
+    public override void _Ready()
     {
-        /// <summary>
-        /// ÔÚ_ReadyÖĞ³õÊ¼»¯£¬ÊÓÎª·Çnull¡£
-        /// </summary>
-        TileMap map = null!;
+        _map = (TileMap)this.FindChild("TileMap");
+        _player = (Sprite2D)this.FindChild("PlayerSprite");
+        _camera = (Camera2D)this.FindChild("Camera");
+        _set = _map.TileSet;
+    }
 
-        Sprite2D player = null!;
-
-        Camera2D camera = null!;
-
-        TileSet set = null!;
-
-        public override void _Ready()
-        {
-            map = (TileMap)this.FindChild("TileMap");
-            player = (Sprite2D)this.FindChild("PlayerSprite");
-            camera = (Camera2D)this.FindChild("Camera");
-            set = map.TileSet;
-        }
-
-
-        public override void _Process(double delta)
-        {
-
-
-
-
-        }
+    public override void _Process(double delta)
+    {
 
     }
 }

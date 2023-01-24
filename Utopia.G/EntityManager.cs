@@ -1,4 +1,4 @@
-﻿//===--------------------------------------------------------------===//
+//===--------------------------------------------------------------===//
 // Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
 // 
 // This file is licensed under the MIT license.
@@ -18,7 +18,7 @@ namespace Utopia.G
     public class EntityManager
     {
 
-        readonly ConcurrentDictionary<Guuid, IEntityFactory> factories = new();
+        readonly ConcurrentDictionary<Guuid, IEntityFactory> _factories = new();
 
         /// <summary>
         /// 尝试注册实体
@@ -28,7 +28,7 @@ namespace Utopia.G
         /// <returns>如果此实体ID已经被占用，返回false。否则注册成功，返回true。</returns>
         public bool TryRegisterEntity(Guuid entityId, IEntityFactory factory)
         {
-            return factories.TryAdd(entityId, factory);
+            return _factories.TryAdd(entityId, factory);
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Utopia.G
         /// </summary>
         public void Unregister(Guuid entityId)
         {
-            factories.TryRemove(entityId, out _);
+            _factories.TryRemove(entityId, out _);
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Utopia.G
         /// </summary>
         public bool Contains(Guuid entityId)
         {
-            return factories.ContainsKey(entityId);
+            return _factories.ContainsKey(entityId);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Utopia.G
         /// <returns>已经注册的实体</returns>
         public IReadOnlyCollection<KeyValuePair<Guuid, IEntityFactory>> GetAllRegisteredEntity()
         {
-            return factories.ToList();
+            return _factories.ToList();
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Utopia.G
         /// <returns>如果实体ID为注册，返回false。否则返回true，表示创造成功。</returns>
         public bool TryCreate(Guuid entityId, byte[]? data, out IEntity? entity)
         {
-            if (factories.TryGetValue(entityId, out IEntityFactory? factory))
+            if (_factories.TryGetValue(entityId, out IEntityFactory? factory))
             {
                 entity = factory.Create(data);
                 return true;

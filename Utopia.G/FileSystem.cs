@@ -5,19 +5,14 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using Godot;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Utopia.Core;
 
 namespace Utopia.G;
 
 public class FileSystem : Utopia.Core.FileSystem
 {
     public override string Root { get; } = Path.GetDirectoryName(Godot.OS.GetExecutablePath()) ?? ".";
+
+    public override string? Server => "Server";
 }
 

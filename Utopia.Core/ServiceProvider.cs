@@ -5,24 +5,21 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Utopia.Core;
 
 public class ServiceProvider : IServiceProvider
 {
-    readonly ConcurrentDictionary<Type, object> _services = new();
+    readonly SafeDictionary<Type, object> _services = new();
+
+    readonly SafeDictionary<Type, object> _managers = new();
 
     public bool TryGetService<T>(out T? service)
     {
-        if (this._services.TryGetValue(typeof(T), out object? value))
+        if (this._services.TryGetValue(typeof(T), out var value))
         {
-            service = (T)value;
+            service = (T?)value;
             return true;
         }
         else
@@ -31,9 +28,10 @@ public class ServiceProvider : IServiceProvider
             return false;
         }
     }
+
     public T GetService<T>()
     {
-        if(this.TryGetService<T>(out T? obj))
+        if (this.TryGetService<T>(out T? obj))
         {
             return obj!;
         }
@@ -45,7 +43,15 @@ public class ServiceProvider : IServiceProvider
 
     public IReadOnlyCollection<object> GetServices()
     {
-        return _services.Values.ToArray();
+        var arr = _services.ToArray();
+        var list = new List<object>(arr.Length);
+
+        foreach (var item in arr)
+        {
+            list.Add(item.Value);
+        }
+
+        return list.ToArray();
     }
 
     public bool HasService<T>()
@@ -55,13 +61,50 @@ public class ServiceProvider : IServiceProvider
 
     public void RemoveService<T>()
     {
-        _services.Remove(typeof(T), out _);
+        var r = _services.TryRemove(typeof(T), out object? obj);
+
+        // fire delete event
+        if (r)
+        {
+            this.GetEventBusForService<T>().Fire(
+                new ServiceChangedEvent<T>(ServiceChangedType.Delete, (T?)obj, true));
+        }
     }
 
     public bool TryRegisterService<T>(T service)
     {
         ArgumentNullException.ThrowIfNull(service);
 
-        return _services.TryAdd(typeof(T), service);
+        var r = _services.TryAdd(typeof(T), service);
+
+        // fire add event
+        if (r)
+        {
+            this.GetEventBusForService<T>().Fire(
+                new ServiceChangedEvent<T>(ServiceChangedType.Add, service, true));
+        }
+
+        return r;
+    }
+
+    public IEventManager<IServiceChangedEvent<T>> GetEventBusForService<T>()
+    {
+        return
+            (IEventManager<IServiceChangedEvent<T>>)this._managers.GetOrAdd(typeof(T), (_) => new EventManager<IServiceChangedEvent<T>, ServiceChangedType, T>());
+    }
+
+    public bool TryUpdate<T>(T old, T @new)
+    {
+        ArgumentNullException.ThrowIfNull(@new);
+        ArgumentNullException.ThrowIfNull(old);
+        var t = this._services.TryUpdate(typeof(T), @new, old);
+
+        // fire update event
+        if (t)
+        {
+            this.GetEventBusForService<T>().Fire(
+                new ServiceChangedEvent<T>(ServiceChangedType.Update, @new, true));
+        }
+        return t;
     }
 }

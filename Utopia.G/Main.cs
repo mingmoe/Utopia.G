@@ -6,6 +6,7 @@
 //
 //===--------------------------------------------------------------===//
 using Godot;
+using Utopia.Core.Translate;
 
 namespace Utopia.G;
 

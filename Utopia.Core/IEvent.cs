@@ -11,7 +11,7 @@ namespace Utopia.Core;
 /// <summary>
 /// 代表一个事件接口
 /// </summary>
-public interface IEvent
+public interface IEvent<ParameterT, RustleT>
 {
     /// <summary>
     /// 事件取消设置。
@@ -29,10 +29,10 @@ public interface IEvent
     /// <summary>
     /// 事件参数
     /// </summary>
-    object? Parameter { get; }
+    ParameterT? Parameter { get; }
 
     /// <summary>
     /// 事件返回值
     /// </summary>
-    object? Result { get; set; }
+    RustleT? Result { get; set; }
 }

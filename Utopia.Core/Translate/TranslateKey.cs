@@ -5,12 +5,6 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Utopia.Core.Translate;
 
@@ -27,4 +21,5 @@ public record class TranslateResult(string? Cached, long Id);
 /// <param name="TranslateProviderId">翻译提供者ID</param>
 /// <param name="TranslateItemId">翻译条目ID</param>
 /// <param name="Id">翻译缓存</param>
-public record struct TranslateKey(in Guuid? TranslateProviderId, in Guuid TranslateItemId, TranslateResult Id);
+/// <param name="Comment">翻译的注释，一般没啥用，给翻译人员使用</param>
+public record struct TranslateKey(in string TranslateItemId, in string Comment, in string? TranslateProviderId = null, TranslateResult? Id = null);

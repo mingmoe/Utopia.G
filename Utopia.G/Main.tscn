@@ -5,9 +5,9 @@
 [sub_resource type="TileSet" id="TileSet_lkh1p"]
 
 [node name="Main" type="Node2D"]
+metadata/_edit_vertical_guides_ = [-229.0, -201.0, -199.0, -209.0]
 
 [node name="Camera" type="Camera2D" parent="."]
-current = true
 
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = SubResource("TileSet_lkh1p")

@@ -5,31 +5,90 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using Standart.Hash.xxHash;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Utopia.Core;
 
 /// <summary>
 /// 人类可读的唯一标识符。由name组成。至少必须要存在有两个name。
-/// 第一个name称为root。其余的name称为node。
-/// name的长度不能为0，没有其他限制。
-/// 但是一些人类readable的名称不是更好么:-)。
+/// 第一个name称为root。其余的name称为node(s)。
+/// name的长度不能为0，只能由字母、数字、下划线组成。
+/// 并且只能由字母开头。
+/// guuid的字符串形式类似于：root:namespaces1:namespaces2...
 /// </summary>
-public class Guuid
+public sealed class Guuid
 {
 
     /// <summary>
     /// 检查name是否符合要求
     /// </summary>
-    /// <param name="name"></param>
-    /// <returns></returns>
-    public static bool CheckNameIllegal(string name)
+    /// <param name="name">要检查的name</param>
+    /// <returns>如果name合法，返回true。</returns>
+    public static bool CheckName(string name)
     {
         if (string.IsNullOrEmpty(name))
         {
             return false;
+        }
+        if (!char.IsLetter(name.First()))
+        {
+            return false;
+        }
+        if (!name.All((c) => char.IsLetter(c) || char.IsDigit(c) || c == '_'))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 检查整个guuid是否符合要求。
+    /// </summary>
+    /// <param name="guuid">guuid字符串</param>
+    /// <returns>如果符合要求，则返回true，否则返回false</returns>
+    public static bool CheckGuuid(string guuid)
+    {
+        ArgumentNullException.ThrowIfNull(guuid);
+        if (string.IsNullOrEmpty(guuid))
+        {
+            return false;
+        }
+
+        var strs = guuid.Split(':');
+
+        // 至少要存在一个root和一个node
+        if (strs.Length < 2)
+        {
+            return false;
+        }
+
+        return CheckGuuid(strs.First(), strs[1..]);
+    }
+
+    /// <summary>
+    /// 检查guuid是否符合要求
+    /// </summary>
+    /// <param name="root">guuid的root</param>
+    /// <param name="nodes">guuid的节点</param>
+    /// <returns>如果符合要求，返回true，否则返回false。</returns>
+    public static bool CheckGuuid(string root, params string[] nodes)
+    {
+        ArgumentNullException.ThrowIfNull(root, nameof(root));
+        ArgumentNullException.ThrowIfNull(nodes, nameof(nodes));
+
+        if (!CheckName(root))
+        {
+            return false;
+        }
+        foreach (var node in nodes)
+        {
+            if (!CheckName(node))
+            {
+                return false;
+            }
         }
 
         return true;
@@ -39,19 +98,9 @@ public class Guuid
     /// <exception cref="ArgumentException">如果root或者nodes不符合规范则抛出</exception>
     public Guuid(string root, params string[] nodes)
     {
-        ArgumentNullException.ThrowIfNull(root, nameof(root));
-        ArgumentNullException.ThrowIfNull(nodes, nameof(nodes));
-
-        if (!CheckNameIllegal(root))
+        if (!CheckGuuid(root, nodes))
         {
-            throw new ArgumentException("the root name is illegal");
-        }
-        foreach (var node in nodes)
-        {
-            if (!CheckNameIllegal(node))
-            {
-                throw new ArgumentException("the node name is illegal");
-            }
+            throw new ArgumentException("the guuid name is illegal");
         }
 
         this.Root = root;
@@ -70,15 +119,18 @@ public class Guuid
         return c1.Root != c2.Root || !Enumerable.SequenceEqual(c1.Nodes, c2.Nodes);
     }
 
+    /// <summary>
+    /// 把guuid转换为字符串形式
+    /// </summary>
     public override string ToString()
     {
         StringBuilder builder = new();
 
-        builder.Append(this.Root.Replace("\\", "\\\\").Replace(":", "\\:"));
+        builder.Append(this.Root);
         foreach (var node in this.Nodes)
         {
             builder.Append(':');
-            builder.Append(node.Replace("\\", "\\\\").Replace(":", "\\:"));
+            builder.Append(node);
         }
 
         return builder.ToString();
@@ -88,7 +140,7 @@ public class Guuid
     /// 从字符串解析Guuid
     /// </summary>
     /// <param name="s">字符串应该是来自Guuid的ToString()的结果。</param>
-    /// <exception cref="ArgumentException">参数异常</exception>
+    /// <exception cref="ArgumentException">输入的字符串有误</exception>
     public static Guuid ParseString(string s)
     {
         if (string.IsNullOrEmpty(s))
@@ -103,9 +155,7 @@ public class Guuid
             throw new ArgumentException("the guuid format is illegal");
         }
 
-        var result = strs.Select(x => x.Replace("\\\\", "\\").Replace("\\:", ":")).ToArray();
-
-        return new Guuid(result.First(), result[1..]);
+        return new Guuid(strs.First(), strs[1..]);
     }
 
     /// <summary>
@@ -113,16 +163,9 @@ public class Guuid
     /// </summary>
     public static Guuid Unique()
     {
-        ulong high = 0;
-        ulong low = 0;
-        using (var rg = RandomNumberGenerator.Create())
-        {
-
-            byte[] rno = new byte[16];
-            rg.GetNonZeroBytes(rno);
-            high = BitConverter.ToUInt64(rno, 0);
-            low = BitConverter.ToUInt64(rno, 8);
-        }
+        byte[] rno = RandomNumberGenerator.GetBytes(16);
+        ulong high = BitConverter.ToUInt64(rno, 0);
+        ulong low = BitConverter.ToUInt64(rno, 8);
 
         return new Guuid("unique", string.Format("{0:X16}{1:X16}", high, low));
     }

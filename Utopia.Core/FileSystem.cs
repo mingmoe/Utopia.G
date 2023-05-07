@@ -5,12 +5,6 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Utopia.Core;
 
@@ -21,13 +15,15 @@ public abstract class FileSystem : IFileSystem
 {
     public abstract string Root { get; }
 
-    public string Asserts => Path.Join(this.Root, "asserts");
+    public string Asserts => Path.Join(this.Root, "Asserts");
 
-    public string Worlds => Path.Join(this.Root, "worlds");
+    public string Worlds => Path.Join(this.Root, "Worlds");
 
-    public string Characters => Path.Join(this.Root, "characters");
+    public string Characters => Path.Join(this.Root, "Characters");
 
-    public string Plugins => Path.Join(this.Root, "plugins");
+    public string Plugins => Path.Join(this.Root, "Plugins");
 
-    public string Configuraions => Path.Join(this.Root, "configurations");
+    public string Configuraions => Path.Join(this.Root, "Configurations");
+
+    public abstract string? Server { get; }
 }

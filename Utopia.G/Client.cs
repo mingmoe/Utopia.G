@@ -6,12 +6,9 @@
 //
 //===--------------------------------------------------------------===//
 using System;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
-using Utopia.Core.Net;
 
 namespace Utopia.G;
 
@@ -20,6 +17,9 @@ namespace Utopia.G;
 /// </summary>
 public class Client : IClient
 {
+    private readonly object _lock = new();
+    private Socket? _socket = null;
+
     /// <summary>
     /// 链接到服务器
     /// </summary>
@@ -27,39 +27,56 @@ public class Client : IClient
     /// <param name="port"></param>
     /// <exception cref="InvalidOperationException">该Client已经连接到服务器</exception>
     /// <exception cref="IOException">链接异常</exception>
-    public ISocket Connect(string host, int port)
+    public Socket Connect(string host, int port)
     {
         ArgumentNullException.ThrowIfNull(host);
 
-        // Get host related information.
-        IPHostEntry? hostEntry = Dns.GetHostEntry(host);
-
-        System.Net.Sockets.Socket? tempSocket = null;
-
-        foreach (IPAddress address in hostEntry.AddressList)
+        lock (_lock)
         {
-            IPEndPoint ipe = new(address, port);
-            tempSocket =
-                new(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-            tempSocket.Connect(ipe);
-
-            if (tempSocket.Connected)
+            if (this._socket != null)
             {
-                break;
+                throw new InvalidOperationException("the client has connected");
             }
-            else
+
+            // Get host related information.
+            IPHostEntry? hostEntry = Dns.GetHostEntry(host);
+
+            System.Net.Sockets.Socket? tempSocket = null;
+
+            foreach (IPAddress address in hostEntry.AddressList)
             {
-                continue;
+                IPEndPoint ipe = new(address, port);
+                tempSocket =
+                    new(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+                tempSocket.Connect(ipe);
+
+                if (tempSocket.Connected)
+                {
+                    break;
+                }
+                else
+                {
+                    continue;
+                }
             }
-        }
 
-        if (tempSocket == null)
-        {
-            throw new IOException("failed to connect the server:" + host);
-        }
+            if (tempSocket == null)
+            {
+                throw new IOException("failed to connect the server:" + host);
+            }
 
-        return new Utopia.Core.Net.Socket(tempSocket);
+            this._socket = tempSocket;
+            return this._socket;
+        }
     }
 
+    public void Close()
+    {
+        lock (_lock)
+        {
+            this._socket?.Close();
+            this._socket = null;
+        }
+    }
 }

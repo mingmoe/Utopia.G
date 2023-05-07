@@ -27,7 +27,7 @@ public class GuuidTest
 
     public void CheckIllegalNames()
     {
-        var parsed = Guuid.CheckNameIllegal(string.Empty);
+        var parsed = Guuid.CheckName(string.Empty);
 
         Assert.False(parsed);
     }

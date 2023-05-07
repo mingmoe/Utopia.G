@@ -37,8 +37,8 @@ public static class Utility
             }
 
             // keep the background fill the viewport
-            background!.Scale = new(rect.x / tRect.Value.x,
-                rect.y / tRect.Value.y);
+            background!.Scale = new(rect.X / tRect.Value.X,
+                rect.Y / tRect.Value.Y);
         }
 
         viewport.SizeChanged += lambda;

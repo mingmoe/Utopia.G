@@ -59,7 +59,8 @@ public class Block : IBlock
     {
         lock (_locker)
         {
-            return _entities;
+            // to array to prevent user to change list
+            return _entities.ToArray();
         }
     }
 

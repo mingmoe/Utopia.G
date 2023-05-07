@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Utopia.Analyzer": {
+      "commandName": "Project",
+      "commandLineArgs": "getTranslateItem --sln C:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.G.sln"
+    }
+  }
+}

@@ -16,6 +16,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决�
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Generator", "Utopia.Generator\Utopia.Generator.csproj", "{EDA68296-F967-40DA-A63F-4EF950847A7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Analyzer", "Utopia.Analyzer\Utopia.Analyzer.csproj", "{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +60,22 @@ Global
 		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDA68296-F967-40DA-A63F-4EF950847A7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDA68296-F967-40DA-A63F-4EF950847A7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDA68296-F967-40DA-A63F-4EF950847A7B}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDA68296-F967-40DA-A63F-4EF950847A7B}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{EDA68296-F967-40DA-A63F-4EF950847A7B}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{EDA68296-F967-40DA-A63F-4EF950847A7B}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{EDA68296-F967-40DA-A63F-4EF950847A7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDA68296-F967-40DA-A63F-4EF950847A7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

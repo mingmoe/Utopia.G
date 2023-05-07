@@ -9,7 +9,7 @@
 namespace Utopia.Core.Translate;
 
 /// <summary>
-/// 翻译表示符号
+/// 翻译唯一标识符号，用于标识一个翻译。
 /// </summary>
 public class TranslateIdentifence
 {

@@ -7,7 +7,7 @@
 //===--------------------------------------------------------------===//
 using Godot;
 using System.Diagnostics;
-using Utopia.Core;
+using Utopia.Core.Logging;
 
 namespace Utopia.G;
 

@@ -25,6 +25,15 @@ public struct Position
     public long X;
     public long Y;
     public long Z;
+
+    public FlatPosition ToFlat()
+    {
+        return new FlatPosition
+        {
+            X = X,
+            Y = Y
+        };
+    }
 }
 
 /// <summary>
@@ -35,6 +44,26 @@ public struct WorldPosition
     public long X;
     public long Y;
     public long Z;
+
+    public FlatPosition ToFlat()
+    {
+        return new FlatPosition
+        {
+            X = X,
+            Y = Y
+        };
+    }
+
+    public Position ToPos()
+    {
+        return new Position
+        {
+            X = X,
+            Y = Y,
+            Z = Z
+        };
+    }
+
     /// <summary>
     /// stand for the World ID
     /// </summary>

@@ -40,6 +40,11 @@ public class SqliteTranslateProvider : ITranslateProvider
         _connect.Open();
     }
 
+    public bool Contain(TranslateIdentifence language, Guuid id)
+    {
+        throw new NotImplementedException();
+    }
+
     public bool TryGetItem(TranslateIdentifence language, Guuid id, out string? result)
     {
         var cmdStr = _provider.Invoke(language, id);

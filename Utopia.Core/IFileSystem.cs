@@ -5,12 +5,6 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Utopia.Core;
 
@@ -48,4 +42,27 @@ public interface IFileSystem
     /// 游戏的配置文件目录
     /// </summary>
     string Configuraions { get; }
+
+    /// <summary>
+    /// 对于游戏的客户端，这是服务器的Root文件夹。
+    /// 对于服务器，返回null。
+    /// </summary>
+    string? Server { get; }
+
+    /// <summary>
+    /// 对于不存在的目录，则创建一个
+    /// </summary>
+    void CreateIfNotExist()
+    {
+        Directory.CreateDirectory(this.Root);
+        Directory.CreateDirectory(this.Asserts);
+        Directory.CreateDirectory(this.Worlds);
+        Directory.CreateDirectory(this.Characters);
+        Directory.CreateDirectory(this.Plugins);
+        Directory.CreateDirectory(this.Configuraions);
+        if (this.Server != null)
+        {
+            Directory.CreateDirectory(this.Server);
+        }
+    }
 }

@@ -11,7 +11,7 @@ namespace Utopia.Core;
 /// <summary>
 /// 一个事件标准实现，非线程安全。
 /// </summary>
-public class Event : IEvent
+public class Event<ParameterT, RustleT> : IEvent<ParameterT, RustleT>
 {
 
     private bool _cancel;
@@ -22,7 +22,7 @@ public class Event : IEvent
     /// <param name="param">事件参数</param>
     /// <param name="initResult">事件初始结果</param>
     /// <param name="cancelAble">事件能否被取消</param>
-    public Event(object? param, object? initResult, bool cancelAble)
+    public Event(ParameterT? param, RustleT? initResult, bool cancelAble)
     {
         this.Parameter = param;
         this.Result = initResult;
@@ -62,10 +62,10 @@ public class Event : IEvent
     /// <summary>
     /// 事件参数
     /// </summary>
-    public object? Parameter { get; init; }
+    public ParameterT? Parameter { get; init; }
 
     /// <summary>
     /// 事件返回值
     /// </summary>
-    public object? Result { get; set; }
+    public RustleT? Result { get; set; }
 }

@@ -9,10 +9,10 @@
 using Autofac;
 using Castle.Components.DictionaryAdapter.Xml;
 using Castle.Core.Logging;
-using Castle.Services.Logging.NLogIntegration;
-using NLog;
+using System.Globalization;
+using System.Linq;
 using Utopia.Core;
-using Utopia.Core.Net;
+using Utopia.Core.Translate;
 
 namespace Utopia.Server;
 
@@ -21,6 +21,7 @@ namespace Utopia.Server;
 /// </summary>
 public static class Launcher
 {
+    private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
     /// <summary>
     /// 启动参数
@@ -44,14 +45,16 @@ public static class Launcher
         public bool DisableRegexLog { get; set; } = false;
 
         /// <summary>
-        /// 如果为非null，则直接连接到此客户端。
-        /// </summary>
-        public ISocket? ClientSocket { get; set; } = null;
-
-        /// <summary>
         /// 文件系统
         /// </summary>
         public IFileSystem? FileSystem { get; set; } = null;
+
+        /// <summary>
+        /// 用于设置全局语言标识符
+        /// </summary>
+        public TranslateIdentifence GlobalLanguage { get; set; } =
+            new(CultureInfo.CurrentCulture.ThreeLetterISOLanguageName,
+            RegionInfo.CurrentRegion.ThreeLetterISORegionName);
     }
 
     /// <summary>
@@ -107,7 +110,7 @@ public static class Launcher
         // 初始化日志系统
         if (!option.SkipInitLog)
         {
-            Core.LogManager.Init(!option.DisableRegexLog);
+            Core.Logging.LogManager.Init(!option.DisableRegexLog);
         }
 
         // 初始化依赖注入和服务提供者
@@ -120,45 +123,59 @@ public static class Launcher
             builder.RegisterInstance(instance).As<T>().ExternallyOwned();
         }
 
-        register<IChannelFactory>(new ChannelFactory());
         register<IFileSystem>(option.FileSystem ?? new FileSystem());
-        register<ILoggerFactory>(new NLogFactory(true));
+        register<ILoggerFactory>(new Castle.Services.Logging.NLogIntegration.NLogFactory(true));
         register<Core.IServiceProvider>(provider);
-        register<IPluginLoader>(new PluginLoader());
-        register<IChannelFactory>(new ChannelFactory());
-        register<Core.Translate.ITranslateManager>(new Core.Translate.TranslateManager());
-
-        builder.Register((c, p) =>
-        {
-            return provider.GetService<ILoggerFactory>().Create(c.GetComponentType().FullName);
-        }).ExternallyOwned();
+        register<IPluginLoader<IPlugin>>(new PluginLoader<IPlugin>());
+        register<ITranslateManager>(new Core.Translate.TranslateManager());
+        register<TranslateIdentifence>(option.GlobalLanguage);
+        provider.GetService<INetServer>().Listen(option.Port);
 
         var container = builder.Build();
+        provider.TryRegisterService<IContainer>(container);
+
+        // 设置目录
+        provider.GetService<IFileSystem>().CreateIfNotExist();
 
         // 加载插件
-        var loader = provider.GetService<IPluginLoader>();
+        var loader = provider.GetService<IPluginLoader<IPlugin>>();
         var fs = provider.GetService<IFileSystem>();
-        //foreach (var f in Directory.GetFiles(fs.Plugins, "*.dll", SearchOption.AllDirectories))
-        //{
-        //    loader.Load(f);
-        //}
-        loader.Active(container);
+        foreach (var f in Directory.GetFiles(fs.Plugins, "*.dll", SearchOption.AllDirectories))
+        {
+            loader.Active(container, f);
+        }
 
         // 加载存档
 
+        var w = new World(1, 4, 4);
+        Dictionary<IBlock, Position> b = new();
+
+        for (var x = -(IArea.XSize * 4); x != ((IArea.XSize * 4) - 1); x++)
+        {
+            for (var y = -(IArea.YSize * 4); y != ((IArea.YSize * 4) - 1); y++)
+            {
+                if (w.TryGetBlock(new Position() { X = x, Y = y, Z = 0 }, out IBlock? block))
+                {
+                    if (b.TryGetValue(block!, out Position p))
+                    {
+                        _logger.Error("added {0} {1} before {2} {3}", x, y, p.X, p.Y);
+                    }
+                    else
+                    {
+                        b.Add(block!, new Position() { X = x, Y = y, Z = 0 });
+                    }
+                }
+                else
+                {
+                    _logger.Error("not found pos {0} {1}", x, y);
+                }
+            }
+        }
+
         // 设置逻辑线程
 
-        // 设置网络线程
+        // TODO:设置网络线程
         // set debug handler
-        ((ChannelFactory)provider.GetService<IChannelFactory>()).HandlerFactories.Add((s) => new EchoHandler());
-
-        new Thread(() =>
-        {
-            var ns = new NetServer();
-            ns.Listen(option.Port);
-            var nt = new NetThread(ns.Socket!, provider.GetService<IChannelFactory>());
-            nt.Run();
-        }).Start();
 
         // 等待
 

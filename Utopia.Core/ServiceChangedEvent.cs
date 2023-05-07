@@ -6,11 +6,11 @@
 //
 //===--------------------------------------------------------------===//
 
-namespace Utopia.Server;
+namespace Utopia.Core;
 
-public class FileSystem : Core.FileSystem
+public class ServiceChangedEvent<ServiceT> : Event<ServiceChangedType, ServiceT>, IServiceChangedEvent<ServiceT>
 {
-    public override string Root => Path.GetPathRoot(System.Reflection.Assembly.GetExecutingAssembly().Location ?? ".") ?? ".";
-
-    public override string? Server => null;
+    public ServiceChangedEvent(ServiceChangedType param, ServiceT? initResult, bool cancelAble) : base(param, initResult, cancelAble)
+    {
+    }
 }

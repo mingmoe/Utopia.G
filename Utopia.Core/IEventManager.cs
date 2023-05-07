@@ -14,8 +14,12 @@ namespace Utopia.Core;
 public interface IEventManager<EventT>
 {
     delegate void Handler(EventT e);
+
     void Register(Handler handler);
+
     void Unregister(Handler handler);
+
     void ClearRegister();
+
     void Fire(EventT e);
 }

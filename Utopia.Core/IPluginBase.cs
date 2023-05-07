@@ -5,11 +5,6 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Utopia.Core.Translate;
 
 namespace Utopia.Core;
@@ -28,5 +23,20 @@ public interface IPluginBase
     /// 插件的描述
     /// </summary>
     TranslateKey Description { get; }
+
+    /// <summary>
+    /// 插件的许可协议
+    /// </summary>
+    string License { get; }
+
+    /// <summary>
+    /// 用于标识插件的唯一ID
+    /// </summary>
+    Guuid Id { get; }
+
+    /// <summary>
+    /// 插件的网址，或者其他联系方式等。
+    /// </summary>
+    string Homepage { get; }
 
 }

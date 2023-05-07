@@ -5,12 +5,6 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Utopia.Core;
 
@@ -55,6 +49,22 @@ public interface IServiceProvider
     /// </summary>
     /// <typeparam name="T">要删除的服务类型</typeparam>
     void RemoveService<T>();
+
+    /// <summary>
+    /// 尝试更新对象
+    /// </summary>
+    /// <param name="old">老对象。老对象相匹配才会进行更新。</param>
+    /// <param name="new">新对象</param>
+    /// <returns>如果成功更新，则返回true</returns>
+    bool TryUpdate<T>(T old, T @new);
+
+    /// <summary>
+    /// 获取对于服务变动的事件管理器，保证为线程安全的。
+    /// 对于事件的详细信息，见<see cref="IServiceChangedEvent"/>
+    /// </summary>
+    /// <typeparam name="T">要获取的服务</typeparam>
+    /// <returns></returns>
+    IEventManager<IServiceChangedEvent<T>> GetEventBusForService<T>();
 
     /// <summary>
     /// 获取所有已经注册的服务

@@ -14,13 +14,13 @@ namespace Utopia.Core;
 /// </summary>
 public interface IArea
 {
-    const long XSize = 32;
-    const long YSize = 32;
+    const int XSize = 32;
+    const int YSize = 32;
 
     /// <summary>
     /// 地面的Z坐标。
     /// </summary>
-    const long GroundZ = 0;
+    const int GroundZ = 0;
 
-    bool TryGetBlock(Position position, out IBlock block);
+    bool TryGetBlock(Position position, out IBlock? block);
 }

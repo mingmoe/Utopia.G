@@ -5,22 +5,15 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Utopia.Core.Translate;
 
 /// <summary>
 /// 默认翻译管理器，非线程安全。
 /// </summary>
-public class TranslateManager : ITranslateManager
+public class TranslateManager : SafeDictionary<Guuid, ITranslateProvider>, ITranslateManager
 {
-    private readonly Dictionary<Guuid, ITranslateProvider> _translate = new();
 
     public long TranslateID { get; private set; }
 
@@ -31,24 +24,29 @@ public class TranslateManager : ITranslateManager
             RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
     }
 
-    public string ActivateTranslateKey(TranslateKey key, TranslateIdentifence id)
+    public string Activate(TranslateKey key, TranslateIdentifence id)
     {
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(id);
 
-        if (key.Id.Cached != null && key.Id.Id == this.TranslateID)
+        if (key.Id?.Cached != null && key.Id.Id == this.TranslateID)
         {
             return key.Id.Cached;
         }
 
-        if (this.TryGetTranslate(id, key.TranslateProviderId, key.TranslateItemId, out string? result))
+        else if (this.TryGetTranslate(id, key.TranslateProviderId == null ? null : Guuid.ParseString(key.TranslateProviderId),
+            Guuid.ParseString(key.TranslateItemId), out string? result))
         {
             key.Id = new(result, this.TranslateID);
             return result!;
         }
+        else
+        {
+            key.Id = new(string.Format("{0}::{1}", key.TranslateProviderId?.ToString() ?? "any provider",
+                key.TranslateItemId.ToString()), this.TranslateID);
+        }
 
-        // not found translate
-        return string.Format("{0} -> {1}", key.TranslateProviderId?.ToString() ?? "all", key.TranslateItemId.ToString());
+        return key.Id.Cached!;
     }
 
     public void UpdateCache()
@@ -56,26 +54,9 @@ public class TranslateManager : ITranslateManager
         this.TranslateID++;
     }
 
-    public bool ContainsTranslateItem(TranslateIdentifence language, Guuid? translateProviderId, Guuid translateItemId)
+    public bool Contains(TranslateIdentifence language, Guuid? translateProviderId, Guuid translateItemId)
     {
         return this.TryGetTranslate(language, translateProviderId, translateItemId, out _);
-    }
-
-    public bool ContainsTranslateProvider(Guuid id)
-    {
-        ArgumentNullException.ThrowIfNull(id);
-        return this._translate.ContainsKey(id);
-    }
-
-    public IReadOnlyCollection<KeyValuePair<Guuid, ITranslateProvider>> GetTranslateProviders()
-    {
-        return this._translate.ToArray();
-    }
-
-    public void RemoveTranslateProvider(Guuid id)
-    {
-        ArgumentNullException.ThrowIfNull(id);
-        this._translate.Remove(id, out _);
     }
 
     public bool TryGetTranslate(TranslateIdentifence language, Guuid? translateProviderId, Guuid translateItemId, out string? result)
@@ -84,9 +65,9 @@ public class TranslateManager : ITranslateManager
         ArgumentNullException.ThrowIfNull(translateItemId);
 
         if (translateProviderId is not null &&
-            this._translate.TryGetValue(translateProviderId, out ITranslateProvider? value))
+            this.TryGetValue(translateProviderId, out ITranslateProvider? value))
         {
-            if (value.TryGetItem(language, translateItemId, out result))
+            if (value!.TryGetItem(language, translateItemId, out result))
             {
                 return true;
             }
@@ -98,11 +79,11 @@ public class TranslateManager : ITranslateManager
         }
         else if (translateProviderId is null)
         {
-            var vs = this._translate.Values;
+            var vs = this.ToArray();
 
             foreach (var provider in vs)
             {
-                if (provider.TryGetItem(language, translateItemId, out result))
+                if (provider.Value.TryGetItem(language, translateItemId, out result))
                 {
                     return true;
                 }
@@ -111,26 +92,5 @@ public class TranslateManager : ITranslateManager
 
         result = null;
         return false;
-    }
-
-    public bool TryGetTranslateProvider(Guuid id, out ITranslateProvider? result)
-    {
-        ArgumentNullException.ThrowIfNull(id);
-
-        if (this._translate.TryGetValue(id, out result))
-        {
-            return true;
-        }
-
-        result = null;
-        return false;
-    }
-
-    public bool TryRegisterTranslateProvider(Guuid id, ITranslateProvider provider)
-    {
-        ArgumentNullException.ThrowIfNull(id);
-        ArgumentNullException.ThrowIfNull(provider);
-
-        return this._translate.TryAdd(id, provider);
     }
 }

@@ -6,5 +6,5 @@
 
 [resource]
 base_font = ExtResource("1_bg8me")
-fallbacks = [ExtResource("2_n4n44"), ExtResource("3_tpphs")]
+fallbacks = Array[Font]([ExtResource("2_n4n44"), ExtResource("3_tpphs")])
 variation_face_index = 3

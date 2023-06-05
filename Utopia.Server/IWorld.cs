@@ -6,13 +6,16 @@
 //
 //===--------------------------------------------------------------===//
 
+using Utopia.Server;
+
 namespace Utopia.Core;
 
 /// <summary>
 /// 世界接口
 /// </summary>
-public interface IWorld
+public interface IWorld : IUpdatable
 {
+
     /// <summary>
     /// 世界ID
     /// </summary>

@@ -28,8 +28,19 @@ public class TranslateFinder
         }
     }
 
-    private async Task _WalkDocument(Document file, Compilation compilation)
+    public record Item(in string SlnFilePath, in string ProjectGuid, in string SourceFilePath, in string SourceSpan,
+        in string TranslateGuuid,
+        in string? TranslateProviderGuuid,
+        in string TranslateComment)
     {
+    }
+
+    private static async Task<Item[]> _WalkDocument(Document file, Compilation compilation)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(file));
+        ArgumentNullException.ThrowIfNull(nameof(compilation));
+
+        List<Item> items = new();
         // read source file and create semantic model
         if (!file.TryGetText(out var text))
         {
@@ -41,7 +52,7 @@ public class TranslateFinder
         if (tree == null)
         {
             _Logger.Info("skip file {file} because there is no syntax tree", file.FilePath);
-            return;
+            return Array.Empty<Item>();
         }
 
         CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
@@ -66,7 +77,7 @@ public class TranslateFinder
                 if (translate.Length < 2)
                 {
                     _Logger.Error("the syntax is illegal(only support literal):at {file} {span}", file.FilePath, node.Span);
-                    return;
+                    return Array.Empty<Item>();
                 }
 
                 // check name
@@ -88,6 +99,14 @@ public class TranslateFinder
                     _Logger.Error("the translate id(guuid) is illegal:at {file} {span}", file.FilePath, node.Span);
                 }
 
+                items.Add(new Item(
+                    file.Project.Solution.FilePath ?? "UNKNOWN",
+                    file.Project.Id.Id.ToString() ?? "UNKNOWN",
+                    file.FilePath ?? "UNKNOWN",
+                    node.Span.ToString(),
+                    id,
+                    provider,
+                    comment));
                 _Logger.Info("found translate item at {file}:{provider}->{translate} --{comment} ", file.FilePath, provider, id, comment);
             }
             else
@@ -97,21 +116,27 @@ public class TranslateFinder
                     file.FilePath, node.Span);
             }
         }
+
+        return items.ToArray();
     }
 
-    public async Task FindTranslateItem(Project project)
+    public static async Task<Item[]> FindTranslateItem(Project project)
     {
         await project.GetCompilationAsync();
         if (!project.TryGetCompilation(out Compilation? compilation))
         {
             _Logger.Error("failed to compile project {project}", project.Name);
-            return;
+            return Array.Empty<Item>();
         }
+
+        List<Item> items = new();
 
         foreach (var file in project.Documents)
         {
-            await this._WalkDocument(file, compilation);
+            items.AddRange(await _WalkDocument(file, compilation));
         }
+
+        return items.ToArray();
     }
 
 }

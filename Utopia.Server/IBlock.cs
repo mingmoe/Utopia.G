@@ -6,6 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 
+using Utopia.Server;
+
 namespace Utopia.Core;
 
 /// <summary>
@@ -13,6 +15,8 @@ namespace Utopia.Core;
 /// </summary>
 public interface IBlock
 {
+    // TODO:on lock doing
+    void OnLock(Action action);
 
     bool TryAddEntity(IEntity entity);
 
@@ -29,4 +33,6 @@ public interface IBlock
     bool Collidable { get; }
 
     bool Accessable { get; }
+
+    void LogicUpdate();
 }

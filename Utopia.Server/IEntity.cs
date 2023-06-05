@@ -6,6 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 
+using Utopia.Core.Translate;
+
 namespace Utopia.Core;
 
 /// <summary>
@@ -17,24 +19,24 @@ namespace Utopia.Core;
 public interface IEntity
 {
     /// <summary>
-    /// 实体名称，用于显示给玩家。通常是翻译id。
+    /// 实体名称，用于显示给玩家。
     /// </summary>
-    string Name { get; set; }
+    TranslateKey Name { get; }
 
     /// <summary>
     /// 实体是否可供生物等其他实体通过。
     /// </summary>
-    bool Accessible { get; set; }
+    bool Accessible { get; }
 
     /// <summary>
     /// 实体是否可和其他可碰撞的实体进行碰撞。
     /// </summary>
-    bool Collidable { get; set; }
+    bool Collidable { get; }
 
     /// <summary>
     /// 对于每一种实体，都需要一种Id与其对应，作为唯一标识符。
     /// </summary>
-    Guuid Id { get; set; }
+    Guuid Id { get; }
 
     /// <summary>
     /// 每个逻辑帧调用。一秒20个逻辑帧，可能从不同线程发起调用。

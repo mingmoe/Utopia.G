@@ -6,13 +6,15 @@
 //
 //===--------------------------------------------------------------===//
 
+using Utopia.Server;
+
 namespace Utopia.Core;
 
 /// <summary>
 /// 世界由许多Area组成。Area的X层和Y层大小固定，Z层则应该是动态生成的。
 /// 毕竟，谁也不想自己的电脑生成long.MAX_SIZE个数量的z层对象吧。
 /// </summary>
-public interface IArea
+public interface IArea : IUpdatable
 {
     const int XSize = 32;
     const int YSize = 32;

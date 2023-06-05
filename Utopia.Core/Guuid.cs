@@ -5,6 +5,10 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
+using CommunityToolkit.Diagnostics;
+using MessagePack;
+using MessagePack.Formatters;
+using MessagePack.Resolvers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
@@ -188,4 +192,47 @@ public sealed class Guuid
         return HashCode.Combine(this.Root, this.Nodes);
     }
 
+}
+
+public class GuuidMsgPackFormatter : IMessagePackFormatter<Guuid>
+{
+    public readonly static GuuidMsgPackFormatter Instance = new();
+
+    public Guuid Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return null!;
+        }
+
+        options.Security.DepthStep(ref reader);
+
+        var id = reader.ReadString();
+
+        reader.Depth--;
+
+        return Guuid.ParseString(id!);
+    }
+
+    public void Serialize(ref MessagePackWriter writer, Guuid value, MessagePackSerializerOptions options)
+    {
+        if (value is null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        var v = value.ToString();
+
+        writer.WriteString(Encoding.UTF8.GetBytes(v));
+    }
+
+    public static MessagePackSerializerOptions CreateOption()
+    {
+        var resolver = MessagePack.Resolvers.CompositeResolver.Create(
+            new[] { GuuidMsgPackFormatter.Instance },
+             new[] { StandardResolver.Instance });
+
+        return MessagePackSerializerOptions.Standard.WithResolver(resolver);
+    }
 }

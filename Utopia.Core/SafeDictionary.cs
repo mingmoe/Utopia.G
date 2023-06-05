@@ -55,4 +55,9 @@ public class SafeDictionary<KeyT, ValueT> : ISafeDictionary<KeyT, ValueT> where 
     {
         return _safeDictionary.TryUpdate(key, newValue, comparisonValue);
     }
+
+    public ValueT AddOrUpdate(KeyT key, Func<KeyT, ValueT> newFactory, Func<KeyT, ValueT, ValueT> updateFactory)
+    {
+        return _safeDictionary.AddOrUpdate(key, newFactory, updateFactory);
+    }
 }

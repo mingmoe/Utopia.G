@@ -9,15 +9,13 @@
 namespace Utopia.Core;
 
 /// <summary>
-/// 事件管理器
+/// 事件管理器，应该是线程安全的。
 /// </summary>
 public interface IEventManager<EventT>
 {
-    delegate void Handler(EventT e);
+    void Register(Action<EventT> handler);
 
-    void Register(Handler handler);
-
-    void Unregister(Handler handler);
+    void Unregister(Action<EventT> handler);
 
     void ClearRegister();
 

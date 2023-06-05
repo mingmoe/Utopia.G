@@ -6,6 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 
+using Utopia.Server;
+
 namespace Utopia.Core;
 
 public class Block : IBlock
@@ -118,4 +120,14 @@ public class Block : IBlock
         return true;
     }
 
+    public void LogicUpdate()
+    {
+        lock (_locker)
+        {
+            foreach (var item in _entities)
+            {
+                item.LogicUpdate();
+            }
+        }
+    }
 }

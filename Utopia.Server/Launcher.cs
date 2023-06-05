@@ -9,6 +9,7 @@
 using Autofac;
 using Castle.Components.DictionaryAdapter.Xml;
 using Castle.Core.Logging;
+using CommunityToolkit.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Utopia.Core;
@@ -103,10 +104,61 @@ public static class Launcher
     /// <param name="option">参数</param>
     public static void Launch(LauncherOption option)
     {
-        ArgumentNullException.ThrowIfNull(option, nameof(option));
+        ArgumentNullException.ThrowIfNull(option);
 
-        Thread.CurrentThread.Name = "Server Main";
+        Thread.CurrentThread.Name = "Server Initialization Thread";
 
+        var (container, provider) = _InitSystem(option);
+
+        // 加载插件
+        var loader = provider.GetService<IPluginLoader<IPlugin>>();
+        var fs = provider.GetService<IFileSystem>();
+        foreach (var f in Directory.GetFiles(fs.Plugins, "*.dll", SearchOption.AllDirectories))
+        {
+            _logger.Info("loading {plugin}", f);
+            loader.Active(container, f);
+        }
+
+        // 创建世界
+        provider.GetService<SafeDictionary<long, World>>().GetOrAdd(1, (_) => { return new World(1, 4, 4); });
+
+        // 设置逻辑线程
+        var logicT = new Thread(() =>
+        {
+            var t = provider.GetService<ILogicThread>();
+            var worlds = provider.GetService<SafeDictionary<long, IWorld>>().ToArray();
+            foreach (var world in worlds)
+            {
+                t.AddUpdatable(world.Value);
+            }
+            t.Run();
+        })
+        {
+            Name = "Server Updating Thread"
+        };
+        logicT.Start();
+
+        // 设置网络线程
+        var net = new NetServer();
+        provider.TryRegisterService<INetServer>(net);
+        net.Listen(option.Port);
+        _logger.Info("listen to {port}", option.Port);
+
+        // 启动结束，开始监听
+        var nt = new NetThread(provider);
+        provider.TryRegisterService<NetThread>(nt);
+        var netT = new Thread(() =>
+        {
+            nt.Run();
+        })
+        {
+            Name = "Server Networking Thread"
+        };
+        netT.Start();
+    }
+    private static (IContainer, ServiceProvider) _InitSystem(LauncherOption option)
+    {
+        Guard.IsNotNull(option);
         // 初始化日志系统
         if (!option.SkipInitLog)
         {
@@ -129,56 +181,40 @@ public static class Launcher
         register<IPluginLoader<IPlugin>>(new PluginLoader<IPlugin>());
         register<ITranslateManager>(new Core.Translate.TranslateManager());
         register<TranslateIdentifence>(option.GlobalLanguage);
-        provider.GetService<INetServer>().Listen(option.Port);
+        register<ILogicThread>(new SimplyLogicThread());
+
+        // as world manager
+        register<SafeDictionary<long, IWorld>>(new SafeDictionary<long, IWorld>());
 
         var container = builder.Build();
         provider.TryRegisterService<IContainer>(container);
 
-        // 设置目录
+        // init system
         provider.GetService<IFileSystem>().CreateIfNotExist();
 
-        // 加载插件
-        var loader = provider.GetService<IPluginLoader<IPlugin>>();
-        var fs = provider.GetService<IFileSystem>();
-        foreach (var f in Directory.GetFiles(fs.Plugins, "*.dll", SearchOption.AllDirectories))
+        return (container, provider);
+    }
+
+    /// <summary>
+    /// 获取坐标，自动查询世界
+    /// </summary>
+    /// <param name=""></param>
+    /// <param name="position"></param>
+    /// <returns></returns>
+    public static bool TryGetBlock(this ServiceProvider provider, WorldPosition position, out IBlock? block)
+    {
+        block = null;
+        if (!provider.TryGetService<SafeDictionary<long, IWorld>>(out var world))
         {
-            loader.Active(container, f);
+            return false;
         }
 
-        // 加载存档
-
-        var w = new World(1, 4, 4);
-        Dictionary<IBlock, Position> b = new();
-
-        for (var x = -(IArea.XSize * 4); x != ((IArea.XSize * 4) - 1); x++)
+        if (!world!.TryGetValue(position.Id, out IWorld? w))
         {
-            for (var y = -(IArea.YSize * 4); y != ((IArea.YSize * 4) - 1); y++)
-            {
-                if (w.TryGetBlock(new Position() { X = x, Y = y, Z = 0 }, out IBlock? block))
-                {
-                    if (b.TryGetValue(block!, out Position p))
-                    {
-                        _logger.Error("added {0} {1} before {2} {3}", x, y, p.X, p.Y);
-                    }
-                    else
-                    {
-                        b.Add(block!, new Position() { X = x, Y = y, Z = 0 });
-                    }
-                }
-                else
-                {
-                    _logger.Error("not found pos {0} {1}", x, y);
-                }
-            }
+            return false;
         }
 
-        // 设置逻辑线程
-
-        // TODO:设置网络线程
-        // set debug handler
-
-        // 等待
-
+        return w!.TryGetBlock(position.ToPos(), out block);
     }
 
     static void Main(string[] args)

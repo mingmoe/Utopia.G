@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Utopia.Analyzer;
 using Utopia.Core;
@@ -53,7 +54,8 @@ public class Program
             var optOpt = configCmd.Option<string>("-o|--output", "the output file", CommandOptionType.SingleValue);
 
             projOpt.DefaultValue = null;
-            optOpt.DefaultValue = null;
+            var defaultOpt = "./translate-items.json";
+            optOpt.DefaultValue = defaultOpt;
 
             configCmd.OnExecute(async () =>
             {
@@ -73,15 +75,23 @@ public class Program
                 Project[] projs = proj == null ? solution.Projects.ToArray() : new Project[1] { solution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(proj)))
                 ?? throw new ArgumentException($"the project guuid {proj} not found") };
 
-                List<Task> tasks = new();
+                List<Task<TranslateFinder.Item[]>> tasks = new();
                 foreach (var item in projs)
                 {
-                    tasks.Add(finder.FindTranslateItem(item));
+                    tasks.Add(TranslateFinder.FindTranslateItem(item));
                 }
                 foreach (var task in tasks)
                 {
                     await task;
                 }
+
+                List<TranslateFinder.Item> items = new();
+                foreach (var task in tasks)
+                {
+                    items.AddRange(task.Result);
+                }
+                File.WriteAllText(opt ?? defaultOpt, JsonSerializer.Serialize(items), Encoding.UTF8);
+
             });
         });
 

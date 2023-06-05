@@ -14,7 +14,7 @@ namespace Utopia.Core;
 public class EventManager<EventT,ParamT,ResultT> : IEventManager<EventT> where EventT : IEvent<ParamT,ResultT>
 {
 
-    private readonly List<IEventManager<EventT>.Handler> _events = new();
+    private readonly List<Action<EventT>> _events = new();
 
     /// <summary>
     /// lock when modify the event handlers list
@@ -32,7 +32,7 @@ public class EventManager<EventT,ParamT,ResultT> : IEventManager<EventT> where E
     /// 注册事件
     /// </summary>
     /// <param name="handler">事件处理者</param>
-    public void Register(IEventManager<EventT>.Handler handler)
+    public void Register(Action<EventT> handler)
     {
         lock (_locker)
         {
@@ -40,7 +40,7 @@ public class EventManager<EventT,ParamT,ResultT> : IEventManager<EventT> where E
         }
     }
 
-    public void Unregister(IEventManager<EventT>.Handler handler)
+    public void Unregister(Action<EventT> handler)
     {
         lock (_locker)
         {
@@ -62,7 +62,7 @@ public class EventManager<EventT,ParamT,ResultT> : IEventManager<EventT> where E
     /// <param name="e">事件</param>
     public void Fire(EventT e)
     {
-        IEventManager<EventT>.Handler[] handlers;
+        Action<EventT>[] handlers;
 
         lock (_locker)
         {

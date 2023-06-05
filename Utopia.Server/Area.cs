@@ -48,4 +48,20 @@ public class Area : IArea
 
         return true;
     }
+
+    public void Update(IUpdater updater)
+    {
+        var floor = _floors.ToArray();
+
+        foreach (var z in floor)
+        {
+            foreach (var x in z.Value)
+            {
+                foreach (var y in x)
+                {
+                    updater.AssignTask(() => y.LogicUpdate());
+                }
+            }
+        }
+    }
 }

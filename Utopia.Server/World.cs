@@ -5,6 +5,7 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
+using CommunityToolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -55,29 +56,44 @@ public class World : IWorld
 
     public long YAreaNegativeCount { get; init; }
 
-    public bool TryGetArea(FlatPosition position, out IArea? area)
+    private bool _InRange(FlatPosition position)
     {
         if (position.X >= (this.XAreaCount * IArea.XSize) || position.X < (-this.XAreaNegativeCount * IArea.XSize)
            || position.Y >= (this.YAreaCount * IArea.YSize) || position.Y < (-this.YAreaNegativeCount * IArea.YSize))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    private static (long areaIndex, long posInArea) _GetPosInArea(long originIndex, long split)
+    {
+        long areaIndex;
+        long posInArea;
+        if (originIndex >= 0)
+        {
+            posInArea = (originIndex % split);
+            areaIndex = (int)Math.Floor((double)originIndex / split);
+        }
+        else
+        {
+            originIndex = Math.Abs(originIndex);
+            areaIndex = (int)-Math.Ceiling((double)originIndex / split);
+            posInArea = originIndex % split == 0 ? 0 : split - (originIndex % split);
+        }
+        return new(areaIndex, posInArea);
+    }
+
+    public bool TryGetArea(FlatPosition position, out IArea? area)
+    {
+        if (!this._InRange(position))
         {
             area = null;
             return false;
         }
 
-        static int get(in long value, in int unit)
-        {
-            if (value < 0)
-            {
-                return (int)((value - 2) / unit);
-            }
-            else
-            {
-                return (int)((value + 2) / unit);
-            }
-        }
-
-        var xa = get(position.X, IArea.XSize);
-        var ya = get(position.Y, IArea.YSize);
+        var xa = _GetPosInArea(position.X, IArea.XSize).areaIndex;
+        var ya = _GetPosInArea(position.Y, IArea.YSize).areaIndex;
 
         area = this._areas[xa + this.XAreaCount][ya + this.YAreaCount];
         return true;
@@ -91,24 +107,24 @@ public class World : IWorld
             return false;
         }
 
-        static int get(in long value, in int unit)
+        var (xArea, xIndex) = _GetPosInArea(position.X, IArea.XSize);
+        var (yArea, yIndex) = _GetPosInArea(position.Y, IArea.YSize);
+
+        area = this._areas[xArea + this.XAreaCount][yArea + this.YAreaCount];
+        area!.TryGetBlock(new Position { X = xIndex, Y = yIndex, Z = position.Z }, out block);
+        return true;
+    }
+
+    public void Update(IUpdater updater)
+    {
+        Guard.IsNotNull(updater);
+
+        foreach (var x in this._areas)
         {
-            if (value < 0)
+            foreach (var y in x)
             {
-                var max = (int)Math.Abs(Math.Floor((double)value / unit));
-                return (int)(value + (max * unit));
-            }
-            else
-            {
-                var min = (int)Math.Abs(Math.Floor((double)(value < 0 ? value + 1 : value) / unit));
-                return (int)(value - (min == 0 ? 0 : min * unit));
+                y.Update(updater);
             }
         }
-
-        int xi = get(position.X, IArea.XSize);
-        int yi = get(position.Y, IArea.YSize);
-
-        area!.TryGetBlock(new Position { X = xi, Y = yi, Z = position.Z }, out block);
-        return true;
     }
 }

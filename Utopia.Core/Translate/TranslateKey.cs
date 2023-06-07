@@ -6,6 +6,9 @@
 //
 //===--------------------------------------------------------------===//
 
+using CommunityToolkit.Diagnostics;
+using Jeffijoe.MessageFormat;
+
 namespace Utopia.Core.Translate;
 
 /// <summary>
@@ -22,4 +25,21 @@ public record class TranslateResult(string? Cached, long Id);
 /// <param name="TranslateItemId">翻译条目ID</param>
 /// <param name="Id">翻译缓存</param>
 /// <param name="Comment">翻译的注释，一般没啥用，给翻译人员使用</param>
-public record struct TranslateKey(in string TranslateItemId, in string Comment, in string? TranslateProviderId = null, TranslateResult? Id = null);
+public record struct TranslateKey(in string TranslateItemId, in string Comment,
+    in string? TranslateProviderId = null, TranslateResult? Id = null)
+{
+    public static TranslateKey Create(in string itemId, in string comment, in string? providerId = null)
+    {
+        Guard.IsNotNull(itemId);
+        Guard.IsNotNull(comment);
+
+        var n = (TranslateKey)Activator.CreateInstance(typeof(TranslateKey))!;
+
+        n.TranslateItemId = itemId;
+        n.Comment = comment;
+        n.TranslateProviderId = providerId;
+
+        return n;
+    }
+
+}

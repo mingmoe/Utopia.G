@@ -6,8 +6,10 @@
 //
 //===--------------------------------------------------------------===//
 using NLog;
+using NLog.LayoutRenderers;
 using NLog.Layouts;
 using NLog.Targets;
+using System.Diagnostics;
 using System.Text;
 
 namespace Utopia.Core.Logging;
@@ -116,7 +118,20 @@ public static class LogManager
             },
             IndentJson = true,
         };
-        logconsole.Layout = @"[${longdate}][${level}][${threadname}::${logger}]:${message}${onexception:inner=${newline}${exception}}";
+        // 设置更好的异常格式
+        NLog.LogManager.Setup().SetupExtensions((e) =>
+        {
+            e.RegisterLayoutRenderer("demystifiedException", (e) =>
+            {
+                if (e.Exception != null)
+                {
+                    e.Exception = e.Exception.Demystify();
+                    return e.Exception.ToStringDemystified();
+                }
+                return string.Empty;
+            });
+        });
+        logconsole.Layout = @"[${longdate}][${level}][${threadname}::${logger}]:${message}${onexception:inner=${newline}${demystifiedException}}";
 
         config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
         config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);

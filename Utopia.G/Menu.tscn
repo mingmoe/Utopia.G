@@ -9,9 +9,9 @@
 line_spacing = 5.0
 font = ExtResource("2_yw2h7")
 font_size = 86
-font_color = Color(0.924481, 0.0629214, 0.30414, 1)
+font_color = Color(0, 0, 0, 1)
 outline_size = 20
-outline_color = Color(1, 0.396078, 0.709804, 1)
+outline_color = Color(0.513726, 0.270588, 0.254902, 1)
 shadow_size = 0
 
 [node name="Node2D" type="Node2D"]
@@ -27,7 +27,6 @@ scale = Vector2(1.58597, 1.34656)
 texture = ExtResource("2_ombsp")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-current = true
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
@@ -45,17 +44,18 @@ anchor_left = -2.737
 anchor_top = 1.0
 anchor_right = -2.737
 anchor_bottom = 1.0
-offset_left = -216.997
+offset_left = -583.997
 offset_top = -256.0
-offset_right = 201.003
+offset_right = 564.003
 offset_bottom = -109.0
 grow_horizontal = 0
 grow_vertical = 0
 auto_translate = false
 localize_numeral_system = false
-text = "The Utopia"
+text = "Road to Utopia"
 label_settings = SubResource("LabelSettings_pr3ti")
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="GridContainer" type="GridContainer" parent="Control"]
 layout_mode = 0

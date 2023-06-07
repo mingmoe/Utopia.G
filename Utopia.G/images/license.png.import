@@ -3,22 +3,22 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dalva4he0gkp5"
-path="res://.godot/imported/agplv3.png-325ed92a4b3bd3ca1d9f825aeb863d29.ctex"
+path="res://.godot/imported/license.png-da2bf5dca5ac685e3eacab39ba393e95.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://images/agplv3.png"
-dest_files=["res://.godot/imported/agplv3.png-325ed92a4b3bd3ca1d9f825aeb863d29.ctex"]
+source_file="res://images/license.png"
+dest_files=["res://.godot/imported/license.png-da2bf5dca5ac685e3eacab39ba393e95.ctex"]
 
 [params]
 
 compress/mode=0
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/bptc_ldr=0
 compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=false

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core;
 
-namespace Utopia.Server;
+namespace Utopia.Server.Net;
 
 /// <summary>
 /// 网络线程
@@ -17,12 +17,12 @@ public class NetThread
     private readonly List<IClient> _clients = new();
     private volatile bool _running = false;
 
-    readonly Utopia.Core.IServiceProvider _serviceProvider;
+    readonly Core.IServiceProvider _serviceProvider;
 
-    public readonly IEventManager<Event<IClient, IClient>> ClientCreatedEvent = new
-        EventManager<Event<IClient, IClient>, IClient, IClient>();
+    public readonly IEventManager<ComplexEvent<IClient, IClient>> ClientCreatedEvent = new
+        EventManager<ComplexEvent<IClient, IClient>>();
 
-    public NetThread(Utopia.Core.IServiceProvider serviceProvider)
+    public NetThread(Core.IServiceProvider serviceProvider)
     {
         Guard.IsNotNull(serviceProvider);
         this._serviceProvider = serviceProvider;
@@ -44,13 +44,13 @@ public class NetThread
             var net = this._serviceProvider.GetService<INetServer>();
 
             var accept = net.Accept();
-            while (this._running && (!accept.IsCompleted))
+            while (this._running && !accept.IsCompleted)
             {
                 Thread.Yield();
             }
             IClient client = new Client(accept.Result, this._serviceProvider);
 
-            var e = new Event<IClient, IClient>(client, null, false);
+            var e = new ComplexEvent<IClient, IClient>(client, null, false);
             ClientCreatedEvent.Fire(e);
             client = e.Result ?? client;
 

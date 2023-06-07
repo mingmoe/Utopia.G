@@ -10,7 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using Utopia.Core;
 
-namespace Utopia.Server;
+namespace Utopia.Server.Net;
 
 /// <summary>
 /// 网络服务器接口，线程安全。
@@ -27,7 +27,7 @@ public interface INetServer : IDisposable
     /// </summary>
     public bool Working { get; }
 
-    public IEventManager<Event<Socket, Socket>> AcceptEvent { get; }
+    public IEventManager<ComplexEvent<Socket, Socket>> AcceptEvent { get; }
 
     /// <summary>
     /// 链接并监听端口，一个INetServer只能监听一个端口。
@@ -79,9 +79,8 @@ public class NetServer : INetServer
         }
     }
 
-    public IEventManager<Event<Socket, Socket>> AcceptEvent { get; } =
-        new EventManager<Event<Socket, Socket>,
-        Socket, Socket>();
+    public IEventManager<ComplexEvent<Socket, Socket>> AcceptEvent { get; } =
+        new EventManager<ComplexEvent<Socket, Socket>>();
 
     public async Task<Socket> Accept()
     {
@@ -94,11 +93,11 @@ public class NetServer : INetServer
             }
             socket = this._socket;
         }
-        var newSocket = await socket.AcceptAsync();
+        await socket.AcceptAsync();
 
-        var e = new Event<Socket, Socket>(socket, null, false);
+        var e = new ComplexEvent<Socket, Socket>(socket, null, false);
         this.AcceptEvent.Fire(e);
-        newSocket = e.Result ?? e.Parameter!;
+        var newSocket = e.Result ?? e.Parameter!;
 
         return newSocket;
     }
@@ -114,12 +113,12 @@ public class NetServer : INetServer
 
             this._port = port;
 
-            Socket listenSocket = new Socket(AddressFamily.InterNetwork,
+            var listenSocket = new Socket(AddressFamily.InterNetwork,
                                      SocketType.Stream,
                                      ProtocolType.Tcp);
 
             // bind the listening socket to the port
-            IPEndPoint ep = new IPEndPoint(IPAddress.Loopback, port);
+            var ep = new IPEndPoint(IPAddress.Loopback, port);
             listenSocket.Bind(ep);
 
             // start listening

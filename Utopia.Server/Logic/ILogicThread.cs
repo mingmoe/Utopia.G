@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Server;
+namespace Utopia.Server.Logic;
 
 /// <summary>
 /// 逻辑线程，按照tick进行更新操作。

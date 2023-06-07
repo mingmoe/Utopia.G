@@ -22,6 +22,7 @@ namespace Utopia.Core;
 /// 并且只能由字母开头。
 /// guuid的字符串形式类似于：root:namespaces1:namespaces2...
 /// </summary>
+[MessagePackObject]
 public sealed class Guuid
 {
 
@@ -100,6 +101,7 @@ public sealed class Guuid
 
     ///
     /// <exception cref="ArgumentException">如果root或者nodes不符合规范则抛出</exception>
+    [SerializationConstructor]
     public Guuid(string root, params string[] nodes)
     {
         if (!CheckGuuid(root, nodes))
@@ -110,7 +112,11 @@ public sealed class Guuid
         this.Root = root;
         this.Nodes = nodes;
     }
+
+    [Key(0)]
     public string Root { get; }
+
+    [Key(1)]
     public string[] Nodes { get; }
 
     public static bool operator ==(Guuid c1, Guuid c2)

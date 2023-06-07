@@ -33,6 +33,17 @@ public enum ServiceChangedType
 /// 事件的结果将被忽略，并且初始化为null。
 /// 事件可以被取消。
 /// </summary>
-public interface IServiceChangedEvent<ServiceT> : IEvent<ServiceChangedType, ServiceT>
+public interface IServiceChangedEvent<ServiceT> : IEvent
 {
+    public ServiceChangedType Type { get; }
+
+    /// <summary>
+    /// 要添加，删除，更新(新的那个)的对象
+    /// </summary>
+    public ServiceT Target { get; set; }
+
+    /// <summary>
+    /// 对于更新对象，存在一个旧对象
+    /// </summary>
+    public ServiceT? Old { get; }
 }

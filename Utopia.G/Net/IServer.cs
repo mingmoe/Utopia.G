@@ -1,19 +1,22 @@
-using CommunityToolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using Utopia.Core;
 using Utopia.Core.Net;
+using Utopia.Core;
+using CommunityToolkit.Diagnostics;
+using NLog;
+using System.Net.Sockets;
+using System.Net;
+using Utopia.Core.Net.Packet;
 
-namespace Utopia.Server;
+namespace Utopia.G.Net;
 
 /// <summary>
-/// 客户端，实现要求为线程安全。
+/// 服务器
 /// </summary>
-public interface IClient
+public interface IServer
 {
     /// <summary>
     /// 包分发器
@@ -30,30 +33,38 @@ public interface IClient
     void WritePacket(Guuid packetTypeId, byte[] data);
 
     /// <summary>
-    /// 客户端进行信息循环
+    /// 服务端进行信息循环
     /// </summary>
     Task InputLoop();
-
-    void Disconnect();
 }
 
-public class Client : IClient
+public class Server : IServer
 {
     private volatile bool _running = false;
     private readonly object _lock = new();
     private readonly Socket _socket;
-    private readonly Utopia.Core.IServiceProvider _provider;
+    private readonly Core.IServiceProvider _provider;
     private readonly NetworkStream _stream;
     private readonly IDispatcher _dispatcher = new Dispatcher();
     private readonly Packetizer _packetizer = new();
+    private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    public Client(Socket socket, Utopia.Core.IServiceProvider provider)
+    public Server(Socket socket, Core.IServiceProvider provider)
     {
         Guard.IsNotNull(socket);
         Guard.IsNotNull(provider);
         this._socket = socket;
         this._provider = provider;
         this._stream = new(socket, true);
+
+        this._dispatcher.RegisterHandler(
+            QueryMapPacketFormatter.PacketTypeId,
+            (obj) =>
+            {
+                var packet = (QueryMapPacket)obj;
+
+                
+            });
     }
 
     public IDispatcher Dispatcher => this._dispatcher;
@@ -73,7 +84,7 @@ public class Client : IClient
 
         while (this._socket.Connected)
         {
-            var (id, data) = await Utopia.Core.Net.Packetizer.ReadPacket(this._stream);
+            var (id, data) = await Packetizer.ReadPacket(this._stream);
 
             var packet = this._packetizer.ConvertPacket(id, data);
 
@@ -103,4 +114,5 @@ public class Client : IClient
         this._socket.Shutdown(SocketShutdown.Both);
         this._socket.Close();
     }
+
 }

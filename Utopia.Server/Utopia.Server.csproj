@@ -10,11 +10,13 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="7.0.1" />
+    <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="Castle.Core" Version="5.1.1" />
     <PackageReference Include="Castle.Core-NLog" Version="5.1.1" />
     <PackageReference Include="CommunityToolkit.Common" Version="8.2.0" />
     <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.0" />
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.0" />
+    <PackageReference Include="MessageFormat" Version="6.0.2" />
     <PackageReference Include="MessagePack" Version="2.5.108" />
     <PackageReference Include="MessagePackAnalyzer" Version="2.5.108">
       <PrivateAssets>all</PrivateAssets>
@@ -22,7 +24,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
     <PackageReference Include="NeoSmart.AsyncLock" Version="3.2.1" />
-    <PackageReference Include="NLog" Version="5.1.4" />
+    <PackageReference Include="NLog" Version="5.2.0" />
+    <PackageReference Include="System.CodeDom" Version="7.0.0" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
     <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
     
@@ -32,6 +35,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
+    <ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
   </ItemGroup>
 
 </Project>

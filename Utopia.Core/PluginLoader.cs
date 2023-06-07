@@ -6,7 +6,9 @@
 //
 //===--------------------------------------------------------------===//
 using Autofac;
+using CommunityToolkit.Diagnostics;
 using System.Reflection;
+using Utopia.Core;
 
 namespace Utopia.Server;
 
@@ -30,6 +32,9 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT>
         }
     }
 
+    public IEventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs> ActivePlguinEvent { get; }
+    = new EventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs>();
+
     public void Active(IContainer container, string dllFile)
     {
         ArgumentNullException.ThrowIfNull(dllFile, nameof(dllFile));
@@ -40,14 +45,7 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT>
 
         foreach (var type in types)
         {
-            if (type.IsAssignableTo(typeof(PluginT)))
-            {
-                var p = (PluginT)container.Resolve(type);
-                lock (this._locker)
-                {
-                    this._ActivePlugins.Add((type, p));
-                }
-            }
+            this.Active(container, type);
         }
     }
 
@@ -59,6 +57,19 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT>
         if (type.IsAssignableTo(typeof(PluginT)))
         {
             var p = (PluginT)container.Resolve(type);
+            var args = new IPluginLoader<PluginT>.ActivePlguinEventArgs(type, container)
+            {
+                PluginInstance = p
+            };
+            ActivePlguinEvent.Fire(args);
+
+            if (args.PluginInstance == null)
+            {
+                return;
+            }
+
+            p = args.PluginInstance;
+
             lock (this._locker)
             {
                 this._ActivePlugins.Add((type, p));

@@ -30,6 +30,11 @@ public interface IPluginBase
     string License { get; }
 
     /// <summary>
+    /// 插件的版本号
+    /// </summary>
+    Version Version { get; }
+
+    /// <summary>
     /// 用于标识插件的唯一ID
     /// </summary>
     Guuid Id { get; }

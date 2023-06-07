@@ -17,6 +17,7 @@ public partial class Menu : Node
     Sprite2D? _background;
     Button? _play;
     Button? _exit;
+    object key = null!;
 
     public override void _Ready()
     {
@@ -30,18 +31,20 @@ public partial class Menu : Node
         _viewport = this.GetViewport();
 
         _background = (Sprite2D)this.GetNode("Background");
-        Utility.SetBackground(this, _background);
+        key = Utility.SetBackground(this, _background);
 
         _exit = (Button)this.GetNode("Control/GridContainer/CenterContainerExit/Exit");
         _play = (Button)this.GetNode("Control/GridContainer/CenterContainerPlay/Play");
 
         _exit.Pressed += () =>
         {
+            Utility.CancelBackground(this, key);
             this.GetTree().Quit();
         };
 
         _play.Pressed += () =>
         {
+            Utility.CancelBackground(this, key);
             this.GetTree().ChangeSceneToFile("res://Main.tscn");
         };
     }

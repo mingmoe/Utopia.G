@@ -1,16 +1,15 @@
 [gd_scene load_steps=3 format=3 uid="uid://t8j5wxauje20"]
 
 [ext_resource type="Texture2D" uid="uid://cu0mtw5wuq5tq" path="res://images/textures/player.png" id="1_am0in"]
-
-[sub_resource type="TileSet" id="TileSet_lkh1p"]
+[ext_resource type="Script" path="res://Main.cs" id="1_pdttv"]
 
 [node name="Main" type="Node2D"]
+script = ExtResource("1_pdttv")
 metadata/_edit_vertical_guides_ = [-229.0, -201.0, -199.0, -209.0]
 
 [node name="Camera" type="Camera2D" parent="."]
 
 [node name="TileMap" type="TileMap" parent="."]
-tile_set = SubResource("TileSet_lkh1p")
 format = 2
 
 [node name="PlayerSprite" type="Sprite2D" parent="."]

@@ -67,7 +67,7 @@ public class ServiceProvider : IServiceProvider
         if (r)
         {
             this.GetEventBusForService<T>().Fire(
-                new ServiceChangedEvent<T>(ServiceChangedType.Delete, (T?)obj, true));
+                new ServiceChangedEvent<T>(ServiceChangedType.Delete, (T)obj!));
         }
     }
 
@@ -81,7 +81,7 @@ public class ServiceProvider : IServiceProvider
         if (r)
         {
             this.GetEventBusForService<T>().Fire(
-                new ServiceChangedEvent<T>(ServiceChangedType.Add, service, true));
+                new ServiceChangedEvent<T>(ServiceChangedType.Add, service));
         }
 
         return r;
@@ -90,21 +90,42 @@ public class ServiceProvider : IServiceProvider
     public IEventManager<IServiceChangedEvent<T>> GetEventBusForService<T>()
     {
         return
-            (IEventManager<IServiceChangedEvent<T>>)this._managers.GetOrAdd(typeof(T), (_) => new EventManager<IServiceChangedEvent<T>, ServiceChangedType, T>());
+            (IEventManager<IServiceChangedEvent<T>>)this._managers.GetOrAdd(typeof(T), (_) => new EventManager<IServiceChangedEvent<T>>());
     }
 
     public bool TryUpdate<T>(T old, T @new)
     {
         ArgumentNullException.ThrowIfNull(@new);
         ArgumentNullException.ThrowIfNull(old);
-        var t = this._services.TryUpdate(typeof(T), @new, old);
+        bool ret = false;
 
-        // fire update event
-        if (t)
+        this._services.AddOrUpdate(typeof(T), (key) =>
         {
-            this.GetEventBusForService<T>().Fire(
-                new ServiceChangedEvent<T>(ServiceChangedType.Update, @new, true));
-        }
-        return t;
+            return key;
+        },
+        (key, exist) =>
+        {
+            if (!ReferenceEquals(old, @new))
+            {
+                return exist;
+            }
+            ret = true;
+
+            var e =
+                new ServiceChangedEvent<T>(ServiceChangedType.Update, @new)
+                {
+                    Old = (T)exist,
+                };
+            this.GetEventBusForService<T>().Fire(e);
+
+            if (e.Target == null)
+            {
+                throw new InvalidOperationException("for the update event,the Target is null");
+            }
+
+            return e.Target;
+        });
+
+        return ret;
     }
 }

@@ -1,6 +1,8 @@
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.MSBuild;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core;
 using Utopia.Core.Translate;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Utopia.Analyzer;
 
@@ -85,7 +93,7 @@ public class TranslateFinder
                 var comment = translate[1].GetText().ToString().Trim('"');
                 string? provider = null;
 
-                // parse
+                // parse,there are two or three arguments we need to think
                 if (translate.Length > 2)
                 {
                     provider = translate[2].GetText().ToString().Trim('"');
@@ -107,11 +115,12 @@ public class TranslateFinder
                     id,
                     provider,
                     comment));
-                _Logger.Info("found translate item at {file}:{provider}->{translate} --{comment} ", file.FilePath, provider, id, comment);
+                _Logger.Info("found translate item at {file}:{provider}->{translate} --{comment} ",
+                    file.FilePath, provider, id, comment);
             }
             else
             {
-                _Logger.Trace("except name {expect} but found {name} at {file} {line}",
+                _Logger.Debug("except name {expect} but found {name} at {file} {line}",
                     typeof(TranslateKey).FullName, symName,
                     file.FilePath, node.Span);
             }
@@ -122,10 +131,8 @@ public class TranslateFinder
 
     public static async Task<Item[]> FindTranslateItem(Project project)
     {
-        await project.GetCompilationAsync();
         if (!project.TryGetCompilation(out Compilation? compilation))
         {
-            _Logger.Error("failed to compile project {project}", project.Name);
             return Array.Empty<Item>();
         }
 
@@ -139,4 +146,47 @@ public class TranslateFinder
         return items.ToArray();
     }
 
+    public static void Command(CommandLineApplication configCmd)
+    {
+        var slnOpt = configCmd.Option<string>("-s|--sln", "the path to the .sln file", CommandOptionType.SingleValue).IsRequired();
+        var projOpt = configCmd.Option<string>
+        ("-p|--project", "the project guid of the sln that you want to get translate item", CommandOptionType.SingleValue);
+        var optOpt = configCmd.Option<string>("-o|--output", "the output file", CommandOptionType.SingleValue);
+
+        projOpt.DefaultValue = null;
+        var defaultOpt = "./translate-items.json";
+        optOpt.DefaultValue = defaultOpt;
+
+        configCmd.OnExecute(async () =>
+        {
+            var sln = slnOpt.Value();
+            var proj = projOpt.Value();
+            var opt = optOpt.Value();
+
+            _Logger.Info("load solution {sln}", sln);
+
+            var projs = Utility.OpenSlnToProject(sln!, proj);
+            _ = await Utility.GetCompilation(projs);
+
+            var finder = new TranslateFinder();
+
+            List<Task<Item[]>> tasks = new();
+            foreach (var item in projs)
+            {
+                tasks.Add(FindTranslateItem(item));
+            }
+            Task.WaitAll(tasks.ToArray());
+            var results = tasks.Select((t) => { return t.Result; }).Aggregate((old, n) =>
+            {
+                var ret = new Item[old.Length + n.Length];
+                Array.Copy(old, ret, old.Length);
+                Array.Copy(n, ret[old.Length..], n.Length);
+                return ret;
+            });
+
+            List<Item> items = new(results);
+            File.WriteAllText(opt!, JsonSerializer.Serialize(items), Encoding.UTF8);
+        });
+
+    }
 }

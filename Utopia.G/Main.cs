@@ -28,11 +28,30 @@ public partial class Main : Node
         _map = (TileMap)this.FindChild("TileMap");
         _player = (Sprite2D)this.FindChild("PlayerSprite");
         _camera = (Camera2D)this.FindChild("Camera");
-        _set = _map.TileSet;
+        _set = new TileSet();
+        _map.TileSet = _set;
+
+        var grass = ResourceLoader.Load<Texture2D>("res://images/textures/grass.png");
+
+        var source = new TileSetAtlasSource();
+        source.Texture = grass;
+        source.TextureRegionSize = new(64, 64);
+        source.ResourceName = "grass";
+        source.CreateTile(new Vector2I(0, 0), new Vector2I(1,1));
+
+        _set.AddSource(source, 1);
+
+        // _map.SetCell(0, new Vector2I(1, 1), 1, new Vector2I(0, 0));
+        for (int x = 0; x != 32; x++)
+        {
+            for (int y = 0; y != 32; y++)
+            {
+                _map.SetCell(0, new Vector2I(x, y), 1, new Vector2I(0, 0));
+            }
+        }
     }
 
     public override void _Process(double delta)
     {
-
     }
 }

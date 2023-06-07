@@ -6,6 +6,7 @@
 //
 //===--------------------------------------------------------------===//
 
+using CommunityToolkit.Diagnostics;
 using Godot;
 using System;
 
@@ -19,7 +20,7 @@ public static class Utility
     /// </summary>
     /// <param name="root">场景的root节点</param>
     /// <param name="background">背景图像</param>
-    public static void SetBackground(Node root, Sprite2D background)
+    public static object SetBackground(Node root, Sprite2D background)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(background);
@@ -44,5 +45,14 @@ public static class Utility
         viewport.SizeChanged += lambda;
 
         lambda();
+        return (object)lambda;
     }
+
+    public static void CancelBackground(Node root, object key)
+    {
+        Guard.IsNotNull(root);
+        Guard.IsNotNull(key);
+        root.GetViewport().SizeChanged -= (Action)key;
+    }
+
 }

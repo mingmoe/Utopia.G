@@ -11,7 +11,7 @@ namespace Utopia.Core;
 /// <summary>
 /// 事件管理器，负责管理一类事件，线程安全。
 /// </summary>
-public class EventManager<EventT,ParamT,ResultT> : IEventManager<EventT> where EventT : IEvent<ParamT,ResultT>
+public class EventManager<EventT> : IEventManager<EventT> where EventT : IEvent
 {
 
     private readonly List<Action<EventT>> _events = new();

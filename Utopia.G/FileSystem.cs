@@ -13,6 +13,25 @@ public class FileSystem : Utopia.Core.FileSystem
 {
     public override string Root { get; } = Path.GetDirectoryName(Godot.OS.GetExecutablePath()) ?? ".";
 
-    public override string? Server => "Server";
+    public override string? Server => Path.Join(this.Root, "Server");
+
+    private class ServerFileSystem : Utopia.Core.FileSystem
+    {
+        private readonly string _root;
+
+        public override string Root => this._root;
+
+        public override string? Server => null;
+
+        public ServerFileSystem(string root)
+        {
+            this._root = root;
+        }
+    }
+
+    public Utopia.Core.FileSystem CreateServerFileSystem()
+    {
+        return new ServerFileSystem(this.Server!);
+    }
 }
 

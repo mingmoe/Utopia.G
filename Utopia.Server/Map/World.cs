@@ -15,33 +15,36 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core;
+using Utopia.Server.Logic;
 
-namespace Utopia.Server;
+namespace Utopia.Server.Map;
 
 public class World : IWorld
 {
     readonly Area[][] _areas;
 
-    public World(long id, long x, long y)
+    public World(long id, long xSize, long ySize)
     {
         this.Id = id;
-        this.XAreaCount = x;
-        this.XAreaNegativeCount = x;
-        this.YAreaCount = y;
-        this.YAreaNegativeCount = y;
+        this.XAreaCount = xSize;
+        this.XAreaNegativeCount = xSize;
+        this.YAreaCount = ySize;
+        this.YAreaNegativeCount = ySize;
 
-        x *= 2;
-        y *= 2;
+        this._areas = new Area[xSize * 2][];
 
-        this._areas = new Area[x][];
-
-        for (var i = 0; i != x; i++)
+        for (long xIndex = -xSize, xAbs = 0; xIndex != xSize; xIndex++, xAbs++)
         {
-            this._areas[i] = new Area[y];
+            this._areas[xAbs] = new Area[ySize * 2];
 
-            for (var j = 0; j != y; j++)
+            for (long yIndex = -ySize,yAbs = 0 ; yIndex != ySize; yIndex++, yAbs++)
             {
-                this._areas[i][j] = new Area();
+                this._areas[xAbs][yAbs] = new Area(new FlatPositionWithId
+                {
+                    Id = id,
+                    X = xIndex * IArea.YSize,
+                    Y = yIndex * IArea.XSize
+                });
             }
         }
     }
@@ -58,8 +61,8 @@ public class World : IWorld
 
     private bool _InRange(FlatPosition position)
     {
-        if (position.X >= (this.XAreaCount * IArea.XSize) || position.X < (-this.XAreaNegativeCount * IArea.XSize)
-           || position.Y >= (this.YAreaCount * IArea.YSize) || position.Y < (-this.YAreaNegativeCount * IArea.YSize))
+        if (position.X >= this.XAreaCount * IArea.XSize || position.X < -this.XAreaNegativeCount * IArea.XSize
+           || position.Y >= this.YAreaCount * IArea.YSize || position.Y < -this.YAreaNegativeCount * IArea.YSize)
         {
             return false;
         }
@@ -72,7 +75,7 @@ public class World : IWorld
         long posInArea;
         if (originIndex >= 0)
         {
-            posInArea = (originIndex % split);
+            posInArea = originIndex % split;
             areaIndex = (int)Math.Floor((double)originIndex / split);
         }
         else
@@ -101,16 +104,12 @@ public class World : IWorld
 
     public bool TryGetBlock(Position position, out IBlock? block)
     {
-        if (!this.TryGetArea(position.ToFlat(), out var area))
-        {
-            block = null;
-            return false;
-        }
+        this._InRange(position.ToFlat());
 
         var (xArea, xIndex) = _GetPosInArea(position.X, IArea.XSize);
         var (yArea, yIndex) = _GetPosInArea(position.Y, IArea.YSize);
 
-        area = this._areas[xArea + this.XAreaCount][yArea + this.YAreaCount];
+        var area = this._areas[xArea + this.XAreaCount][yArea + this.YAreaCount];
         area!.TryGetBlock(new Position { X = xIndex, Y = yIndex, Z = position.Z }, out block);
         return true;
     }

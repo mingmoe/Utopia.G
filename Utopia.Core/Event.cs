@@ -6,35 +6,14 @@
 //
 //===--------------------------------------------------------------===//
 
+using System.Xml.XPath;
+
 namespace Utopia.Core;
 
-/// <summary>
-/// 一个事件标准实现，非线程安全。
-/// </summary>
-public class Event<ParameterT, RustleT> : IEvent<ParameterT, RustleT>
+public class Event : IEvent
 {
-
     private bool _cancel;
 
-    /// <summary>
-    /// 构造一个事件
-    /// </summary>
-    /// <param name="param">事件参数</param>
-    /// <param name="initResult">事件初始结果</param>
-    /// <param name="cancelAble">事件能否被取消</param>
-    public Event(ParameterT? param, RustleT? initResult, bool cancelAble)
-    {
-        this.Parameter = param;
-        this.Result = initResult;
-        this.CanCancel = cancelAble;
-    }
-
-    /// <summary>
-    /// 事件取消设置。
-    /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// 如果事件无法被取消但此field仍被修改，则抛出此异常。
-    /// </exception>
     public bool Cancel
     {
         set
@@ -59,10 +38,49 @@ public class Event<ParameterT, RustleT> : IEvent<ParameterT, RustleT>
     /// </summary>
     public bool CanCancel { get; init; }
 
+    public Event(bool cancelable)
+    {
+        this.CanCancel = cancelable;
+    }
+}
+
+public class EventWithParam<ParamT> : Event, IEventWithParam<ParamT>
+{
+    public ParamT? Parameter { get; set; }
+
+    public EventWithParam(ParamT? parameter, bool cancelable) : base(cancelable)
+    {
+        this.Parameter = parameter;
+    }
+}
+
+public class EventWithResult<ResultT> : Event, IEventWithResult<ResultT>
+{
+    public ResultT? Result { get; set; }
+
+    public EventWithResult(ResultT? result, bool cancelable) : base(cancelable)
+    {
+        this.Result = result;
+    }
+}
+
+/// <summary>
+/// 一个事件标准实现，非线程安全。
+/// </summary>
+public class ComplexEvent<ParameterT, RustleT> :
+    EventWithParam<ParameterT>,
+    IEventWithParamAndResult<ParameterT, RustleT>
+{
     /// <summary>
-    /// 事件参数
+    /// 构造一个事件
     /// </summary>
-    public ParameterT? Parameter { get; init; }
+    /// <param name="param">事件参数</param>
+    /// <param name="initResult">事件初始结果</param>
+    /// <param name="cancelAble">事件能否被取消</param>
+    public ComplexEvent(ParameterT? param, RustleT? initResult, bool cancelable) : base(param, cancelable)
+    {
+        this.Result = initResult;
+    }
 
     /// <summary>
     /// 事件返回值

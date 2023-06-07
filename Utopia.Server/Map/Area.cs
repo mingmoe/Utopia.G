@@ -13,12 +13,19 @@ using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core;
 
-namespace Utopia.Server;
+namespace Utopia.Server.Map;
 
 public class Area : IArea
 {
 
     readonly SafeDictionary<long, IBlock[][]> _floors = new();
+
+    public FlatPositionWithId WorldPosition { get; init; }
+
+    public Area(FlatPositionWithId worldPosition)
+    {
+        this.WorldPosition = worldPosition;
+    }
 
     public bool TryGetBlock(Position position, out IBlock? block)
     {
@@ -32,13 +39,19 @@ public class Area : IArea
         {
             var n = new Block[IArea.XSize][];
 
-            for (var s = 0; s != IArea.XSize; s++)
+            for (var xIndex = 0; xIndex != IArea.XSize; xIndex++)
             {
-                n[s] = new Block[IArea.YSize];
+                n[xIndex] = new Block[IArea.YSize];
 
-                for (var j = 0; j != IArea.YSize; j++)
+                for (var yIndex = 0; yIndex != IArea.YSize; yIndex++)
                 {
-                    n[s][j] = new();
+                    n[xIndex][yIndex] = new(new WorldPosition()
+                    {
+                        X = xIndex + this.WorldPosition.X,
+                        Y = yIndex + this.WorldPosition.Y,
+                        Z = position.Z,
+                        Id = this.WorldPosition.Id
+                    });
                 }
             }
             return n;
@@ -49,7 +62,7 @@ public class Area : IArea
         return true;
     }
 
-    public void Update(IUpdater updater)
+    public void Update(Logic.IUpdater updater)
     {
         var floor = _floors.ToArray();
 

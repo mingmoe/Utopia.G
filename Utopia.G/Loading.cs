@@ -21,6 +21,7 @@ public partial class Loading : Node2D
     Sprite2D? _image;
     Sprite2D? _background;
     PackedScene? _next;
+    object key = null!;
 
     public static Godot.AudioStreamPlayer? Player { get; set; }
 
@@ -33,11 +34,11 @@ public partial class Loading : Node2D
         _stopwatch.Start();
 
         _logo = (CompressedTexture2D)ResourceLoader.Load("res://images/utopia.png");
-        _license_logo = (CompressedTexture2D)ResourceLoader.Load("res://images/agplv3.png");
+        _license_logo = (CompressedTexture2D)ResourceLoader.Load("res://images/license.png");
         _image = this.GetNode<Sprite2D>("Background/Image");
         _background = this.GetNode<Sprite2D>("Background");
 
-        Utility.SetBackground(this, _background);
+        key = Utility.SetBackground(this, _background);
 
         _next = ResourceLoader.Load<PackedScene>("res://Menu.tscn");
 
@@ -58,7 +59,6 @@ public partial class Loading : Node2D
         else if (mc >= 3800 && mc <= 7050 && _second_logo)
         {
             _image!.Texture = _license_logo;
-            _image.Scale = new Vector2(0.002f, 0.003f);
             _second_logo = false;
         }
         else if (mc > 7100 && !_first_logo && !_second_logo)
@@ -70,6 +70,7 @@ public partial class Loading : Node2D
         if (mc > 7100)
         {
             this.RemoveChild(Player);
+            Utility.CancelBackground(this, key);
             this.GetTree().ChangeSceneToPacked(_next);
         }
     }

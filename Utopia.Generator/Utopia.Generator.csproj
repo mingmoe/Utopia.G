@@ -8,9 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="CommunityToolkit.Common" Version="8.2.0" />
     <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.0" />
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.0" />
+    <PackageReference Include="MessageFormat" Version="6.0.2" />
     <PackageReference Include="MessagePack" Version="2.5.108" />
     <PackageReference Include="MessagePackAnalyzer" Version="2.5.108">
       <PrivateAssets>all</PrivateAssets>
@@ -21,7 +23,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
-    <PackageReference Include="NLog" Version="5.1.4" />
+    <PackageReference Include="NLog" Version="5.2.0" />
+    <PackageReference Include="System.CodeDom" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

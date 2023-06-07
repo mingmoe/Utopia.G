@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Server;
+namespace Utopia.Server.Logic;
 
 /// <summary>
 /// 游戏时间管理的核心，负责高精度计时，非线程安全

@@ -6,9 +6,11 @@
 //
 //===--------------------------------------------------------------===//
 
+using Utopia.Core;
 using Utopia.Server;
+using Utopia.Server.Entity;
 
-namespace Utopia.Core;
+namespace Utopia.Server.Map;
 
 public class Block : IBlock
 {
@@ -39,6 +41,14 @@ public class Block : IBlock
             }
         }
     }
+
+    public Block(WorldPosition position)
+    {
+        this.WorldPosition = position;
+        this._entities.Add(new GrassEntity());
+    }
+
+    public WorldPosition WorldPosition { get; init; }
 
     public bool Contains(IEntity entity)
     {
@@ -109,6 +119,7 @@ public class Block : IBlock
                 return false;
             }
             _entities.Add(entity);
+            entity.WorldPosition = this.WorldPosition;
 
             this._collidable = entity.Collidable;
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Server;
+namespace Utopia.Server.Logic;
 
 /// <summary>
 /// 更新器

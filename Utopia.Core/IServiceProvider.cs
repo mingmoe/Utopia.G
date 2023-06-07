@@ -51,11 +51,11 @@ public interface IServiceProvider
     void RemoveService<T>();
 
     /// <summary>
-    /// 尝试更新对象
+    /// 尝试更新对象。如果对象尚未添加，那么则直接添加。
     /// </summary>
     /// <param name="old">老对象。老对象相匹配才会进行更新。</param>
     /// <param name="new">新对象</param>
-    /// <returns>如果成功更新，则返回true</returns>
+    /// <returns>如果成功更新，则返回true。</returns>
     bool TryUpdate<T>(T old, T @new);
 
     /// <summary>

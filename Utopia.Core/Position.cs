@@ -6,24 +6,33 @@
 //
 //===--------------------------------------------------------------===//
 
+using MessagePack;
+
 namespace Utopia.Core;
 
 /// <summary>
 /// 平面位置
 /// </summary>
+[MessagePackObject]
 public struct FlatPosition
 {
+    [Key(0)]
     public long X;
+    [Key(1)]
     public long Y;
 }
 
 /// <summary>
 /// 三维位置
 /// </summary>
+[MessagePackObject]
 public struct Position
 {
+    [Key(0)]
     public long X;
+    [Key(1)]
     public long Y;
+    [Key(2)]
     public long Z;
 
     public FlatPosition ToFlat()
@@ -39,11 +48,20 @@ public struct Position
 /// <summary>
 /// 世界位置
 /// </summary>
+[MessagePackObject]
 public struct WorldPosition
 {
+    [Key(0)]
     public long X;
+    [Key(1)]
     public long Y;
+    [Key(2)]
     public long Z;
+    /// <summary>
+    /// stand for the World ID
+    /// </summary>
+    [Key(3)]
+    public long Id;
 
     public FlatPosition ToFlat()
     {
@@ -63,9 +81,24 @@ public struct WorldPosition
             Z = Z
         };
     }
+}
 
-    /// <summary>
-    /// stand for the World ID
-    /// </summary>
+[MessagePackObject]
+public struct FlatPositionWithId
+{
+    [Key(0)]
+    public long X;
+    [Key(1)]
+    public long Y;
+    [Key(2)]
     public long Id;
+
+    public FlatPosition ToFlat()
+    {
+        return new FlatPosition
+        {
+            X = X,
+            Y = Y
+        };
+    }
 }

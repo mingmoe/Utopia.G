@@ -17,6 +17,9 @@ public class TranslateManager : SafeDictionary<Guuid, ITranslateProvider>, ITran
 
     public long TranslateID { get; private set; }
 
+    public IEventManager<EventWithParam<ITranslateManager>> TranslateUpdatedEvent { get; } = new
+        EventManager<EventWithParam<ITranslateManager>>();
+
     public TranslateManager()
     {
         // 使用加密安全随机数填充初始翻译ID，只填充一个int
@@ -29,29 +32,35 @@ public class TranslateManager : SafeDictionary<Guuid, ITranslateProvider>, ITran
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(id);
 
-        if (key.Id?.Cached != null && key.Id.Id == this.TranslateID)
+        if (key.Id?.Cached != null && key.Id.Id == this.TranslateID
+            && key.Id?.Identifence != null && key.Id.Identifence.Equals(id))
         {
             return key.Id.Cached;
         }
 
-        else if (this.TryGetTranslate(id, key.TranslateProviderId == null ? null : Guuid.ParseString(key.TranslateProviderId),
-            Guuid.ParseString(key.TranslateItemId), out string? result))
+        else if (
+            this.TryGetTranslate(
+                id,
+                key.TranslateProviderId == null ? null : Guuid.ParseString(key.TranslateProviderId),
+                Guuid.ParseString(key.TranslateItemId),
+                out string? result))
         {
-            key.Id = new(result, this.TranslateID);
+            key.Id = new(result, this.TranslateID, id);
             return result!;
         }
         else
         {
             key.Id = new(string.Format("{0}::{1}", key.TranslateProviderId?.ToString() ?? "any provider",
-                key.TranslateItemId.ToString()), this.TranslateID);
+                key.TranslateItemId.ToString()), this.TranslateID, id);
         }
 
         return key.Id.Cached!;
     }
 
-    public void UpdateCache()
+    public void UpdateTranslate()
     {
         this.TranslateID++;
+        this.TranslateUpdatedEvent.Fire(new EventWithParam<ITranslateManager>(this, true));
     }
 
     public bool Contains(TranslateIdentifence language, Guuid? translateProviderId, Guuid translateItemId)

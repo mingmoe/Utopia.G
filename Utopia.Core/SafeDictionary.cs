@@ -33,6 +33,7 @@ public class SafeDictionary<KeyT, ValueT> : ISafeDictionary<KeyT, ValueT> where 
 
     public KeyValuePair<KeyT, ValueT>[] ToArray()
     {
+        // this should be thread safe
         return _safeDictionary.ToArray();
     }
 

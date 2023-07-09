@@ -8,7 +8,6 @@ using Utopia.Core.Translate;
 
 namespace Utopia.ResourcePack.Entity;
 
-
 public static class GrassEntity
 {
     public static readonly Guuid ID = new("utopia", "core", "entity", "grass");

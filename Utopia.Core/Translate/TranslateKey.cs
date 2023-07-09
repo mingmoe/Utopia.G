@@ -16,7 +16,7 @@ namespace Utopia.Core.Translate;
 /// </summary>
 /// <param name="Cached">翻译缓存</param>
 /// <param name="Id">翻译缓存的ID，这个数值可以用于热更新翻译</param>
-public record class TranslateResult(string? Cached, long Id);
+public record class TranslateResult(string? Cached, long Id, TranslateIdentifence Identifence);
 
 /// <summary>
 /// 翻译键，非线程安全。

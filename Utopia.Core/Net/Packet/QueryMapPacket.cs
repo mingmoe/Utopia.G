@@ -27,7 +27,6 @@ public class QueryMapPacket
     public bool? Collidable { get; set; }
 }
 
-
 public class QueryMapPacketFormatter : IPacketFormatter
 {
     public static readonly Guuid PacketTypeId = new("utopia", "core", "net", "packet", "query", "block");

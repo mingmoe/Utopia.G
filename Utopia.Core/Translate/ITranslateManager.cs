@@ -42,7 +42,7 @@ public interface ITranslateManager : ISafeDictionary<Guuid, ITranslateProvider>
     /// <summary>
     /// 提示翻译管理器，所有翻译缓存作废，应该重新获取翻译。
     /// </summary>
-    void UpdateCache();
+    void UpdateTranslate();
 
     /// <summary>
     /// 获取翻译键的翻译
@@ -50,4 +50,11 @@ public interface ITranslateManager : ISafeDictionary<Guuid, ITranslateProvider>
     /// <param name="key">翻译键，非空</param>
     /// <returns>翻译，如果获取不到翻译，则返回翻译条目ID</returns>
     string Activate(TranslateKey key, TranslateIdentifence id);
+
+    /// <summary>
+    /// 翻译管理器更新事件。参数是this翻译管理器，事件可取消。
+    /// 这个事件用于通知翻译管理器已经更新，请重新获取翻译。
+    /// 事件**只能**由<see cref="ITranslateManager.UpdateTranslate"/>触发
+    /// </summary>
+    IEventManager<EventWithParam<ITranslateManager>> TranslateUpdatedEvent { get; }
 }

@@ -23,6 +23,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Analyzer", "Utopia.A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.ResourcePack", "Utopia.ResourcePack\Utopia.ResourcePack.csproj", "{A082E1E8-9CCA-4792-ABF6-07F7A75B7CEE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Benchmark", "Utopia.Benchmark\Utopia.Benchmark.csproj", "{165AFF0B-543D-478C-9FD4-687EE1F5A1E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.MSBuild", "Utopia.MSBuild\Utopia.MSBuild.csproj", "{0F286ADC-3885-48D4-8687-B57448F47414}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +91,22 @@ Global
 		{A082E1E8-9CCA-4792-ABF6-07F7A75B7CEE}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{A082E1E8-9CCA-4792-ABF6-07F7A75B7CEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A082E1E8-9CCA-4792-ABF6-07F7A75B7CEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{165AFF0B-543D-478C-9FD4-687EE1F5A1E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{165AFF0B-543D-478C-9FD4-687EE1F5A1E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{165AFF0B-543D-478C-9FD4-687EE1F5A1E2}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{165AFF0B-543D-478C-9FD4-687EE1F5A1E2}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{165AFF0B-543D-478C-9FD4-687EE1F5A1E2}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{165AFF0B-543D-478C-9FD4-687EE1F5A1E2}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{165AFF0B-543D-478C-9FD4-687EE1F5A1E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{165AFF0B-543D-478C-9FD4-687EE1F5A1E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F286ADC-3885-48D4-8687-B57448F47414}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F286ADC-3885-48D4-8687-B57448F47414}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F286ADC-3885-48D4-8687-B57448F47414}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F286ADC-3885-48D4-8687-B57448F47414}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{0F286ADC-3885-48D4-8687-B57448F47414}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{0F286ADC-3885-48D4-8687-B57448F47414}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{0F286ADC-3885-48D4-8687-B57448F47414}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F286ADC-3885-48D4-8687-B57448F47414}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

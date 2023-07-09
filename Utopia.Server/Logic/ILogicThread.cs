@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utopia.Core;
 
 namespace Utopia.Server.Logic;
 
@@ -44,19 +45,18 @@ public class SimplyLogicThread : ILogicThread
     public SimplyLogicThread(ITicker ticker, IUpdater updater)
     {
         this._ticker = ticker;
-        this._updater = updater;
+        this.Updater = updater;
     }
 
     public SimplyLogicThread() : this(new Ticker(), new SimplyUpdater()) { }
 
     private readonly ITicker _ticker;
-    private readonly IUpdater _updater;
-    private readonly List<IUpdatable> _updatables = new();
+    private readonly SafeList<IUpdatable> _updatables = new();
     private readonly object _lock = new();
     volatile bool _isRunning = true;
     volatile bool _started = false;
 
-    public IUpdater Updater => _updater;
+    public IUpdater Updater { get; }
 
     public long Ticks => _ticker.MillisecondFromLastTick;
 
@@ -85,7 +85,7 @@ public class SimplyLogicThread : ILogicThread
 
                 foreach (var task in todos)
                 {
-                    task.Update(this._updater);
+                    task.Update(this.Updater);
                 }
             }
             this._ticker.WaitToNextTick();

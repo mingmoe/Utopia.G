@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Server.Event;
+namespace Utopia.G;
 
 public enum LifeCycle
 {
@@ -14,9 +14,7 @@ public enum LifeCycle
     /// </summary>
     InitializedSystem,
     LoadPlugin,
-    LoadSaveings,
-    StartLogicThread,
-    StartNetThread,
+    ConnectToServer,
     Crash,
     GracefulShutdown,
     /// <summary>

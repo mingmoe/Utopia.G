@@ -33,11 +33,13 @@ public partial class Main : Node
 
         var grass = ResourceLoader.Load<Texture2D>("res://images/textures/grass.png");
 
-        var source = new TileSetAtlasSource();
-        source.Texture = grass;
-        source.TextureRegionSize = new(64, 64);
-        source.ResourceName = "grass";
-        source.CreateTile(new Vector2I(0, 0), new Vector2I(1,1));
+        var source = new TileSetAtlasSource
+        {
+            Texture = grass,
+            TextureRegionSize = new(64, 64),
+            ResourceName = "grass"
+        };
+        source.CreateTile(new Vector2I(0, 0), new Vector2I(1, 1));
 
         _set.AddSource(source, 1);
 
@@ -49,6 +51,9 @@ public partial class Main : Node
                 _map.SetCell(0, new Vector2I(x, y), 1, new Vector2I(0, 0));
             }
         }
+
+        var server = Client.CreateLocalServer();
+        Client.Start(server);
     }
 
     public override void _Process(double delta)

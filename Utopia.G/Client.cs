@@ -1,82 +1,144 @@
-//===--------------------------------------------------------------===//
-// Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
-// 
-// This file is licensed under the MIT license.
-// MIT LICENSE:https://opensource.org/licenses/MIT
-//
-//===--------------------------------------------------------------===//
+using Autofac;
+using Castle.Core.Logging;
+using Microsoft.VisualBasic.FileIO;
+using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Net;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Utopia.Core;
+using Utopia.Core.Translate;
+using Utopia.Server;
 
 namespace Utopia.G;
 
-/// <summary>
-/// 负责连接到服务器
-/// </summary>
-public class Client : IClient
+public static class Client
 {
-    private readonly object _lock = new();
-    private Socket? _socket = null;
+    private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
     /// <summary>
-    /// 链接到服务器
+    /// 创建本地服务器
     /// </summary>
-    /// <param name="host">服务器地址</param>
-    /// <param name="port"></param>
-    /// <exception cref="InvalidOperationException">该Client已经连接到服务器</exception>
-    /// <exception cref="IOException">链接异常</exception>
-    public Socket Connect(string host, int port)
+    /// <returns>连接到本地服务器的地址</returns>
+    public static Uri CreateLocalServer()
     {
-        ArgumentNullException.ThrowIfNull(host);
+        Utopia.Server.Launcher.LauncherOption option = new();
 
-        lock (_lock)
+        // 查找可用端口
+        bool portAvailable = true; // unkown
+        do
         {
-            if (this._socket != null)
+            var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+            var tcpConnInfoArray = ipGlobalProperties.GetActiveTcpConnections();
+
+            foreach (var tcpi in tcpConnInfoArray)
             {
-                throw new InvalidOperationException("the client has connected");
-            }
-
-            // Get host related information.
-            IPHostEntry? hostEntry = Dns.GetHostEntry(host);
-
-            System.Net.Sockets.Socket? tempSocket = null;
-
-            foreach (IPAddress address in hostEntry.AddressList)
-            {
-                IPEndPoint ipe = new(address, port);
-                tempSocket =
-                    new(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-                tempSocket.Connect(ipe);
-
-                if (tempSocket.Connected)
+                if (tcpi.LocalEndPoint.Port == option.Port)
                 {
+                    // try new port
+                    portAvailable = false;
+                    option.Port++;
                     break;
                 }
-                else
-                {
-                    continue;
-                }
             }
 
-            if (tempSocket == null)
+            if (option.Port > 25565)
             {
-                throw new IOException("failed to connect the server:" + host);
+                throw new IOException("failed to find available socket(tcp) port!");
             }
-
-            this._socket = tempSocket;
-            return this._socket;
         }
-    }
+        while (!portAvailable);
 
-    public void Close()
-    {
-        lock (_lock)
+        var port = option.Port;
+
+        Thread thread = new(() =>
         {
-            this._socket?.Close();
-            this._socket = null;
+            Launcher.Launch(option);
+        })
+        {
+            Name = "Server Thread"
+        };
+        thread.Start();
+
+        return new Uri("localhsot:" + port);
+    }
+
+    private static Core.IServiceProvider _Initlize()
+    {
+        ServiceProvider provider = new();
+        ContainerBuilder builder = new();
+
+        // register
+        register<IFileSystem>(new FileSystem());
+        register<IEventBus>(new EventBus());
+        register<IPluginLoader<IPlugin>>(new EventBus());
+        register<Net.ISocketConnecter>(new Net.SocketConnecter());
+        // end
+
+        var container = builder.Build();
+        provider.TryRegisterService<IContainer>(container);
+
+        // init filesystem
+        provider.GetService<IFileSystem>().CreateIfNotExist();
+
+        return provider;
+
+        void register<T>(object instance) where T : notnull
+        {
+            provider.TryRegisterService<T>((T)instance);
+            builder.RegisterInstance(instance).As<T>().ExternallyOwned();
         }
     }
+
+    private static void _LoadPlugin(Utopia.Core.IServiceProvider provider)
+    {
+        var loader = provider.GetService<IPluginLoader<IPlugin>>();
+        var fs = provider.GetService<IFileSystem>();
+        foreach (var f in Directory.GetFiles(fs.Plugins, "*.dll", System.IO.SearchOption.AllDirectories))
+        {
+            var file = Path.GetFullPath(f);
+            _logger.Info("loading plugin from dll:{plugin}", file);
+            loader.Active(provider.GetService<IContainer>(), file);
+        }
+    }
+
+    public static void Start(Uri server)
+    {
+        var service = _Initlize();
+
+        var bus = service.GetService<IEventBus>();
+
+        try
+        {
+            stage(LifeCycle.InitializedSystem, () => { });
+
+            stage(LifeCycle.LoadPlugin, () => { _LoadPlugin(service); });
+
+            stage(LifeCycle.ConnectToServer, () =>
+            {
+                var connect = service.GetService<Net.ISocketConnecter>();
+
+                var socket = connect.Connect(server);
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "the client initlize failed");
+            stage(LifeCycle.Crash, () => { });
+            stage(LifeCycle.Stop, () => { });
+        }
+
+        void stage(LifeCycle cycle, Action action)
+        {
+            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.Before, cycle));
+            action.Invoke();
+            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.After, cycle));
+        }
+    }
+
 }

@@ -25,5 +25,7 @@ public abstract class FileSystem : IFileSystem
 
     public string Configuraions => Path.Join(this.Root, "Configurations");
 
+    public string Utilties => Path.Join(this.Root, "Utilties");
+
     public abstract string? Server { get; }
 }

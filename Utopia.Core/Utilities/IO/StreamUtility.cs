@@ -49,6 +49,8 @@ public static class StreamUtility
 
     /// <summary>
     /// It will read a length then read the data
+    /// 将调用<see cref="ReadIntWithEndianConver"/>,
+    /// 即<see cref="IPAddress.NetworkToHostOrder"/>
     /// </summary>
     /// <returns></returns>
     public static async Task<byte[]> ReadPacket(Stream stream)
@@ -59,6 +61,10 @@ public static class StreamUtility
         return await Read(stream, l);
     }
 
+    /// <summary>
+    /// 将会进行端序转换.
+    /// 即调用<see cref="ReadIntWithEndianConver"/>
+    /// </summary>
     public static async Task<string> ReadString(Stream stream)
     {
         Guard.IsNotNull(stream);
@@ -67,6 +73,10 @@ public static class StreamUtility
         return Encoding.UTF8.GetString(await Read(stream, l));
     }
 
+    /// <summary>
+    /// 将会进行端序转换.
+    /// 即调用<see cref="ReadIntWithEndianConver"/>
+    /// </summary>
     public static async Task<Guuid> ReadGuuid(Stream stream)
     {
         return Guuid.ParseString(await ReadString(stream));

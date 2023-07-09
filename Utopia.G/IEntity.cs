@@ -20,7 +20,6 @@ public interface IEntity
     /// <param name="deltaSecond">距离上次调用经过的秒数</param>
     /// <param name="node">渲染此实体的节点，通常是Sprite2D</param>
     void FrameUpdate(double deltaSecond, Sprite2D node);
-
 }
 
 /// <summary>

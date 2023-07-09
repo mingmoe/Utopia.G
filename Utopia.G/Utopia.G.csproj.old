@@ -1,5 +1,4 @@
-<Project Sdk="Godot.NET.Sdk/4.1.0">
-    
+﻿<Project Sdk="Godot.NET.Sdk/4.0.2">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
@@ -30,11 +29,11 @@
     <PackageReference Include="System.CodeDom" Version="7.0.0" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
     <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
-    <ProjectReference Include="../Utopia.Generator/Utopia.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    
+        <ProjectReference Include="../Utopia.Generator/Utopia.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
-    <ProjectReference Include="..\Utopia.MSBuild\Utopia.MSBuild.csproj" />
     <ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
     <ProjectReference Include="..\Utopia.Server\Utopia.Server.csproj" />
   </ItemGroup>
@@ -50,9 +49,4 @@
   <ItemGroup>
     <Folder Include="Graphy\" />
   </ItemGroup>
-
-    <Target Name="Release">
-        
-    </Target>
-    
 </Project>

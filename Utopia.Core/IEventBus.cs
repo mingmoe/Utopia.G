@@ -28,7 +28,7 @@ public class EventBus : IEventBus
 {
     readonly object _lock = new();
 
-    SafeDictionary<Type, object> _handlers = new();
+    readonly SafeDictionary<Type, object> _handlers = new();
 
     List<Action<T>> _Get<T>()
     {
@@ -40,7 +40,7 @@ public class EventBus : IEventBus
     {
         lock (_lock)
         {
-            _Get<T>().Clear();
+            this._Get<T>().Clear();
         }
     }
 
@@ -56,7 +56,7 @@ public class EventBus : IEventBus
     {
         lock (_lock)
         {
-            var handlers = _Get<T>();
+            var handlers = this._Get<T>();
 
             foreach (var handle in handlers)
             {
@@ -69,7 +69,7 @@ public class EventBus : IEventBus
     {
         lock (_lock)
         {
-            _Get<T>().Add(handler);
+            this._Get<T>().Add(handler);
         }
     }
 
@@ -77,7 +77,7 @@ public class EventBus : IEventBus
     {
         lock (_lock)
         {
-            _Get<T>().Remove(handler);
+            this._Get<T>().Remove(handler);
         }
     }
 }

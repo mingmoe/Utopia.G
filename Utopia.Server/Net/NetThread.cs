@@ -2,9 +2,12 @@ using CommunityToolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core;
+using Utopia.Core.Exception;
+using Utopia.G.Net;
 
 namespace Utopia.Server.Net;
 
@@ -14,13 +17,17 @@ namespace Utopia.Server.Net;
 public class NetThread
 {
     private readonly object _lock = new();
-    private readonly List<IClient> _clients = new();
+    private readonly SafeList<IConnectHandler> _clients = new();
     private volatile bool _running = false;
 
     readonly Core.IServiceProvider _serviceProvider;
 
-    public readonly IEventManager<ComplexEvent<IClient, IClient>> ClientCreatedEvent = new
-        EventManager<ComplexEvent<IClient, IClient>>();
+    /// <summary>
+    /// 链接创建事件.传入一个<see cref="Socket"/>,
+    /// 要求传出一个非空的<see cref="IConnectHandler"/>
+    /// </summary>
+    public readonly IEventManager<ComplexEvent<Socket, IConnectHandler>> ClientCreatedEvent = new
+        EventManager<ComplexEvent<Socket, IConnectHandler>>();
 
     public NetThread(Core.IServiceProvider serviceProvider)
     {
@@ -48,11 +55,12 @@ public class NetThread
             {
                 Thread.Yield();
             }
-            IClient client = new Client(accept.Result, this._serviceProvider);
+            var socket = accept.Result;
 
-            var e = new ComplexEvent<IClient, IClient>(client, null, false);
+            var e = new ComplexEvent<Socket, IConnectHandler>(socket, null, false);
             ClientCreatedEvent.Fire(e);
-            client = e.Result ?? client;
+            var client = e.Result ??
+                throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
 
             lock (_lock)
             {
@@ -68,9 +76,11 @@ public class NetThread
         lock (_lock)
         {
             this._running = false;
-            foreach (var client in this._clients)
+            var clients = this._clients.ToArray();
+            foreach (var client in clients)
             {
                 client.Disconnect();
+                client.Dispose();
             }
             this._clients.Clear();
         }

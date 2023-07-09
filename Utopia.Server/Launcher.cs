@@ -10,11 +10,13 @@ using Autofac;
 using Castle.Components.DictionaryAdapter.Xml;
 using Castle.Core.Logging;
 using CommunityToolkit.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Npgsql;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Utopia.Core;
 using Utopia.Core.Translate;
-using Utopia.Server.Event;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
 using Utopia.Server.Net;
@@ -33,7 +35,6 @@ public static class Launcher
     /// </summary>
     public class LauncherOption
     {
-
         /// <summary>
         /// 服务器端口
         /// </summary>
@@ -55,6 +56,12 @@ public static class Launcher
         public IFileSystem? FileSystem { get; set; } = null;
 
         /// <summary>
+        /// 数据库链接，如果为null，那么则使用自带的PostgreSql。
+        /// 推荐使用自带的PostgreSql
+        /// </summary>
+        public NpgsqlDataSource DatabaseSource { get; set; } = null!;
+
+        /// <summary>
         /// 用于设置全局语言标识符
         /// </summary>
         public TranslateIdentifence GlobalLanguage { get; set; } =
@@ -72,8 +79,8 @@ public static class Launcher
 
         var option = new LauncherOption();
 
-        long i = 0;
-        while (i != args.LongLength)
+        int i = 0;
+        while (i != args.Length)
         {
             var arg = args[i++];
 
@@ -92,6 +99,18 @@ public static class Launcher
             else if (arg == "--disbale-regex-log")
             {
                 option.DisableRegexLog = true;
+            }
+            else if (arg == "--postgreSql")
+            {
+                if (i == args.LongLength)
+                {
+                    throw new ArgumentException("--port argument need one number");
+                }
+                var dataSourceBuilder = new NpgsqlDataSourceBuilder(args[i++]);
+                dataSourceBuilder.UseLoggerFactory(new
+                    NLog.Extensions.Logging.NLogLoggerFactory());
+                var dataSource = dataSourceBuilder.Build();
+                option.DatabaseSource = dataSource;
             }
             else
             {
@@ -115,13 +134,6 @@ public static class Launcher
         var provider = _InitSystem(option);
 
         var bus = provider.GetService<IEventBus>();
-
-        void stage(LifeCycle cycle, Action action)
-        {
-            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.Before, cycle));
-            action.Invoke();
-            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.After, cycle));
-        }
 
         try
         {
@@ -148,6 +160,13 @@ public static class Launcher
             stage(LifeCycle.Crash, () => { });
             stage(LifeCycle.Stop, () => { });
         }
+
+        void stage(LifeCycle cycle, Action action)
+        {
+            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.Before, cycle));
+            action.Invoke();
+            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.After, cycle));
+        }
     }
     private static ServiceProvider _InitSystem(LauncherOption option)
     {
@@ -162,14 +181,9 @@ public static class Launcher
         ServiceProvider provider = new();
         ContainerBuilder builder = new();
 
-        void register<T>(object instance) where T : notnull
-        {
-            provider.TryRegisterService<T>((T)instance);
-            builder.RegisterInstance(instance).As<T>().ExternallyOwned();
-        }
-
         register<IFileSystem>(option.FileSystem ?? new FileSystem());
-        register<ILoggerFactory>(new Castle.Services.Logging.NLogIntegration.NLogFactory(true));
+        register<Castle.Core.Logging.ILoggerFactory>(new Castle.Services.Logging.NLogIntegration.NLogFactory(true));
+        register<Microsoft.Extensions.Logging.ILoggerFactory>(new NLog.Extensions.Logging.NLogLoggerFactory());
         register<Core.IServiceProvider>(provider);
         register<IPluginLoader<IPlugin>>(new PluginLoader<IPlugin>());
         register<ITranslateManager>(new Core.Translate.TranslateManager());
@@ -186,17 +200,29 @@ public static class Launcher
         // init filesystem
         provider.GetService<IFileSystem>().CreateIfNotExist();
 
+        if (option.DatabaseSource == null)
+        {
+            throw new ArgumentException("Database Source option need to be set");
+        }
+
         return provider;
+
+        void register<T>(object instance) where T : notnull
+        {
+            provider.TryRegisterService<T>((T)instance);
+            builder.RegisterInstance(instance).As<T>().ExternallyOwned();
+        }
     }
 
     static void _LoadPlugin(Utopia.Core.IServiceProvider provider)
     {
         var loader = provider.GetService<IPluginLoader<IPlugin>>();
         var fs = provider.GetService<IFileSystem>();
-        foreach (var f in Directory.GetFiles(fs.Plugins, "*.dll", SearchOption.AllDirectories))
+        foreach (var f in Directory.GetFiles(fs.Plugins, "*.dll", System.IO.SearchOption.AllDirectories))
         {
-            _logger.Info("loading {plugin}", f);
-            loader.Active(provider.GetService<IContainer>(), f);
+            var file = Path.GetFullPath(f);
+            _logger.Info("loading plugin from dll:{plugin}", file);
+            loader.Active(provider.GetService<IContainer>(), file);
         }
     }
 

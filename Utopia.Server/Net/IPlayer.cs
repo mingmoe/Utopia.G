@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core;
 using Utopia.Core.Translate;
+using Utopia.G.Net;
 
 namespace Utopia.Server.Net;
 
@@ -19,7 +20,7 @@ public interface IPlayer : Map.IEntity
     /// <summary>
     /// 玩家的客户端
     /// </summary>
-    IClient Client { get; }
+    IConnectHandler Client { get; }
 }
 
 public class Player : IPlayer
@@ -28,7 +29,7 @@ public class Player : IPlayer
 
     public WorldPosition PlayerPosition { get; set; }
 
-    public IClient Client { get; init; }
+    public IConnectHandler Client { get; init; }
 
     public TranslateKey Name { get; init; }
 
@@ -45,7 +46,7 @@ public class Player : IPlayer
 
     }
 
-    public Player(IClient client,string playerId)
+    public Player(IConnectHandler client, string playerId)
     {
         Guard.IsNotNull(client);
         this.Client = client;

@@ -14,9 +14,9 @@ using Utopia.Core.Net.Packet;
 namespace Utopia.G.Net;
 
 /// <summary>
-/// 服务器
+/// 链接持有器.
 /// </summary>
-public interface IServer
+public interface IConnectHandler : IDisposable
 {
     /// <summary>
     /// 包分发器
@@ -36,40 +36,28 @@ public interface IServer
     /// 服务端进行信息循环
     /// </summary>
     Task InputLoop();
+
+    void Disconnect();
 }
 
-public class Server : IServer
+public class ConnectHandler : IConnectHandler
 {
     private volatile bool _running = false;
     private readonly object _lock = new();
     private readonly Socket _socket;
-    private readonly Core.IServiceProvider _provider;
     private readonly NetworkStream _stream;
-    private readonly IDispatcher _dispatcher = new Dispatcher();
-    private readonly Packetizer _packetizer = new();
     private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    public Server(Socket socket, Core.IServiceProvider provider)
+    public ConnectHandler(Socket socket)
     {
         Guard.IsNotNull(socket);
-        Guard.IsNotNull(provider);
         this._socket = socket;
-        this._provider = provider;
         this._stream = new(socket, true);
-
-        this._dispatcher.RegisterHandler(
-            QueryMapPacketFormatter.PacketTypeId,
-            (obj) =>
-            {
-                var packet = (QueryMapPacket)obj;
-
-                
-            });
     }
 
-    public IDispatcher Dispatcher => this._dispatcher;
+    public IDispatcher Dispatcher { get; } = new Dispatcher();
 
-    public Packetizer Packetizer => this._packetizer;
+    public Packetizer Packetizer { get; } = new();
 
     public async Task InputLoop()
     {
@@ -81,18 +69,31 @@ public class Server : IServer
             }
             _running = true;
         }
+        _logger.Info("client net server start to run");
 
-        while (this._socket.Connected)
+        try
         {
-            var (id, data) = await Packetizer.ReadPacket(this._stream);
+            while (this._socket.Connected && _running)
+            {
+                var (id, data) = await Packetizer.ReadPacket(this._stream);
 
-            var packet = this._packetizer.ConvertPacket(id, data);
+                var packet = this.Packetizer.ConvertPacket(id, data);
 
-            this._dispatcher.DispatchPacket(id, packet);
+                this.Dispatcher.DispatchPacket(id, packet);
 
-            await Task.Yield();
+                await Task.Yield();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex);
+        }
+        finally
+        {
+            _logger.Info("client net server exit");
         }
     }
+
     public void Write(byte[] bytes)
     {
         lock (_lock)
@@ -115,4 +116,10 @@ public class Server : IServer
         this._socket.Close();
     }
 
+    public void Dispose()
+    {
+        this._stream.Dispose();
+        this._socket.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }

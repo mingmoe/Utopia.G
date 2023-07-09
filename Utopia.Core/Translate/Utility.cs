@@ -14,8 +14,6 @@ public static class Utility
         TranslateIdentifence id,
         object data)
     {
-        var msg = manager.Activate(key, id);
-
-        return new ICUTranslatedString(msg, data);
+        return new ICUTranslatedString(key, manager, id, data);
     }
 }

@@ -21,7 +21,7 @@ public partial class Loading : Node2D
     Sprite2D? _image;
     Sprite2D? _background;
     PackedScene? _next;
-    object key = null!;
+    object _key = null!;
 
     public static Godot.AudioStreamPlayer? Player { get; set; }
 
@@ -38,7 +38,7 @@ public partial class Loading : Node2D
         _image = this.GetNode<Sprite2D>("Background/Image");
         _background = this.GetNode<Sprite2D>("Background");
 
-        key = Utility.SetBackground(this, _background);
+        _key = Utility.SetBackground(this, _background);
 
         _next = ResourceLoader.Load<PackedScene>("res://Menu.tscn");
 
@@ -47,7 +47,6 @@ public partial class Loading : Node2D
 
     public override void _Process(double delta)
     {
-
         var mc = _stopwatch.ElapsedMilliseconds;
 
         // switch logo
@@ -70,7 +69,7 @@ public partial class Loading : Node2D
         if (mc > 7100)
         {
             this.RemoveChild(Player);
-            Utility.CancelBackground(this, key);
+            Utility.CancelBackground(this, _key);
             this.GetTree().ChangeSceneToPacked(_next);
         }
     }

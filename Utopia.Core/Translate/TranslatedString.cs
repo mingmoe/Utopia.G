@@ -1,10 +1,6 @@
 using CommunityToolkit.Diagnostics;
 using Jeffijoe.MessageFormat;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Utopia.Core.Exception;
 
 namespace Utopia.Core.Translate;
 
@@ -19,68 +15,136 @@ public interface ITranslatedString
     public string Translated { get; }
 
     /// <summary>
-    /// 翻译更新事件
+    /// 翻译更新事件。事件的参数是旧翻译，事件的结果是新翻译。
+    /// 最后的实际翻译为事件调用链结束后事件的结果值。
+    /// 可以被取消。
     /// </summary>
     public IEventManager<IEventWithParamAndResult<string, string>> TranslateUpdateEvent { get; }
 }
 
-/// <summary>
-/// 已经翻译过的字符串
-/// </summary>
 public class TranslatedString : ITranslatedString
 {
+    public string Translated { get; set; } = string.Empty;
 
-    public string Translated { get; private set; }
-
-    public IEventManager<IEventWithParamAndResult<string, string>> TranslateUpdateEvent { get; } =
-        (IEventManager<IEventWithParamAndResult<string, string>>)new EventManager<ComplexEvent<string, string>, string, string>();
-
-    public TranslatedString(string translated)
-    {
-        Guard.IsNotNullOrEmpty(translated);
-        this.Translated = translated;
-    }
-
-    public void Update(string newMsg)
-    {
-        Guard.IsNotNull(newMsg);
-        var e = new ComplexEvent<string, string>(this.Translated, newMsg, false);
-        this.TranslateUpdateEvent.Fire(e);
-        this.Translated = e.Result ?? e.Parameter!;
-    }
+    public IEventManager<IEventWithParamAndResult<string, string>> TranslateUpdateEvent
+    { get; } = new EventManager<IEventWithParamAndResult<string, string>>();
 }
 
+/// <summary>
+/// 已翻译的ICU字符串
+/// </summary>
 public class ICUTranslatedString : ITranslatedString
 {
+    private string _cached = null!;
 
     public string Translated { get; private set; }
 
-    public object Data { get; private set; }
+    private object _data;
+
+    /// <summary>
+    /// 改变这个只会重新格式化，使用上次获取到的缓存的翻译。
+    /// 不会从<see cref="Manager"/>重新获取翻译
+    /// </summary>
+    public object Data
+    {
+        get
+        {
+            return this._data;
+        }
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            this._data = value;
+            this._Reformat();
+        }
+    }
+
+    private TranslateKey _key;
+
+    /// <summary>
+    /// 改变这个将会重新获取翻译（从<see cref="Manager"/>中），重新格式化。
+    /// </summary>
+    public TranslateKey Key
+    {
+        get
+        {
+            return this._key;
+        }
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            this._key = value;
+            this.UpdateTranslate();
+        }
+    }
+
+    private ITranslateManager _manager;
+
+    /// <summary>
+    /// 改变这个将会重新获取翻译（从<see cref="Manager"/>中），重新格式化。
+    /// </summary>
+    public ITranslateManager Manager
+    {
+        get { return this._manager; }
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            this._manager = value;
+            this.UpdateTranslate();
+        }
+    }
+
+    private TranslateIdentifence _identifence;
+
+    /// <summary>
+    /// 改变这个将会重新获取翻译（从<see cref="Manager"/>中），重新格式化。
+    /// </summary>
+    public TranslateIdentifence Identifence
+    {
+        get { return this._identifence; }
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            this._identifence = value;
+            this.UpdateTranslate();
+        }
+    }
 
     public IEventManager<IEventWithParamAndResult<string, string>> TranslateUpdateEvent { get; } =
         (IEventManager<IEventWithParamAndResult<string, string>>)new EventManager<ComplexEvent<string, string>>();
 
-    public ICUTranslatedString(string msg, object data)
+    public void UpdateTranslate()
+    {
+        var @new =
+            MessageFormatter.Format(this.Manager.Activate(this.Key, this.Identifence),
+            this.Data);
+
+        this._cached = @new;
+
+        this._Reformat();
+    }
+
+    private void _Reformat()
+    {
+        ComplexEvent<string, string> @event = new(this.Translated, this._cached, true);
+        this.TranslateUpdateEvent.Fire(@event);
+        this.Translated = @event.Result ??
+            throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
+    }
+
+    public ICUTranslatedString(TranslateKey msg, ITranslateManager manager,
+        TranslateIdentifence identifence, object data)
     {
         Guard.IsNotNull(msg);
         Guard.IsNotNull(data);
+        Guard.IsNotNull(manager);
+        Guard.IsNotNull(identifence);
 
-        this.Translated = MessageFormatter.Format(msg, data);
+        this.Key = msg;
+        this.Manager = manager;
+        this.Identifence = identifence;
         this.Data = data;
-    }
 
-    public void Update(string newMsg, object data)
-    {
-        Guard.IsNotNull(newMsg);
-        Guard.IsNotNull(data);
-
-        newMsg = MessageFormatter.Format(newMsg, data);
-
-        var e = new ComplexEvent<string, string>(this.Translated, newMsg, false);
-        this.TranslateUpdateEvent.Fire(e);
-        this.Translated = e.Result ?? e.Parameter!;
-
-        this.Translated = newMsg;
-        this.Data = data;
+        this.UpdateTranslate();
     }
 }

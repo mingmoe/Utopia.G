@@ -10,12 +10,12 @@ namespace Utopia.Core;
 
 public class ServiceChangedEvent<ServiceT> : Event, IServiceChangedEvent<ServiceT>
 {
-    public ServiceChangedEvent(ServiceChangedType type, ServiceT? param) : base(true)
+    public ServiceChangedEvent(ServiceChangedType type, ServiceT param) : base(true)
     {
         this.Type = type;
         this.Target = param;
     }
-    public ServiceT? Target { get; set; }
+    public ServiceT Target { get; set; }
 
     public ServiceT? Old { get; set; }
 

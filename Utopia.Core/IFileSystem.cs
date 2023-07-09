@@ -14,6 +14,11 @@ namespace Utopia.Core;
 public interface IFileSystem
 {
     /// <summary>
+    /// PostgreSql数据库在<see cref="Utilities"/>下的目录。
+    /// </summary>
+    public const string PgSqlPath = "pgsql";
+
+    /// <summary>
     /// 游戏的根目录
     /// </summary>
     string Root { get; }
@@ -50,6 +55,11 @@ public interface IFileSystem
     string? Server { get; }
 
     /// <summary>
+    /// 游戏的工具目录。用于存放一些其他东西。
+    /// </summary>
+    string Utilties { get; }
+
+    /// <summary>
     /// 对于不存在的目录，则创建一个
     /// </summary>
     void CreateIfNotExist()
@@ -60,9 +70,45 @@ public interface IFileSystem
         Directory.CreateDirectory(this.Characters);
         Directory.CreateDirectory(this.Plugins);
         Directory.CreateDirectory(this.Configuraions);
+        Directory.CreateDirectory(this.Utilties);
         if (this.Server != null)
         {
             Directory.CreateDirectory(this.Server);
         }
+    }
+
+    /// <summary>
+    /// 尝试获取内置postgresql数据库的安装路径。
+    /// 如果为null。则说明数据库未安装。
+    /// </summary>
+    /// <returns>pg安装的根目录和pg_ctl实用程序</returns>
+    (string pgDir, string pgExecutable)? TryGetPostgreSqlPath()
+    {
+        var dir = Path.Join(this.Utilties, PgSqlPath);
+
+        if (!Directory.Exists(dir))
+        {
+            return null;
+        }
+        // check executable file exists
+        string file;
+
+        if (OperatingSystem.IsWindows())
+        {
+            file = "bin/pg_ctl.exe";
+        }
+        else
+        {
+            file = "bin/pg_ctl";
+        }
+
+        file = Path.Join(dir, file);
+
+        if (!File.Exists(file))
+        {
+            return null;
+        }
+
+        return new(dir, file);
     }
 }

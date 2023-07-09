@@ -7,6 +7,7 @@
 //===--------------------------------------------------------------===//
 
 using System.Xml.XPath;
+using Utopia.Core.Exception;
 
 namespace Utopia.Core;
 
@@ -24,7 +25,7 @@ public class Event : IEvent
             }
             else
             {
-                throw new InvalidOperationException("try to cancel a event that cannot be canceled");
+                throw new EventAssertionException(EventAssertionFailedCode.EventCancled);
             }
         }
         get

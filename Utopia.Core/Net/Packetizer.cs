@@ -92,7 +92,6 @@ public class Packetizer : IPacketizer
         }
     }
 
-
     public byte[] WritePacket(Guuid packetTypeId, object obj)
     {
         lock (this._locker)

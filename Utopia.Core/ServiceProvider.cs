@@ -6,6 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 using System.Collections.Concurrent;
+using Utopia.Core.Collections;
+using Utopia.Core.Events;
 
 namespace Utopia.Core;
 

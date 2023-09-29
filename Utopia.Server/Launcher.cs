@@ -16,7 +16,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Utopia.Core;
+using Utopia.Core.Collections;
+using Utopia.Core.Events;
 using Utopia.Core.Translate;
+using Utopia.Core.Utilities;
+using Utopia.Core.Utilities.IO;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
 using Utopia.Server.Net;
@@ -30,6 +34,17 @@ public static class Launcher
 {
     private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
+    public static void WaitForStart(object locker)
+    {
+        ArgumentNullException.ThrowIfNull(locker);
+        Thread.Yield();
+        Thread.Sleep(100);
+        lock (locker)
+        {
+            return;
+        }
+    }
+
     /// <summary>
     /// 启动参数
     /// </summary>
@@ -38,7 +53,7 @@ public static class Launcher
         /// <summary>
         /// 服务器端口
         /// </summary>
-        public int Port { get; set; } = Convert.ToInt32("114514", 8);
+        public int Port { get; set; } = 1145;
 
         /// <summary>
         /// 是否跳过初始化log系统
@@ -73,7 +88,7 @@ public static class Launcher
     /// 使用字符串参数启动服务器
     /// </summary>
     /// <param name="args">命令行参数</param>
-    public static void LaunchWithArguments(string[] args)
+    public static void LaunchWithArguments(string[] args, object? locker)
     {
         ArgumentNullException.ThrowIfNull(args, nameof(args));
 
@@ -118,56 +133,75 @@ public static class Launcher
             }
         }
 
-        Launch(option);
+        Launch(option, locker);
     }
 
     /// <summary>
     /// 使用参数启动服务器
     /// </summary>
     /// <param name="option">参数</param>
-    public static void Launch(LauncherOption option)
+    public static void Launch(LauncherOption option, object? locker)
     {
-        ArgumentNullException.ThrowIfNull(option);
-
-        Thread.CurrentThread.Name = "Server Initialization Thread";
-
-        var provider = _InitSystem(option);
-
-        var bus = provider.GetService<IEventBus>();
-
-        try
+        locker ??= new object();
+        lock (locker)
         {
-            stage(LifeCycle.InitializedSystem, () =>
+            ArgumentNullException.ThrowIfNull(option);
+
+            Thread.CurrentThread.Name = "Server Initialization Thread";
+
+            var provider = _InitSystem(option);
+
+            var bus = provider.GetService<IEventBus>();
+
+            try
             {
-                _logger.Info("start to initlize the server");
-            });
+                stage(LifeCycle.InitializedSystem, () =>
+                {
+                    _logger.Info("start to initlize the server");
+                });
 
-            // 加载插件
-            stage(LifeCycle.LoadPlugin, () => { _LoadPlugin(provider); });
+                // 加载插件
+                stage(LifeCycle.LoadPlugin, () =>
+                {
+                    provider.GetService<IPluginLoader<IPlugin>>().Active(
+                            provider.GetService<IContainer>(),
+                            typeof(Plugin.CorePlugin)
+                        );
+                    provider.GetService<IPluginLoader<IPlugin>>().LoadFromDirectory(
+                        provider.GetService<IFileSystem>().Plugins,
+                        provider.GetService<IContainer>(),
+                        _logger
+                    );
+                });
 
-            // 创建世界
-            stage(LifeCycle.LoadSaveings, () => { _LoadSave(provider); });
+                // 创建世界
+                stage(LifeCycle.LoadSaveings, () => { _LoadSave(provider); });
 
-            // 设置逻辑线程
-            stage(LifeCycle.StartLogicThread, () => { _StartLogicThread(provider); });
+                // 设置逻辑线程
+                stage(LifeCycle.StartLogicThread, () => { _StartLogicThread(provider); });
 
-            // 设置网络线程
-            stage(LifeCycle.StartNetThread, () => { _StartNetworkThread(provider, option.Port); });
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "the server initlize failed");
-            stage(LifeCycle.Crash, () => { });
-            stage(LifeCycle.Stop, () => { });
-        }
+                // 设置网络线程
+                stage(LifeCycle.StartNetThread, () => { _StartNetworkThread(provider, option.Port); });
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "the server initlize failed");
+                stage(LifeCycle.Crash, () => { });
+                stage(LifeCycle.Stop, () => { });
+            }
 
-        void stage(LifeCycle cycle, Action action)
-        {
-            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.Before, cycle));
-            action.Invoke();
-            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.After, cycle));
+            void stage(LifeCycle cycle, Action action)
+            {
+                bus!.Fire(new LifeCycleEvent(LifeCycleOrder.Before, cycle));
+                action.Invoke();
+                bus!.Fire(new LifeCycleEvent(LifeCycleOrder.After, cycle));
+            }
         }
     }
+
+    /// <summary>
+    /// 初始化系统
+    /// </summary>
     private static ServiceProvider _InitSystem(LauncherOption option)
     {
         Guard.IsNotNull(option);
@@ -191,14 +225,15 @@ public static class Launcher
         register<ILogicThread>(new SimplyLogicThread());
         register<IEventBus>(new EventBus());
 
+        // init filesystem
+        provider.GetService<IFileSystem>().CreateIfNotExist();
+
         // as world manager
-        register<SafeDictionary<long, Map.IWorld>>(new SafeDictionary<long, Map.IWorld>());
+        register<SafeDictionary<long, IWorld>>(new SafeDictionary<long, Map.IWorld>());
+        register<SafeDictionary<Guuid, IWorldFactory>>(new SafeDictionary<Guuid, IWorldFactory>());
 
         var container = builder.Build();
         provider.TryRegisterService<IContainer>(container);
-
-        // init filesystem
-        provider.GetService<IFileSystem>().CreateIfNotExist();
 
         if (option.DatabaseSource == null)
         {
@@ -214,29 +249,30 @@ public static class Launcher
         }
     }
 
-    static void _LoadPlugin(Utopia.Core.IServiceProvider provider)
+    /// <summary>
+    /// 加载存档
+    /// </summary>
+    /// <param name="provider"></param>
+    static void _LoadSave(Utopia.Core.IServiceProvider provider)
     {
-        var loader = provider.GetService<IPluginLoader<IPlugin>>();
-        var fs = provider.GetService<IFileSystem>();
-        foreach (var f in Directory.GetFiles(fs.Plugins, "*.dll", System.IO.SearchOption.AllDirectories))
+        var array = provider.GetService<SafeDictionary<Guuid, IWorldFactory>>().ToArray();
+
+        if (array.Length == 1)
         {
-            var file = Path.GetFullPath(f);
-            _logger.Info("loading plugin from dll:{plugin}", file);
-            loader.Active(provider.GetService<IContainer>(), file);
+            provider.GetService<SafeDictionary<long, IWorld>>().TryAdd(0,array[0].Value.GenerateNewWorld());
         }
     }
 
-    static void _LoadSave(Utopia.Core.IServiceProvider provider)
-    {
-        provider.GetService<SafeDictionary<long, IWorld>>().GetOrAdd(1, (_) => { return new World(1, 4, 4); });
-    }
-
+    /// <summary>
+    /// 启动
+    /// </summary>
+    /// <param name="provider"></param>
     static void _StartLogicThread(Utopia.Core.IServiceProvider provider)
     {
         var logicT = new Thread(() =>
         {
             var t = provider.GetService<ILogicThread>();
-            var worlds = provider.GetService<SafeDictionary<long, Map.IWorld>>().ToArray();
+            var worlds = provider.GetService<SafeDictionary<long, IWorld>>().ToArray();
             foreach (var world in worlds)
             {
                 t.AddUpdatable(world.Value);
@@ -252,11 +288,14 @@ public static class Launcher
             t.Run();
         })
         {
-            Name = "Server Updating Thread"
+            Name = "Server Logic Thread"
         };
         logicT.Start();
     }
 
+    /// <summary>
+    /// 启动网络线程
+    /// </summary>
     static void _StartNetworkThread(Core.IServiceProvider provider, int port)
     {
         var netServer = new NetServer();
@@ -264,8 +303,8 @@ public static class Launcher
         netServer.Listen(port);
         _logger.Info("listen to {port}", port);
 
-        var netThread = new NetThread(provider);
-        provider.TryRegisterService<NetThread>(netThread);
+        var netThread = new InternetMain(provider);
+        provider.TryRegisterService<InternetMain>(netThread);
         var thread = new Thread(() =>
         {
             // 注册关闭事件
@@ -286,6 +325,6 @@ public static class Launcher
 
     static void Main(string[] args)
     {
-        LaunchWithArguments(args);
+        LaunchWithArguments(args, null);
     }
 }

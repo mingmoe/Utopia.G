@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://t8j5wxauje20"]
+[gd_scene load_steps=4 format=3 uid="uid://t8j5wxauje20"]
 
 [ext_resource type="Texture2D" uid="uid://cu0mtw5wuq5tq" path="res://images/textures/player.png" id="1_am0in"]
-[ext_resource type="Script" path="res://Main.cs" id="1_pdttv"]
+[ext_resource type="Script" path="res://Scene/Main.cs" id="1_pdttv"]
+[ext_resource type="TileSet" uid="uid://8r5uib3eyhvu" path="res://empty_default_tileset.tres" id="2_oe3ca"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_pdttv")
@@ -10,6 +11,7 @@ metadata/_edit_vertical_guides_ = [-229.0, -201.0, -199.0, -209.0]
 [node name="Camera" type="Camera2D" parent="."]
 
 [node name="TileMap" type="TileMap" parent="."]
+tile_set = ExtResource("2_oe3ca")
 format = 2
 
 [node name="PlayerSprite" type="Sprite2D" parent="."]

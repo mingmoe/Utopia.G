@@ -9,13 +9,13 @@ using System.IO;
 
 namespace Utopia.G;
 
-public class FileSystem : Utopia.Core.FileSystem
+public class FileSystem : Core.Utilities.IO.FileSystem
 {
     public override string Root { get; } = Path.GetDirectoryName(Godot.OS.GetExecutablePath()) ?? ".";
 
     public override string? Server => Path.Join(this.Root, "Server");
 
-    private class ServerFileSystem : Utopia.Core.FileSystem
+    private class ServerFileSystem : Core.Utilities.IO.FileSystem
     {
         private readonly string _root;
 
@@ -29,7 +29,7 @@ public class FileSystem : Utopia.Core.FileSystem
         }
     }
 
-    public Utopia.Core.FileSystem CreateServerFileSystem()
+    public Core.Utilities.IO.FileSystem CreateServerFileSystem()
     {
         return new ServerFileSystem(this.Server!);
     }

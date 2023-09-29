@@ -21,3 +21,7 @@ config/icon="res://icon.png"
 
 project/assembly_name="Utopia.G"
 project/solution_directory="../"
+
+[editor]
+
+movie_writer/mjpeg_quality=0.9

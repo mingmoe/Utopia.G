@@ -6,10 +6,14 @@
 //
 //===--------------------------------------------------------------===//
 
+using Utopia.Core.Collections;
+using Utopia.Core.Events;
+using Utopia.Core.Utilities;
+
 namespace Utopia.Core.Translate;
 
 /// <summary>
-/// 翻译管理器，可以通过此接口获取翻译。
+/// 翻译管理器，可以通过此接口获取翻译。要求线程安全.
 /// </summary>
 public interface ITranslateManager : ISafeDictionary<Guuid, ITranslateProvider>
 {
@@ -24,6 +28,16 @@ public interface ITranslateManager : ISafeDictionary<Guuid, ITranslateProvider>
     /// <param name="result">获取到的结果，如果获取失败，设置为null。</param>
     /// <returns>如果获取成功，返回true。</returns>
     bool TryGetTranslate(TranslateIdentifence language, Guuid? translateProviderId, Guuid translateItemId, out string? result);
+
+    /// <summary>
+    /// 获取尝试获取翻译.
+    /// 效果和
+    /// <see cref="TryGetTranslate(TranslateIdentifence, Guuid?, Guuid, out string?)"/>
+    /// 差不多.
+    /// </summary>
+    /// <param name="key">要获取的翻译</param>
+    /// <param name="result">获取到的翻译.如果没找到,返回null</param>
+    bool TryGetTranslate(TranslateKey key, out string? result);
 
     /// <summary>
     /// 检查翻译条目是否存在
@@ -43,13 +57,6 @@ public interface ITranslateManager : ISafeDictionary<Guuid, ITranslateProvider>
     /// 提示翻译管理器，所有翻译缓存作废，应该重新获取翻译。
     /// </summary>
     void UpdateTranslate();
-
-    /// <summary>
-    /// 获取翻译键的翻译
-    /// </summary>
-    /// <param name="key">翻译键，非空</param>
-    /// <returns>翻译，如果获取不到翻译，则返回翻译条目ID</returns>
-    string Activate(TranslateKey key, TranslateIdentifence id);
 
     /// <summary>
     /// 翻译管理器更新事件。参数是this翻译管理器，事件可取消。

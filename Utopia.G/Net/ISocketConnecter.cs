@@ -8,7 +8,7 @@
 
 using System;
 using System.Net.Sockets;
-using Utopia.Core;
+using Utopia.Core.Events;
 
 namespace Utopia.G.Net;
 
@@ -43,7 +43,7 @@ public interface ISocketConnecter
     { get; }
 
     /// <summary>
-    /// 结束链接，退出游戏。
+    /// 结束链接
     /// </summary>
     void Close();
 }

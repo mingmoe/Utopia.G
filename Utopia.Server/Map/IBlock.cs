@@ -6,7 +6,7 @@
 //
 //===--------------------------------------------------------------===//
 
-using Utopia.Core;
+using Utopia.Core.Map;
 using Utopia.Server;
 
 namespace Utopia.Server.Map;
@@ -34,5 +34,5 @@ public interface IBlock
 
     void LogicUpdate();
 
-    WorldPosition WorldPosition { get; }
+    WorldPosition Position { get; }
 }

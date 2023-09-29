@@ -6,6 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 
+using System.Globalization;
+
 namespace Utopia.Core.Translate;
 
 /// <summary>
@@ -22,6 +24,12 @@ public class TranslateIdentifence
     /// ISO 3166-1所指定的三位字母地区编码。
     /// </summary>
     public readonly string Location;
+
+    public TranslateIdentifence()
+    {
+        this.Language = CultureInfo.CurrentCulture.ThreeLetterISOLanguageName.ToLower();
+        this.Location = RegionInfo.CurrentRegion.ThreeLetterISORegionName.ToLower();
+    }
 
     /// <summary>
     /// 构造一个翻译条目

@@ -6,7 +6,7 @@
 //
 //===--------------------------------------------------------------===//
 
-using Utopia.Core;
+using Utopia.Core.Map;
 using Utopia.Server;
 
 namespace Utopia.Server.Map;
@@ -27,8 +27,20 @@ public interface IArea : Logic.IUpdatable
 
     bool TryGetBlock(Position position, out IBlock? block);
 
+    IAreaLayer GetLayer(int z);
+
     /// <summary>
     /// Area坐标
     /// </summary>
-    FlatPositionWithId WorldPosition { get; }
+    FlatPositionWithId Position { get; }
+
+    IBiome Biome { get; set; }
+
+    IPrecipitation Precipitation { get; set; }
+
+    ITemperature Temperature { get; set; }
+
+    IElevation Elevation { get; set; }
+
+    IConstruction? Construction { get; set; }
 }

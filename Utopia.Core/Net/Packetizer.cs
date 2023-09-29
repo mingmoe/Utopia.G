@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Utopia.Core.Collections;
+using Utopia.Core.Utilities;
 using Utopia.Core.Utilities.IO;
 
 namespace Utopia.Core.Net;
@@ -19,13 +21,12 @@ public interface IPacketizer
     public bool TryGetFormatter(Guuid id, out IPacketFormatter? formatter);
 
     /// <summary>
-    /// 把二进制转换为包
+    /// 把字节序列转换为包.
     /// </summary>
     public object ConvertPacket(Guuid packetTypeId, byte[] data);
 
     /// <summary>
-    /// 把包序列化后，写入包的长度(将调用<see cref="System.Net.IPAddress.HostToNetworkOrder(int)"/>
-    /// 和包体.
+    /// 把包转化为字节序列
     /// </summary>
     public byte[] WritePacket(Guuid packetTypeId, object obj);
 }
@@ -50,15 +51,9 @@ public class Packetizer : IPacketizer
     /// <summary>
     /// without locking
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="formatter"></param>
-    /// <returns></returns>
     private bool _TryGetFormatter(Guuid id, out IPacketFormatter? formatter)
     {
-        _formatters.EnterList((l) =>
-        {
-            tryGetFormatter(l);
-        });
+        _formatters.EnterList(tryGetFormatter);
 
         IPacketFormatter? result = null;
         void tryGetFormatter(IList<IPacketFormatter> list)
@@ -77,18 +72,6 @@ public class Packetizer : IPacketizer
         return result != null;
     }
 
-    public static async Task<(Guuid, byte[])> ReadPacket(Stream stream)
-    {
-        Guard.IsNotNull(stream);
-
-        var packet = await StreamUtility.ReadPacket(stream)!;
-        var packStream = new MemoryStream(packet);
-        var id = await StreamUtility.ReadGuuid(packStream);
-        var data = packet[((int)packStream.Position)..];
-
-        return (id, data);
-    }
-
     public bool TryGetFormatter(Guuid id, out IPacketFormatter? formatter)
     {
         lock (this._locker)
@@ -101,7 +84,7 @@ public class Packetizer : IPacketizer
     {
         lock (this._locker)
         {
-            if (this.TryGetFormatter(packetTypeId, out IPacketFormatter? formatter))
+            if (this._TryGetFormatter(packetTypeId, out IPacketFormatter? formatter))
             {
                 return formatter!.GetValue(data);
             }
@@ -109,10 +92,7 @@ public class Packetizer : IPacketizer
         }
     }
 
-    /// <summary>
-    /// 把包序列化后，写入包的长度(将调用<see cref="System.Net.IPAddress.HostToNetworkOrder(int)"/>
-    /// 和包体.
-    /// </summary>
+
     public byte[] WritePacket(Guuid packetTypeId, object obj)
     {
         lock (this._locker)
@@ -121,11 +101,7 @@ public class Packetizer : IPacketizer
             {
                 var data = formatter!.ToPacket(obj);
 
-                var stream = new MemoryStream(data.Length + 4);
-
-                stream.Write(BitConverter.GetBytes(System.Net.IPAddress.HostToNetworkOrder(data.Length)));
-                stream.Write(data);
-                return stream.ToArray();
+                return data;
             }
             throw new InvalidOperationException("unknown packet type id");
         }

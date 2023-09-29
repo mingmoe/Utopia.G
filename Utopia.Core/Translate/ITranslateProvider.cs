@@ -6,10 +6,12 @@
 //
 //===--------------------------------------------------------------===//
 
+using Utopia.Core.Utilities;
+
 namespace Utopia.Core.Translate;
 
 /// <summary>
-/// 负责提供翻译的类
+/// 负责提供翻译的类.应该确保线程安全.
 /// </summary>
 public interface ITranslateProvider
 {

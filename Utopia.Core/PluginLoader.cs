@@ -6,48 +6,40 @@
 //
 //===--------------------------------------------------------------===//
 using Autofac;
+using Castle.Core.Logging;
 using CommunityToolkit.Diagnostics;
+using NLog;
+using System.Collections.Immutable;
 using System.Reflection;
 using Utopia.Core;
+using Utopia.Core.Events;
 
 namespace Utopia.Server;
 
 /// <summary>
 /// 插件加载器
 /// </summary>
-public class PluginLoader<PluginT> : IPluginLoader<PluginT>
+public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPluginBase
 {
     readonly object _locker = new();
 
     List<(Type, PluginT)> _ActivePlugins { get; } = new();
 
-    public IReadOnlyCollection<(Type, PluginT)> ActivePlugins
+    readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+    public ImmutableArray<(Type, PluginT)> ActivePlugins
     {
         get
         {
             lock (this._locker)
             {
-                return this._ActivePlugins.ToArray();
+                return this._ActivePlugins.ToImmutableArray();
             }
         }
     }
 
     public IEventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs> ActivePlguinEvent { get; }
     = new EventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs>();
-
-    public void Active(IContainer container, string dllFile)
-    {
-        ArgumentNullException.ThrowIfNull(dllFile, nameof(dllFile));
-        ArgumentNullException.ThrowIfNull(container, nameof(container));
-
-        var loaded = Assembly.LoadFrom(dllFile);
-        var types = loaded.ExportedTypes;
-
-        foreach (var type in types)
-        {
-            this.Active(container, type);
-        }
-    }
 
     public void Active(IContainer container, Type type)
     {
@@ -61,7 +53,7 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT>
             {
                 PluginInstance = p
             };
-            ActivePlguinEvent.Fire(args);
+            this.ActivePlguinEvent.Fire(args);
 
             if (args.PluginInstance == null)
             {
@@ -69,6 +61,19 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT>
             }
 
             p = args.PluginInstance;
+
+            try
+            {
+                p.Active();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e,
+                    "failed to active plugin:`{pluginName}`(ID {pluginId}) try to access {pluginHomepage} for help",
+                    p.Name,
+                    p.Id,
+                    p.Homepage);
+            }
 
             lock (this._locker)
             {

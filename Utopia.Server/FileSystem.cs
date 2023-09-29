@@ -8,7 +8,7 @@
 
 namespace Utopia.Server;
 
-public class FileSystem : Core.FileSystem
+public class FileSystem : Core.Utilities.IO.FileSystem
 {
     public override string Root => Path.GetPathRoot(System.Reflection.Assembly.GetExecutingAssembly().Location ?? ".") ?? ".";
 

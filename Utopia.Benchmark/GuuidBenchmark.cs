@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utopia.Core;
+using Utopia.Core.Utilities;
 
 namespace Utopia.Benchmark;
 
@@ -21,20 +21,20 @@ public class GuuidBenchmark
 
     public GuuidBenchmark()
     {
-        this._new = new Core.Guuid(_data.First(), _data[1..]);
+        this._new = new Guuid(_data.First(), _data[1..]);
         this._converted = this._new.ToString();
     }
 
     [Benchmark]
-    public Utopia.Core.Guuid Construction()
+    public Guuid Construction()
     {
-        return new Core.Guuid(this._data.First(), this._data[1..]);
+        return new Guuid(this._data.First(), this._data[1..]);
     }
 
     [Benchmark]
-    public Utopia.Core.Guuid PauseGuuid()
+    public Guuid PauseGuuid()
     {
-        return Core.Guuid.ParseString(this._converted);
+        return Guuid.ParseString(this._converted);
     }
 
     [Benchmark]

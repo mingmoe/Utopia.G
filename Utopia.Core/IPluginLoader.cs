@@ -7,7 +7,10 @@
 //===--------------------------------------------------------------===//
 using Autofac;
 using CommunityToolkit.Diagnostics;
-using Utopia.Core;
+using NLog;
+using System.Collections.Immutable;
+using System.Reflection;
+using Utopia.Core.Events;
 
 namespace Utopia.Server;
 
@@ -19,8 +22,11 @@ public interface IPluginLoader<PluginT>
     /// <summary>
     /// 已经实例化的插件
     /// </summary>
-    IReadOnlyCollection<(Type, PluginT)> ActivePlugins { get; }
+    ImmutableArray<(Type, PluginT)> ActivePlugins { get; }
 
+    /// <summary>
+    /// 一个可以取消的事件.激活插件时触发.
+    /// </summary>
     public class ActivePlguinEventArgs : Event
     {
         /// <summary>
@@ -42,6 +48,7 @@ public interface IPluginLoader<PluginT>
         public ActivePlguinEventArgs(Type pluginType, IContainer container) : base(true)
         {
             Guard.IsNotNull(pluginType);
+            Guard.IsNotNull(container);
             this.PluginType = pluginType;
             this.Container = container;
         }
@@ -56,7 +63,19 @@ public interface IPluginLoader<PluginT>
     /// 从dll文件中扫描并加载插件。将会注册所有实现了<see cref="PluginT"/>的类型。
     /// </summary>
     /// <param name="dllFile">dll文件</param>
-    void Active(IContainer container, string dllFile);
+    void Active(IContainer container, string dllFile)
+    {
+        ArgumentNullException.ThrowIfNull(dllFile, nameof(dllFile));
+        ArgumentNullException.ThrowIfNull(container, nameof(container));
+
+        var loaded = Assembly.LoadFrom(dllFile);
+        var types = loaded.ExportedTypes;
+
+        foreach (var type in types)
+        {
+            this.Active(container, type);
+        }
+    }
 
     /// <summary>
     /// 激活指定类型的插件
@@ -64,4 +83,26 @@ public interface IPluginLoader<PluginT>
     /// <param name="container">容器</param>
     /// <param name="type">插件类型，要求实现<see cref="PluginT"/>接口</param>
     void Active(IContainer container, Type type);
+}
+
+public static class PluginLoadHelper
+{
+    /// <summary>
+    /// 从目录中递归搜索所有dll然后加载
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="loader"></param>
+    /// <param name="dir"></param>
+    /// <param name="container"></param>
+    /// <param name="logger"></param>
+    public static void LoadFromDirectory<T>(this IPluginLoader<T> loader, string dir,
+        IContainer container, ILogger logger)
+    {
+        foreach (var f in Directory.GetFiles(dir, "*.dll", SearchOption.AllDirectories))
+        {
+            var file = Path.GetFullPath(f);
+            logger.Info("loading plugin from dll:{plugin}", file);
+            loader.Active(container, file);
+        }
+    }
 }

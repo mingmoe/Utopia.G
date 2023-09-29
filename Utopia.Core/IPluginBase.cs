@@ -6,6 +6,7 @@
 //
 //===--------------------------------------------------------------===//
 using Utopia.Core.Translate;
+using Utopia.Core.Utilities;
 
 namespace Utopia.Core;
 
@@ -15,33 +16,37 @@ namespace Utopia.Core;
 public interface IPluginBase
 {
     /// <summary>
-    /// 插件的人类可读名称
+    /// 人类可读的名称
     /// </summary>
-    TranslateKey Name { get; }
+    ITranslatedString Name { get; }
 
     /// <summary>
-    /// 插件的描述
+    /// 人类可读的描述
     /// </summary>
-    TranslateKey Description { get; }
+    ITranslatedString Description { get; }
 
     /// <summary>
-    /// 插件的许可协议
+    /// 许可协议
     /// </summary>
     string License { get; }
 
     /// <summary>
-    /// 插件的版本号
+    /// 版本号
     /// </summary>
     Version Version { get; }
 
     /// <summary>
-    /// 用于标识插件的唯一ID
+    /// 唯一ID
     /// </summary>
     Guuid Id { get; }
 
     /// <summary>
-    /// 插件的网址，或者其他联系方式等。
+    /// 网址，或者其他联系方式等。
     /// </summary>
     string Homepage { get; }
 
+    /// <summary>
+    /// 在这个函数中,而不是在构造函数中进行初始化
+    /// </summary>
+    void Active();
 }

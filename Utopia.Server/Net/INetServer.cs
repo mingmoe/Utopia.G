@@ -9,6 +9,7 @@
 using System.Net;
 using System.Net.Sockets;
 using Utopia.Core;
+using Utopia.Core.Events;
 
 namespace Utopia.Server.Net;
 

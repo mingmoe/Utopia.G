@@ -12,34 +12,28 @@ using Jeffijoe.MessageFormat;
 namespace Utopia.Core.Translate;
 
 /// <summary>
-/// 翻译条目结果，非线程安全。
-/// </summary>
-/// <param name="Cached">翻译缓存</param>
-/// <param name="Id">翻译缓存的ID，这个数值可以用于热更新翻译</param>
-public record class TranslateResult(string? Cached, long Id, TranslateIdentifence Identifence);
-
-/// <summary>
-/// 翻译键，非线程安全。
+/// 翻译键，线程安全。
 /// </summary>
 /// <param name="TranslateProviderId">翻译提供者ID</param>
 /// <param name="TranslateItemId">翻译条目ID</param>
 /// <param name="Id">翻译缓存</param>
 /// <param name="Comment">翻译的注释，一般没啥用，给翻译人员使用</param>
-public record struct TranslateKey(in string TranslateItemId, in string Comment,
-    in string? TranslateProviderId = null, TranslateResult? Id = null)
+public readonly record struct TranslateKey(in string TranslateItemId, in string Comment,
+    in string? TranslateProviderId = null)
 {
+    /// <summary>
+    /// 使用这个函数来防止源代码检测器检测
+    /// </summary>
     public static TranslateKey Create(in string itemId, in string comment, in string? providerId = null)
     {
-        Guard.IsNotNull(itemId);
-        Guard.IsNotNull(comment);
+        ArgumentNullException.ThrowIfNull(itemId, nameof(itemId));
+        ArgumentNullException.ThrowIfNull(comment, nameof(comment));
 
-        var n = (TranslateKey)Activator.CreateInstance(typeof(TranslateKey))!;
-
-        n.TranslateItemId = itemId;
-        n.Comment = comment;
-        n.TranslateProviderId = providerId;
+        var n = (TranslateKey)Activator.CreateInstance(typeof(TranslateKey),
+            itemId,
+            comment,
+            providerId)!;
 
         return n;
     }
-
 }

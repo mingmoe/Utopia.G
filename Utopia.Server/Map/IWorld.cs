@@ -6,7 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 
-using Utopia.Core;
+using Utopia.Core.Map;
+using Utopia.Core.Utilities;
 using Utopia.Server;
 
 namespace Utopia.Server.Map;
@@ -18,31 +19,41 @@ public interface IWorld : Logic.IUpdatable
 {
 
     /// <summary>
+    /// 世界类型
+    /// </summary>
+    Guuid WorldType { get; }
+
+    /// <summary>
     /// 世界ID
     /// </summary>
-    public long Id { get; }
+    long Id { get; }
 
     /// <summary>
     /// X轴世界大小，单位为区域
     /// </summary>
-    long XAreaCount { get; }
+    int XAreaCount { get; }
 
     /// <summary>
     /// X轴世界负半轴大小，单位为区域
     /// </summary>
-    long XAreaNegativeCount { get; }
+    int XAreaNegativeCount { get; }
 
     /// <summary>
     /// Y轴世界大小，单位为区域
     /// </summary>
-    long YAreaCount { get; }
+    int YAreaCount { get; }
 
     /// <summary>
     /// Y轴世界负半轴大小，单位为区域
     /// </summary>
-    long YAreaNegativeCount { get; }
+    int YAreaNegativeCount { get; }
 
     bool TryGetArea(FlatPosition position, out IArea? area);
 
     bool TryGetBlock(Position position, out IBlock? block);
+
+    /// <summary>
+    /// 世界生成器
+    /// </summary>
+    IWorldGenerator Generator { get; }
 }

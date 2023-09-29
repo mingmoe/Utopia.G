@@ -6,14 +6,18 @@
 //
 //===--------------------------------------------------------------===//
 using System.Security.Cryptography;
+using Utopia.Core.Collections;
+using Utopia.Core.Events;
+using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Translate;
 
 /// <summary>
-/// 默认翻译管理器，非线程安全。
+/// 默认翻译管理器，线程安全。
 /// </summary>
 public class TranslateManager : SafeDictionary<Guuid, ITranslateProvider>, ITranslateManager
 {
+    private readonly object _lock = new();
 
     public long TranslateID { get; private set; }
 
@@ -26,41 +30,13 @@ public class TranslateManager : SafeDictionary<Guuid, ITranslateProvider>, ITran
         this.TranslateID =
             RandomNumberGenerator.GetInt32(int.MinValue, int.MaxValue);
     }
-
-    public string Activate(TranslateKey key, TranslateIdentifence id)
-    {
-        ArgumentNullException.ThrowIfNull(key);
-        ArgumentNullException.ThrowIfNull(id);
-
-        if (key.Id?.Cached != null && key.Id.Id == this.TranslateID
-            && key.Id?.Identifence != null && key.Id.Identifence.Equals(id))
-        {
-            return key.Id.Cached;
-        }
-
-        else if (
-            this.TryGetTranslate(
-                id,
-                key.TranslateProviderId == null ? null : Guuid.ParseString(key.TranslateProviderId),
-                Guuid.ParseString(key.TranslateItemId),
-                out string? result))
-        {
-            key.Id = new(result, this.TranslateID, id);
-            return result!;
-        }
-        else
-        {
-            key.Id = new(string.Format("{0}::{1}", key.TranslateProviderId?.ToString() ?? "any provider",
-                key.TranslateItemId.ToString()), this.TranslateID, id);
-        }
-
-        return key.Id.Cached!;
-    }
-
     public void UpdateTranslate()
     {
-        this.TranslateID++;
-        this.TranslateUpdatedEvent.Fire(new EventWithParam<ITranslateManager>(this, true));
+        lock (this._lock)
+        {
+            this.TranslateID++;
+            this.TranslateUpdatedEvent.Fire(new EventWithParam<ITranslateManager>(this, true));
+        }
     }
 
     public bool Contains(TranslateIdentifence language, Guuid? translateProviderId, Guuid translateItemId)
@@ -73,33 +49,36 @@ public class TranslateManager : SafeDictionary<Guuid, ITranslateProvider>, ITran
         ArgumentNullException.ThrowIfNull(language);
         ArgumentNullException.ThrowIfNull(translateItemId);
 
-        if (translateProviderId is not null &&
+        lock (this._lock)
+        {
+            if (translateProviderId is not null &&
             this.TryGetValue(translateProviderId, out ITranslateProvider? value))
-        {
-            if (value!.TryGetItem(language, translateItemId, out result))
             {
-                return true;
-            }
-            else
-            {
-                result = null;
-                return false;
-            }
-        }
-        else if (translateProviderId is null)
-        {
-            var vs = this.ToArray();
-
-            foreach (var provider in vs)
-            {
-                if (provider.Value.TryGetItem(language, translateItemId, out result))
+                if (value!.TryGetItem(language, translateItemId, out result))
                 {
                     return true;
                 }
+                else
+                {
+                    result = null;
+                    return false;
+                }
             }
-        }
+            else if (translateProviderId is null)
+            {
+                var vs = this.ToArray();
 
-        result = null;
-        return false;
+                foreach (var provider in vs)
+                {
+                    if (provider.Value.TryGetItem(language, translateItemId, out result))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            result = null;
+            return false;
+        }
     }
 }

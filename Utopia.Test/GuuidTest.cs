@@ -5,7 +5,7 @@
 // MIT LICENSE:https://opensource.org/licenses/MIT
 //
 //===--------------------------------------------------------------===//
-using Utopia.Core;
+using Utopia.Core.Utilities;
 
 namespace Utopia.Test;
 

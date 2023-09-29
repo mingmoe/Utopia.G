@@ -6,6 +6,8 @@
 //
 //===--------------------------------------------------------------===//
 
+using Utopia.Core.Events;
+
 namespace Utopia.Core;
 
 /// <summary>

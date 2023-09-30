@@ -26,12 +26,8 @@ public interface IEvent
     /// <exception cref="InvalidOperationException">
     /// 如果事件无法被取消但此field仍被修改，则抛出此异常。
     /// </exception>
-    bool Cancel { set; get; }
+    bool Cancel { get; }
 
-    /// <summary>
-    /// 事件是否能取消
-    /// </summary>
-    bool CanCancel { get; }
 }
 
 /// <summary>

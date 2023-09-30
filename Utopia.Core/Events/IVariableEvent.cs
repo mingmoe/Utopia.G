@@ -31,7 +31,7 @@ public interface IVariableEvent<T>
         public readonly VT Old;
         public readonly VT New;
 
-        public VariavbleChangedEvent(VT old, VT @new) : base(true)
+        public VariavbleChangedEvent(VT old, VT @new)
         {
             this.Old = old;
             this.New = @new;

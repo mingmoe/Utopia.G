@@ -1,5 +1,5 @@
 #region copyright
-// This file(may named IWorld.cs) is a part of the project: Utopia.Server.
+// This file(may named INetServer.cs) is a part of the project: Utopia.Server.
 // 
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // 
@@ -12,54 +12,43 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using Utopia.Core;
-using Utopia.Core.Map;
-using Utopia.Core.Utilities;
+using System.Net;
+using System.Net.Sockets;
+using Utopia.Core.Events;
 
-namespace Utopia.Server.Map;
+namespace Utopia.Server.Net;
 
 /// <summary>
-/// 世界接口
+/// 网络服务器接口，线程安全。
 /// </summary>
-public interface IWorld : Logic.IUpdatable,ISaveableTo<DirectoryInfo>
+public interface IInternetListener : IDisposable
 {
+    /// <summary>
+    /// 目前正在监听的端口号。如果服务器尚未启动则引发异常。
+    /// </summary>
+    public int Port { get; }
 
     /// <summary>
-    /// 世界类型
+    /// 检查网络服务器是否处在工作状态
     /// </summary>
-    Guuid WorldType { get; }
+    public bool Working { get; }
+
+    public IEventManager<ComplexEvent<Socket, Socket>> AcceptEvent { get; }
 
     /// <summary>
-    /// 世界ID
+    /// 链接并监听端口，一个INetServer只能监听一个端口。
     /// </summary>
-    long Id { get; }
+    /// <param name="port">端口号</param>
+    void Listen(int port);
 
     /// <summary>
-    /// X轴世界大小，单位为区域
+    /// 接受新链接，必须监听一个端口号后才能调用。
     /// </summary>
-    int XAreaCount { get; }
+    /// <returns></returns>
+    Task<Socket> Accept();
 
     /// <summary>
-    /// X轴世界负半轴大小，单位为区域
+    /// 停机，释放资源。
     /// </summary>
-    int XAreaNegativeCount { get; }
-
-    /// <summary>
-    /// Y轴世界大小，单位为区域
-    /// </summary>
-    int YAreaCount { get; }
-
-    /// <summary>
-    /// Y轴世界负半轴大小，单位为区域
-    /// </summary>
-    int YAreaNegativeCount { get; }
-
-    bool TryGetArea(FlatPosition position, out IArea? area);
-
-    bool TryGetBlock(Position position, out IBlock? block);
-
-    /// <summary>
-    /// 世界生成器
-    /// </summary>
-    IWorldGenerator Generator { get; }
+    void Shutdown();
 }

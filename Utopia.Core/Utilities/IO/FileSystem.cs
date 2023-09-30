@@ -29,7 +29,7 @@ public abstract class FileSystem : IFileSystem
 
     public string Plugins => Path.Join(this.Root, "Plugins");
 
-    public string Configuraions => Path.Join(this.Root, "Configurations");
+    public string Configurations => Path.Join(this.Root, "Configurations");
 
     public string Utilties => Path.Join(this.Root, "Utilties");
 

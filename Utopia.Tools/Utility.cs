@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using NLog;
 
-namespace Utopia.Analyzer;
+namespace Utopia.Tools;
 
 public class Utility
 {

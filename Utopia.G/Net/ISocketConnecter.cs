@@ -19,7 +19,8 @@ using Utopia.Core.Events;
 namespace Utopia.G.Net;
 
 /// <summary>
-/// 客户端，负责连接到服务器
+/// This class can connect to the game server.
+/// It also take responsibility for maintainning the socket link.
 /// </summary>
 public interface ISocketConnecter
 {

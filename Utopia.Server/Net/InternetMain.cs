@@ -24,7 +24,7 @@ namespace Utopia.Server.Net;
 /// <summary>
 /// 网络线程
 /// </summary>
-public class InternetMain
+public sealed class InternetMain
 {
     private readonly object _lock = new();
     private readonly SafeList<IConnectHandler> _clients = new();
@@ -59,7 +59,7 @@ public class InternetMain
         while (this._running)
         {
             // wait for accept
-            var net = this._serviceProvider.GetService<INetServer>();
+            var net = this._serviceProvider.GetService<IInternetListener>();
 
             var accept = net.Accept();
             while (this._running && !accept.IsCompleted)
@@ -74,7 +74,7 @@ public class InternetMain
             var socket = accept.Result;
 
             // begin to create
-            var e = new ComplexEvent<Socket, IConnectHandler>(socket, null, false);
+            var e = new ComplexEvent<Socket, IConnectHandler>(socket, null);
             this.ClientCreatedEvent.Fire(e);
             var client = e.Result ??
                 throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
@@ -92,7 +92,7 @@ public class InternetMain
                     return;
                 }
             }
-            _ = client.InputLoop();
+            Task.Run(client.InputLoop);
         }
 
     }

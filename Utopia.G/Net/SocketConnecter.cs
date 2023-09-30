@@ -84,7 +84,7 @@ public class SocketConnecter : ISocketConnecter
 
             this._socket = tempSocket;
 
-            var @event = new ComplexEvent<Socket, IConnectHandler>(tempSocket, null, false);
+            var @event = new ComplexEvent<Socket, IConnectHandler>(tempSocket, null);
 
             this.ConnectCreatedEvent.Fire(@event);
 

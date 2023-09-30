@@ -12,7 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Autofac;
+using Utopia.Core.Collections;
 using Utopia.Core.Map;
+using Utopia.Core.Utilities;
+using Utopia.Server.Entity;
 using Utopia.Server.Map;
 using Utopia.Server.Plugin.Entity;
 
@@ -38,6 +42,18 @@ public class ClimateGenerator : IClimateGenerator
 
 public class Generator : IWorldGenerator
 {
+
+    private readonly IEntityManager _entityManager;
+    private readonly IContainer _container;
+
+    public Generator(IEntityManager entityManager,IContainer container)
+    {
+        ArgumentNullException.ThrowIfNull(entityManager);
+        ArgumentNullException.ThrowIfNull(container);
+        this._entityManager = entityManager;
+        this._container = container;
+    }
+
     public void Generate(IAreaLayer area)
     {
         if (area.Stage == GenerationStage.Finish)
@@ -52,7 +68,7 @@ public class Generator : IWorldGenerator
             areaLayer.Fill(
                 (b, i) =>
                 {
-                    return new GrassEntity();
+                    return this._entityManager.Create(ResourcePack.Entity.GrassEntity.ID, null);
                 }
             );
         }
@@ -67,7 +83,7 @@ public class Generator : IWorldGenerator
             areaLayer.Fill(
                 (b, i) =>
                 {
-                    return new GrassEntity();
+                    return this._entityManager.Create(ResourcePack.Entity.GrassEntity.ID, null);
                 }
             );
         }

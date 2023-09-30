@@ -52,7 +52,7 @@ public interface IFileSystem
     /// <summary>
     /// 游戏的配置文件目录
     /// </summary>
-    string Configuraions { get; }
+    string Configurations { get; }
 
     /// <summary>
     /// 对于游戏的客户端，这是服务器的Root文件夹。
@@ -75,11 +75,18 @@ public interface IFileSystem
         Directory.CreateDirectory(this.Worlds);
         Directory.CreateDirectory(this.Characters);
         Directory.CreateDirectory(this.Plugins);
-        Directory.CreateDirectory(this.Configuraions);
+        Directory.CreateDirectory(this.Configurations);
         Directory.CreateDirectory(this.Utilties);
         if (this.Server != null)
         {
             Directory.CreateDirectory(this.Server);
         }
+    }
+
+    string GetConfigurationOfPlugin(IPluginInformation plugin)
+    {
+        
+        var path = Path.Join(this.Configurations, plugin.Id.ToString());
+        return path;
     }
 }

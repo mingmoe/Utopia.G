@@ -13,15 +13,18 @@
 #endregion
 
 using Autofac;
+using Autofac.Core;
 using CommunityToolkit.Diagnostics;
 using Npgsql;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using Utopia.Core;
 using Utopia.Core.Collections;
 using Utopia.Core.Events;
 using Utopia.Core.Translate;
 using Utopia.Core.Utilities;
 using Utopia.Core.Utilities.IO;
+using Utopia.Server.Entity;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
 using Utopia.Server.Net;
@@ -72,8 +75,7 @@ public static class Launcher
         public IFileSystem? FileSystem { get; set; } = null;
 
         /// <summary>
-        /// 数据库链接，如果为null，那么则使用自带的PostgreSql。
-        /// 推荐使用自带的PostgreSql
+        /// 数据库链接，must not be null
         /// </summary>
         public NpgsqlDataSource DatabaseSource { get; set; } = null!;
 
@@ -156,46 +158,45 @@ public static class Launcher
 
             try
             {
-                stage(LifeCycle.InitializedSystem, () =>
+                provider.TryRegisterService(LifeCycle.InitializedSystem);
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.InitializedSystem, () =>
                 {
-                    _logger.Info("start to initlize the server");
-                });
+                    // do nothing
+                }, _logger, bus, provider);
 
                 // 加载插件
-                stage(LifeCycle.LoadPlugin, () =>
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadPlugin, () =>
                 {
-                    provider.GetService<IPluginLoader<IPlugin>>().Active(
-                            provider.GetService<IContainer>(),
+                    provider.GetService<IPluginLoader<IPlugin>>().Register(
+                            provider.GetService<ContainerBuilder>(),
                             typeof(Plugin.CorePlugin)
                         );
                     provider.GetService<IPluginLoader<IPlugin>>().LoadFromDirectory(
                         provider.GetService<IFileSystem>().Plugins,
-                        provider.GetService<IContainer>(),
+                        provider.GetService<ContainerBuilder>(),
                         _logger
                     );
-                });
+                    var container = provider.GetService<ContainerBuilder>().Build();
+                    provider.RemoveService<ContainerBuilder>();
+                    provider.TryRegisterService(container);
+                    provider.GetService<IPluginLoader<IPlugin>>().Active(container);
+
+                }, _logger, bus, provider);
 
                 // 创建世界
-                stage(LifeCycle.LoadSaveings, () => { _LoadSave(provider); });
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadSaveings, () => { _LoadSave(provider); }, _logger, bus, provider);
 
                 // 设置逻辑线程
-                stage(LifeCycle.StartLogicThread, () => { _StartLogicThread(provider); });
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.StartLogicThread, () => { _StartLogicThread(provider); }, _logger, bus, provider);
 
                 // 设置网络线程
-                stage(LifeCycle.StartNetThread, () => { _StartNetworkThread(provider, option.Port); });
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.StartNetThread, () => { _StartNetworkThread(provider, option.Port); }, _logger, bus, provider);
             }
             catch (Exception ex)
             {
                 _logger.Error(ex, "the server initlize failed");
-                stage(LifeCycle.Crash, () => { });
-                stage(LifeCycle.Stop, () => { });
-            }
-
-            void stage(LifeCycle cycle, Action action)
-            {
-                bus!.Fire(new LifeCycleEvent(LifeCycleOrder.Before, cycle));
-                action.Invoke();
-                bus!.Fire(new LifeCycleEvent(LifeCycleOrder.After, cycle));
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Crash, () => { }, _logger, bus, provider);
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Stop, () => { }, _logger, bus, provider);
             }
         }
     }
@@ -203,7 +204,7 @@ public static class Launcher
     /// <summary>
     /// 初始化系统
     /// </summary>
-    private static ServiceProvider _InitSystem(LauncherOption option)
+    static ServiceProvider _InitSystem(LauncherOption option)
     {
         Guard.IsNotNull(option);
         // 初始化日志系统
@@ -217,14 +218,14 @@ public static class Launcher
         ContainerBuilder builder = new();
 
         register<IFileSystem>(option.FileSystem ?? new FileSystem());
-        register<Castle.Core.Logging.ILoggerFactory>(new Castle.Services.Logging.NLogIntegration.NLogFactory(true));
         register<Microsoft.Extensions.Logging.ILoggerFactory>(new NLog.Extensions.Logging.NLogLoggerFactory());
         register<Core.IServiceProvider>(provider);
         register<IPluginLoader<IPlugin>>(new PluginLoader<IPlugin>());
-        register<ITranslateManager>(new Core.Translate.TranslateManager());
+        register<ITranslateManager>(new TranslateManager());
         register<TranslateIdentifence>(option.GlobalLanguage);
         register<ILogicThread>(new SimplyLogicThread());
         register<IEventBus>(new EventBus());
+        register<IEntityManager>(new EntityManager());
 
         // init filesystem
         provider.GetService<IFileSystem>().CreateIfNotExist();
@@ -233,13 +234,13 @@ public static class Launcher
         register<SafeDictionary<long, IWorld>>(new SafeDictionary<long, Map.IWorld>());
         register<SafeDictionary<Guuid, IWorldFactory>>(new SafeDictionary<Guuid, IWorldFactory>());
 
-        var container = builder.Build();
-        provider.TryRegisterService<IContainer>(container);
+        provider.TryRegisterService(builder);
 
         if (option.DatabaseSource == null)
         {
             throw new ArgumentException("Database Source option need to be set");
         }
+        // TODO:ADD PGSQL
 
         return provider;
 
@@ -254,10 +255,11 @@ public static class Launcher
     /// 加载存档
     /// </summary>
     /// <param name="provider"></param>
-    static void _LoadSave(Utopia.Core.IServiceProvider provider)
+    static void _LoadSave(Core.IServiceProvider provider)
     {
         var array = provider.GetService<SafeDictionary<Guuid, IWorldFactory>>().ToArray();
 
+        // TODO: Load saves from file
         if (array.Length == 1)
         {
             provider.GetService<SafeDictionary<long, IWorld>>().TryAdd(0, array[0].Value.GenerateNewWorld());
@@ -279,7 +281,7 @@ public static class Launcher
                 t.AddUpdatable(world.Value);
             }
             // 注册关闭事件
-            provider.GetService<IEventBus>().Register<LifeCycleEvent>((cycle) =>
+            provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((cycle) =>
             {
                 if (cycle.Cycle == LifeCycle.Stop)
                 {
@@ -299,17 +301,17 @@ public static class Launcher
     /// </summary>
     static void _StartNetworkThread(Core.IServiceProvider provider, int port)
     {
-        var netServer = new NetServer();
-        provider.TryRegisterService<INetServer>(netServer);
+        var netServer = provider.GetService<IInternetListener>();
+        provider.TryRegisterService(netServer);
         netServer.Listen(port);
         _logger.Info("listen to {port}", port);
 
         var netThread = new InternetMain(provider);
-        provider.TryRegisterService<InternetMain>(netThread);
+        provider.TryRegisterService(netThread);
         var thread = new Thread(() =>
         {
             // 注册关闭事件
-            provider.GetService<IEventBus>().Register<LifeCycleEvent>((cycle) =>
+            provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((cycle) =>
             {
                 if (cycle.Cycle == LifeCycle.Stop)
                 {

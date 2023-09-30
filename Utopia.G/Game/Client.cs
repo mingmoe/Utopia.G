@@ -98,9 +98,7 @@ public static class Client
         register<IEntityManager>(new EntityManager());
         register<Node>(root);
         // end
-
-        var container = builder.Build();
-        provider.TryRegisterService(container);
+        provider.TryRegisterService(builder);
 
         // init filesystem
         provider.GetService<IFileSystem>().CreateIfNotExist();
@@ -114,46 +112,47 @@ public static class Client
         }
     }
 
-    public static void Start(Uri server, Core.IServiceProvider service)
+    public static void Start(Uri server, Core.IServiceProvider provider)
     {
-        var bus = service.GetService<IEventBus>();
+        var bus = provider.GetService<IEventBus>();
 
         try
         {
-            stage(LifeCycle.InitializedSystem, () => { });
+            LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.InitializedSystem, () => { },
+                _logger, bus, provider);
 
-            stage(LifeCycle.LoadPlugin, () =>
+            LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadPlugin, () =>
             {
-                service.GetService<IPluginLoader<IPlugin>>().Active(
-                    service.GetService<IContainer>(),
+                provider.GetService<IPluginLoader<IPlugin>>().Register(
+                    provider.GetService<ContainerBuilder>(),
                     typeof(Plugin.CorePlugin));
-                service.GetService<IPluginLoader<IPlugin>>().LoadFromDirectory(
-                    service.GetService<IFileSystem>().Plugins,
-                    service.GetService<IContainer>(),
+                provider.GetService<IPluginLoader<IPlugin>>().LoadFromDirectory(
+                    provider.GetService<IFileSystem>().Plugins,
+                    provider.GetService<ContainerBuilder>(),
                     _logger
                     );
-            });
+                var container = provider.GetService<ContainerBuilder>().Build();
+                provider.RemoveService<ContainerBuilder>();
+                provider.TryRegisterService(container);
+                provider.GetService<IPluginLoader<IPlugin>>().Active(container);
+            },
+                _logger, bus, provider);
 
-            stage(LifeCycle.ConnectToServer, () =>
+            LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.ConnectToServer, () =>
             {
-                var connect = service.GetService<Net.ISocketConnecter>();
+                var connect = provider.GetService<Net.ISocketConnecter>();
 
                 var socket = connect.Connect(server);
-            });
+            },
+                _logger, bus, provider);
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "the client initlize failed");
-            stage(LifeCycle.Crash, () => { });
-            stage(LifeCycle.Stop, () => { });
-        }
-
-        void stage(LifeCycle cycle, Action action)
-        {
-            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.Before, cycle));
-            action.Invoke();
-            bus!.Fire(new LifeCycleEvent(LifeCycleOrder.After, cycle));
+            LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Crash, () => { },
+                _logger, bus, provider);
+            LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Stop, () => { },
+                _logger, bus, provider);
         }
     }
-
 }

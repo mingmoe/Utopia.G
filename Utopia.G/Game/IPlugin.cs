@@ -19,7 +19,7 @@ namespace Utopia.G.Game;
 /// <summary>
 /// 插件接口
 /// </summary>
-public interface IPlugin : IPluginBase
+public interface IPlugin : IPluginInformation,IPluginBase
 {
 
 }

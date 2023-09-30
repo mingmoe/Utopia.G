@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Utopia.Core;
 using Utopia.Core.Map;
 using Utopia.Core.Translate;
 using Utopia.Core.Utilities;
@@ -24,12 +25,12 @@ namespace Utopia.Server.Map;
 /// 一些视角特效等不算实体。
 /// 典型实体如：生物，玩家，掉落物，建筑。
 /// </summary>
-public interface IEntity
+public interface IEntity : ISaveable
 {
     /// <summary>
     /// 实体名称，用于显示给玩家。
     /// </summary>
-    TranslateKey Name { get; }
+    ITranslatedString Name { get; }
 
     /// <summary>
     /// 实体是否可供生物等其他实体通过。
@@ -55,9 +56,4 @@ public interface IEntity
     /// 世界坐标。
     /// </summary>
     WorldPosition WorldPosition { get; set; }
-
-    /// <summary>
-    /// 保存方块数据,以供网络传输或者存档使用.
-    /// </summary>
-    byte[] Save();
 }

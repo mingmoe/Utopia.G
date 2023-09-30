@@ -12,30 +12,58 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Autofac;
 using Utopia.Core.Collections;
 using Utopia.Core.Utilities;
 using Utopia.ResourcePack;
+using Utopia.Server.Entity;
 using Utopia.Server.Map;
+using Utopia.Server.Net;
+using Utopia.Server.Plugin.Entity;
 using Utopia.Server.Plugin.Map;
+using Utopia.Server.Plugin.Net;
 
 namespace Utopia.Server.Plugin;
 
-public class CorePlugin : CorePluginBase
+public class CorePlugin : CorePluginInformation, IPlugin
 {
     private Core.IServiceProvider _Provider { get; init; }
 
-    public CorePlugin(Core.IServiceProvider provider)
+    private ILifetimeScope _container;
+
+    public CorePlugin(Core.IServiceProvider provider,IContainer container)
     {
         ArgumentNullException.ThrowIfNull(provider);
         this._Provider = provider;
+
+        var scope = container.BeginLifetimeScope((builder) =>
+        {
+            builder.RegisterType<Generator>();
+            builder.RegisterType<WorldFactory>();
+            builder.RegisterType<GrassEntity>();
+        });
+        this._container = scope;
     }
 
-    public override void Active()
+    public void Active()
     {
         this._Provider.GetService<SafeDictionary<Guuid, IWorldFactory>>().TryAdd(
                 IDs.WorldType,
-                new WorldFactory()
-            );
+                this._container.Resolve<WorldFactory>());
 
+        this._Provider.TryRegisterService<IInternetListener>(
+            new InternetListener());
+
+        var factory = new EmptyEntityFactory();
+        factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID,this._container.Resolve<GrassEntity>());
+
+        this._Provider.GetService<IEntityManager>().TryAdd(ResourcePack.Entity.GrassEntity.ID,
+            factory);
+    }
+
+    public void Dispose()
+    {
+        this._container.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

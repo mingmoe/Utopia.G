@@ -22,7 +22,7 @@ using System.Text.Json;
 using Utopia.Core.Translate;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Analyzer;
+namespace Utopia.Tools;
 
 /// <summary>
 /// 翻译寻找器

@@ -227,7 +227,7 @@ public class ICUTranslatedString : ITranslatedString
 
     private void _FireReformatEvent()
     {
-        ComplexEvent<string, string> @event = new(this._translated, this._cached, true);
+        ComplexEvent<string, string> @event = new(this._translated, this._cached);
         this.TranslateUpdateEvent.Fire(@event);
         this._translated = EventAssertionException.ThrowIfResultIsNull(@event);
     }

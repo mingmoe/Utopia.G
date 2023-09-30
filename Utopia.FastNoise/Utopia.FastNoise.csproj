@@ -8,14 +8,8 @@
   </PropertyGroup>
 
   <Target Name="CopyNoiseNativeLibraries" BeforeTargets="Compile">
-      <Copy
-          SourceFiles="$(ProjectDir)/Library/FastNoise.dll"
-          DestinationFolder="$(OutputPath)"
-      />
-      <Copy
-          SourceFiles="$(ProjectDir)/Library/libFastNoise.so"
-          DestinationFolder="$(OutputPath)"
-      />
+      <Copy SourceFiles="$(ProjectDir)/Library/FastNoise.dll" DestinationFolder="$(OutputPath)" />
+      <Copy SourceFiles="$(ProjectDir)/Library/libFastNoise.so" DestinationFolder="$(OutputPath)" />
   </Target>
 
 </Project>

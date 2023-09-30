@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Autofac;
 using Utopia.Core.Utilities;
 using Utopia.Server.Map;
 
@@ -24,8 +25,16 @@ public class WorldFactory : IWorldFactory
 {
     public Guuid WorldType => IDs.WorldType;
 
+    private readonly IContainer _container;
+
+    public WorldFactory(IContainer container)
+    {
+        ArgumentNullException.ThrowIfNull(container, nameof(container));
+        this._container = container;
+    }
+
     public IWorld GenerateNewWorld()
     {
-        return new World(0, 4, 4, new Generator());
+        return new World(0, 4, 4, this._container.Resolve<Generator>());
     }
 }

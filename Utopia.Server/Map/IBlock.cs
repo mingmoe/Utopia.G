@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Utopia.Core;
 using Utopia.Core.Map;
 
 namespace Utopia.Server.Map;
@@ -19,7 +20,7 @@ namespace Utopia.Server.Map;
 /// <summary>
 /// 代表一个图块，是地图上每个坐标的所指。
 /// </summary>
-public interface IBlock
+public interface IBlock : ISaveable
 {
     bool TryAddEntity(IEntity entity);
 
@@ -40,6 +41,4 @@ public interface IBlock
     void LogicUpdate();
 
     WorldPosition Position { get; }
-
-    byte[] Save();
 }

@@ -15,7 +15,9 @@
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
+using Standart.Hash.xxHash;
 using System.Security.Cryptography;
+using System.Security.Policy;
 using System.Text;
 
 namespace Utopia.Core.Utilities;
@@ -35,6 +37,11 @@ public sealed class Guuid
     /// 不推荐插件使用,避免出现问题.
     /// </summary>
     public const string UTOPIA_ROOT = "utopia";
+
+    /// <summary>
+    /// Will use this to separate root and each namespaces when use the string of Guuid.
+    /// </summary>
+    public const string SEPARATOR = ".";
 
     /// <summary>
     /// 检查name是否符合要求
@@ -72,7 +79,7 @@ public sealed class Guuid
             return false;
         }
 
-        var strs = guuid.Split(':');
+        var strs = guuid.Split(SEPARATOR);
 
         // 至少要存在一个root和一个node
         if (strs.Length < 2)
@@ -140,7 +147,10 @@ public sealed class Guuid
     }
 
     /// <summary>
-    /// 把guuid转换为字符串形式
+    /// 把guuid转换为字符串形式. Will use <see cref="SEPARATOR"/> to separate root and each namespaces.
+    /// For example,
+    /// a guuid with root `r` and namespaces `a` and `b` will have a string form as `r.a.b`
+    /// (If <see cref="SEPARATOR"/> is `.`)
     /// </summary>
     public override string ToString()
     {
@@ -149,10 +159,8 @@ public sealed class Guuid
         builder.Append(this.Root);
         foreach (var node in this.Nodes)
         {
-            builder.Append(':');
-            builder.Append(node);
+            builder.Append(SEPARATOR).Append(node);
         }
-
         return builder.ToString();
     }
 
@@ -168,7 +176,7 @@ public sealed class Guuid
             throw new ArgumentException("param is empty or null");
         }
 
-        var strs = s.Split(':');
+        var strs = s.Split(SEPARATOR);
 
         if (strs.Length < 2)
         {
@@ -205,7 +213,13 @@ public sealed class Guuid
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(this.Root, this.Nodes);
+        int hash = this.Root.GetHashCode();
+
+        foreach(var node in this.Nodes)
+        {
+            hash = HashCode.Combine(hash, xxHash32.ComputeHash(node));
+        }
+        return hash;
     }
 
     public static Guuid NewUtopiaGuuid(params string[] nodes)

@@ -17,7 +17,7 @@ using McMaster.Extensions.CommandLineUtils;
 using Microsoft.DocAsCode;
 using Microsoft.DocAsCode.Dotnet;
 
-namespace Utopia.Analyzer;
+namespace Utopia.Tools;
 
 /// <summary>
 /// 生成文档
@@ -40,7 +40,7 @@ public class GenerateDocs
             };
 
             DotnetApiCatalog.GenerateManagedReferenceYamlFiles(configOpt.Value()).Wait();
-            Microsoft.DocAsCode.Docset.Build(configOpt.Value(), options).Wait();
+            Docset.Build(configOpt.Value(), options).Wait();
         });
     }
 

@@ -29,10 +29,17 @@ public interface IPluginLoader<PluginT>
     /// <summary>
     /// 已经实例化的插件
     /// </summary>
-    ImmutableArray<(Type, PluginT)> ActivePlugins { get; }
+    ImmutableArray<(Type, PluginT)> ActivedPlugins { get; }
 
     /// <summary>
-    /// 一个可以取消的事件.激活插件时触发.
+    /// Unresolverd plugins. Call <see cref="IPluginLoader{PluginT}.Active(IContainer)"/>
+    /// should remove all of them,and create instances of each them,add them into
+    /// <see cref="PluginLoader{PluginT}.ActivedPlugins"/>.
+    /// </summary>
+    ImmutableArray<Type> UnresolveredPlugins { get; }
+
+    /// <summary>
+    /// 激活插件时触发.
     /// </summary>
     public class ActivePlguinEventArgs : Event
     {
@@ -52,7 +59,7 @@ public interface IPluginLoader<PluginT>
         /// </summary>
         public IContainer Container { get; }
 
-        public ActivePlguinEventArgs(Type pluginType, IContainer container) : base(true)
+        public ActivePlguinEventArgs(Type pluginType, IContainer container)
         {
             Guard.IsNotNull(pluginType);
             Guard.IsNotNull(container);
@@ -67,29 +74,50 @@ public interface IPluginLoader<PluginT>
     IEventManager<ActivePlguinEventArgs> ActivePlguinEvent { get; }
 
     /// <summary>
-    /// 从dll文件中扫描并加载插件。将会注册所有实现了<see cref="PluginT"/>的类型。
+    /// Register plugin from dll file。将会注册所有实现了<see cref="PluginT"/>的类型。
     /// </summary>
     /// <param name="dllFile">dll文件</param>
-    void Active(IContainer container, string dllFile)
+    void RegisterPluginFromDll(ContainerBuilder builder, string dllFile)
     {
         ArgumentNullException.ThrowIfNull(dllFile, nameof(dllFile));
-        ArgumentNullException.ThrowIfNull(container, nameof(container));
+        ArgumentNullException.ThrowIfNull(builder, nameof(builder));
 
         var loaded = Assembly.LoadFrom(dllFile);
         var types = loaded.ExportedTypes;
 
         foreach (var type in types)
         {
-            this.Active(container, type);
+            this.Register(builder, type);
         }
     }
 
     /// <summary>
-    /// 激活指定类型的插件
+    /// Active all types of plugin in <see cref="IPluginLoader{PluginT}.UnresolveredPlugins"/>.
     /// </summary>
-    /// <param name="container">容器</param>
+    /// <param name="container">This container should from the argument of method
+    /// <see cref="Register(ContainerBuilder, Type)"/>
+    /// and <see cref="Register(ContainerBuilder, Type)"/></param>
     /// <param name="type">插件类型，要求实现<see cref="PluginT"/>接口</param>
-    void Active(IContainer container, Type type);
+    void Active(IContainer container);
+
+    /// <summary>
+    /// This method should add type to <see cref="IPluginLoader{PluginT}.UnresolveredPlugins"/>
+    /// so that them can be actived.
+    /// </summary>
+    /// <param name="type"></param>
+    void AddUnresolved(Type type);
+
+    /// <summary>
+    /// If you register a type of plugin,it will be registered in <see cref="ContainerBuilder"/>,
+    /// and will be sent to <see cref="IPluginLoader{PluginT}.AddUnresolved(Type)"/>.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="type"></param>
+    void Register(ContainerBuilder builder, Type type)
+    {
+        builder.RegisterType(type);
+        this.AddUnresolved(type);
+    }
 }
 
 public static class PluginLoadHelper
@@ -103,13 +131,13 @@ public static class PluginLoadHelper
     /// <param name="container"></param>
     /// <param name="logger"></param>
     public static void LoadFromDirectory<T>(this IPluginLoader<T> loader, string dir,
-        IContainer container, ILogger logger)
+        ContainerBuilder builder, ILogger logger)
     {
         foreach (var f in Directory.GetFiles(dir, "*.dll", SearchOption.AllDirectories))
         {
             var file = Path.GetFullPath(f);
             logger.Info("loading plugin from dll:{plugin}", file);
-            loader.Active(container, file);
+            loader.RegisterPluginFromDll(builder,file);
         }
     }
 }

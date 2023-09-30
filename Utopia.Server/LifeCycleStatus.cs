@@ -32,22 +32,3 @@ public enum LifeCycle
     /// </summary>
     Stop,
 }
-
-public enum LifeCycleOrder
-{
-    Before,
-    After,
-}
-
-public class LifeCycleEvent
-{
-    public LifeCycleOrder Order { get; init; }
-
-    public LifeCycle Cycle { get; init; }
-
-    public LifeCycleEvent(LifeCycleOrder order, LifeCycle cycle)
-    {
-        this.Cycle = cycle;
-        this.Order = order;
-    }
-}

@@ -15,6 +15,7 @@
 using CommunityToolkit.Diagnostics;
 using Utopia.Core.Map;
 using Utopia.Core.Utilities;
+using Utopia.Core.Utilities.IO;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
 
@@ -143,16 +144,18 @@ public class World : IWorld
         }
     }
 
-    public void SaveTo(string path)
+    public void SaveTo(DirectoryInfo path)
     {
         MemoryStream stream = new();
         foreach (var x in this._areas)
         {
             foreach (var y in x)
             {
-                stream.Write(((IArea)y).Save());
+                StreamUtility.WriteInt(stream, y.Position.X).Wait();
+                StreamUtility.WriteInt(stream, y.Position.Y).Wait();
+                StreamUtility.WriteDataWithLength(stream,y.Save()).Wait();
             }
         }
-        File.WriteAllBytes(Path.Join(path, "data.bin"), stream.ToArray());
+        File.WriteAllBytes(Path.Join(path.FullName, "data.bin"), stream.ToArray());
     }
 }

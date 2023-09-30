@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决�
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Generator", "Utopia.Generator\Utopia.Generator.csproj", "{EDA68296-F967-40DA-A63F-4EF950847A7B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Analyzer", "Utopia.Analyzer\Utopia.Analyzer.csproj", "{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Tools", "Utopia.Tools\Utopia.Tools.csproj", "{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.ResourcePack", "Utopia.ResourcePack\Utopia.ResourcePack.csproj", "{A082E1E8-9CCA-4792-ABF6-07F7A75B7CEE}"
 EndProject

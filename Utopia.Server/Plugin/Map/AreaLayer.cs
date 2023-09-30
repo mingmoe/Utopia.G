@@ -13,6 +13,7 @@
 #endregion
 
 using Utopia.Core.Map;
+using Utopia.Core.Utilities.IO;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
 
@@ -107,7 +108,7 @@ public class AreaLayer : IAreaLayer
         {
             foreach (var y in x)
             {
-                stream.Write(y.Save());
+                StreamUtility.WriteDataWithLength(stream, y.Save()).Wait();
             }
         }
 

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Utopia.Analyzer": {
+      "commandName": "Project",
+      "commandLineArgs": "generateDocuments",
+      "workingDirectory": "C:\\Users\\mingm\\Projects\\utopia-godot"
+    }
+  }
+}

@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Utopia.Core;
 using Utopia.Core.Map;
 
 namespace Utopia.Server.Map;
@@ -19,7 +20,7 @@ namespace Utopia.Server.Map;
 /// <summary>
 /// 代表一个Z轴下的Area
 /// </summary>
-public interface IAreaLayer : Logic.IUpdatable
+public interface IAreaLayer : Logic.IUpdatable, ISaveable
 {
     bool TryGetBlock(FlatPosition position, out IBlock? block);
 
@@ -32,6 +33,4 @@ public interface IAreaLayer : Logic.IUpdatable
     /// 标识目前区域所处的阶段
     /// </summary>
     GenerationStage Stage { get; set; }
-
-    byte[] Save();
 }

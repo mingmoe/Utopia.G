@@ -29,9 +29,11 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
 
     List<(Type, PluginT)> _ActivePlugins { get; } = new();
 
+    List<Type> _UnresolvedPlugins { get; } = new();
+
     readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    public ImmutableArray<(Type, PluginT)> ActivePlugins
+    public ImmutableArray<(Type, PluginT)> ActivedPlugins
     {
         get
         {
@@ -42,51 +44,76 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
         }
     }
 
+    public ImmutableArray<Type> UnregisterPlugins
+    {
+        get
+        {
+            lock (this._locker)
+            {
+                return this._UnresolvedPlugins.ToImmutableArray();
+            }
+        }
+    }
+
+    public void AddUnresolved(Type type)
+    {
+        ArgumentNullException.ThrowIfNull(type, nameof(type));
+        lock (this._locker)
+        {
+            this._UnresolvedPlugins.Add(type);
+        }
+    }
+
     public IEventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs> ActivePlguinEvent { get; }
     = new EventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs>();
 
-    public void Active(IContainer container, Type type)
+    public ImmutableArray<Type> UnresolveredPlugins => throw new NotImplementedException();
+
+    public void Active(IContainer container)
     {
         ArgumentNullException.ThrowIfNull(container, nameof(container));
-        ArgumentNullException.ThrowIfNull(type, nameof(type));
 
-        if (type.IsAssignableTo(typeof(PluginT)))
+        lock (this._locker)
         {
-            var p = (PluginT)container.Resolve(type);
-            var args = new IPluginLoader<PluginT>.ActivePlguinEventArgs(type, container)
+            foreach (var type in this._UnresolvedPlugins)
             {
-                PluginInstance = p
-            };
-            this.ActivePlguinEvent.Fire(args);
+                if (!type.IsAssignableTo(typeof(PluginT)))
+                {
+                    throw new ArgumentException($"try to active a type without implening {typeof(PluginT)} interafce");
+                }
+                var p = (PluginT)container.Resolve(type);
+                var args = new IPluginLoader<PluginT>.ActivePlguinEventArgs(type, container)
+                {
+                    PluginInstance = p
+                };
+                this.ActivePlguinEvent.Fire(args);
 
-            if (args.PluginInstance == null)
-            {
-                return;
-            }
+                if (args.PluginInstance == null)
+                {
+                    return;
+                }
 
-            p = args.PluginInstance;
+                p = args.PluginInstance;
 
-            try
-            {
-                p.Active();
-            }
-            catch (Exception e)
-            {
-                this._logger.Error(e,
-                    "failed to active plugin:`{pluginName}`(ID {pluginId}) try to access {pluginHomepage} for help",
-                    p.Name,
-                    p.Id,
-                    p.Homepage);
-            }
+                try
+                {
+                    p.Active();
+                }
+                catch (Exception e)
+                {
+                    this._logger.Error(e,
+                        "failed to active plugin:`{pluginName}`(ID {pluginId}) try to access {pluginHomepage} for help",
+                        p.Name,
+                        p.Id,
+                        p.Homepage);
+                }
 
-            lock (this._locker)
-            {
-                this._ActivePlugins.Add((type, p));
+                lock (this._locker)
+                {
+                    this._ActivePlugins.Add((type, p));
+                }
             }
-        }
-        else
-        {
-            throw new ArgumentException($"try to active a type without implening {typeof(PluginT)} interafce");
+            this._UnresolvedPlugins.Clear();
         }
     }
 }

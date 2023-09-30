@@ -15,7 +15,7 @@
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Build.Locator;
 using NLog;
-using Utopia.Analyzer;
+using Utopia.Tools;
 
 namespace Utopia.Analysis;
 

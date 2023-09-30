@@ -19,7 +19,7 @@ using Utopia.Core.Utilities;
 
 namespace Utopia.ResourcePack;
 
-public abstract class CorePluginBase : IPluginBase
+public abstract class CorePluginInformation : IPluginInformation
 {
     public readonly static Guuid ID = new("utopia", "core");
 
@@ -37,6 +37,4 @@ public abstract class CorePluginBase : IPluginBase
     public Guuid Id => ID;
 
     public string Homepage => "https://github.com/mingmoe/utopia";
-
-    public abstract void Active();
 }

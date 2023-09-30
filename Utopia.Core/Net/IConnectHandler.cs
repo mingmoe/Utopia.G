@@ -18,7 +18,7 @@ using Utopia.Core.Utilities;
 namespace Utopia.G.Net;
 
 /// <summary>
-/// 链接持有器.
+/// The class will process the read and write of the socket.
 /// </summary>
 public interface IConnectHandler : IDisposable
 {

@@ -14,6 +14,7 @@
 
 using Utopia.Core.Collections;
 using Utopia.Core.Map;
+using Utopia.Core.Utilities.IO;
 using Utopia.Server.Map;
 
 namespace Utopia.Server.Plugin.Map;
@@ -177,7 +178,8 @@ public class Area : IArea
 
         foreach(var floor in floors)
         {
-            stream.Write(((IAreaLayer)floor.Value).Save());
+            StreamUtility.WriteInt(stream,floor.Key).Wait();
+            StreamUtility.WriteDataWithLength(stream, floor.Value.Save()).Wait();
         }
 
         return stream.ToArray();

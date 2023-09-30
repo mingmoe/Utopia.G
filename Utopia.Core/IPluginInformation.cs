@@ -1,5 +1,5 @@
 #region copyright
-// This file(may named ISaveable.cs) is a part of the project: Utopia.Core.
+// This file(may named IPluginBase.cs) is a part of the project: Utopia.Core.
 // 
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // 
@@ -12,26 +12,44 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Utopia.Core.Translate;
+using Utopia.Core.Utilities;
+
 namespace Utopia.Core;
 
 /// <summary>
-/// This interface stands for a class that can save itself as bytes.
-/// So that the class can be saved to file or be transmitted in the Internet.
+/// 插件基础
 /// </summary>
-public interface ISaveable
+public interface IPluginInformation
 {
+    /// <summary>
+    /// 人类可读的名称
+    /// </summary>
+    ITranslatedString Name { get; }
 
-    byte[] Save();
+    /// <summary>
+    /// 人类可读的描述
+    /// </summary>
+    ITranslatedString Description { get; }
 
+    /// <summary>
+    /// 许可协议
+    /// </summary>
+    string License { get; }
+
+    /// <summary>
+    /// 版本号
+    /// </summary>
+    Version Version { get; }
+
+    /// <summary>
+    /// 唯一ID
+    /// </summary>
+    Guuid Id { get; }
+
+    /// <summary>
+    /// 网址，或者其他联系方式等。
+    /// </summary>
+    string Homepage { get; }
 }
 
-/// <summary>
-/// Like <see cref="ISaveable"/> but it wont save as bytes.
-/// It will save itself to some other object.
-/// May be a <see cref="Stream"/> or a <see cref="DirectoryInfo"/> or a <see cref="FileInfo"/>.
-/// </summary>
-/// <typeparam name="T"></typeparam>
-public interface ISaveableTo<T>
-{
-    void SaveTo(T obj);
-}

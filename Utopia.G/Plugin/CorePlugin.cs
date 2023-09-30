@@ -13,6 +13,8 @@
 #endregion
 
 using System;
+using Utopia.Core;
+using Utopia.G.Game;
 using Utopia.ResourcePack;
 
 namespace Utopia.G.Plugin;
@@ -20,7 +22,7 @@ namespace Utopia.G.Plugin;
 /// <summary>
 /// 核心插件
 /// </summary>
-public class CorePlugin : CorePluginBase
+public class CorePlugin : CorePluginInformation,IPlugin
 {
     private Core.IServiceProvider _Provider { get; init; }
 
@@ -30,8 +32,13 @@ public class CorePlugin : CorePluginBase
         this._Provider = provider;
     }
 
-    public override void Active()
+    public void Active()
     {
 
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
     }
 }

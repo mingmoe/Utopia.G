@@ -24,7 +24,7 @@ namespace Utopia.Server.Plugin.Entity;
 /// </summary>
 public class GrassEntity : IEntity
 {
-    public TranslateKey Name => ResourcePack.Entity.GrassEntity.TranslateKey;
+    public ITranslatedString Name { get; init; }
 
     public bool Accessible => false;
 
@@ -33,6 +33,11 @@ public class GrassEntity : IEntity
     public Guuid Id => ResourcePack.Entity.GrassEntity.ID;
 
     public WorldPosition WorldPosition { get; set; }
+
+    public GrassEntity(ITranslateManager msg,TranslateIdentifence id)
+    {
+        this.Name = new ICUTranslatedString(ResourcePack.Entity.GrassEntity.TranslateKey, msg, id, new object());
+    }
 
     public void LogicUpdate()
     {

@@ -14,6 +14,7 @@
 
 using System.Net;
 using Utopia.Core.Map;
+using Utopia.Core.Utilities.IO;
 using Utopia.Server.Map;
 
 namespace Utopia.Server.Plugin.Map;
@@ -152,13 +153,11 @@ public class Block : IBlock
         MemoryStream stream = new();
         lock (this._locker)
         {
-            stream.Write(BitConverter.GetBytes(IPAddress.HostToNetworkOrder(this._entities.Count)));
+            StreamUtility.WriteInt(stream, this._entities.Count).Wait();
             foreach (var item in this._entities)
             {
-                Core.Utilities.IO.StreamUtility.WriteStringWithLength(stream, item.Id.ToString()).Wait();
-                var data = item.Save();
-                Core.Utilities.IO.StreamUtility.WriteInt(stream, data.Length).Wait();
-                stream.Write(data);
+                StreamUtility.WriteStringWithLength(stream, item.Id.ToString()).Wait();
+                StreamUtility.WriteDataWithLength(stream, item.Save()).Wait();
             }
         }
 

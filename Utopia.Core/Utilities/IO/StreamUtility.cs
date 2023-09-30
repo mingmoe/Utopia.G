@@ -109,15 +109,22 @@ public static class StreamUtility
     /// <summary>
     /// will call <see cref="WriteInt"/> to write length.
     /// </summary>
-    /// <param name="stream"></param>
-    /// <param name="value"></param>
-    /// <returns></returns>
     public static async Task WriteStringWithLength(Stream stream,string value)
     {
         await WriteInt(stream,value.Length);
 
         await stream.WriteAsync(Encoding.UTF8.GetBytes(value));
 
+    }
+
+    /// <summary>
+    /// will call <see cref="WriteInt"/> to write length.
+    /// </summary>
+    public static async Task WriteDataWithLength(Stream stream, byte[] data)
+    {
+        await WriteInt(stream, data.Length);
+
+        await stream.WriteAsync(data);
     }
 }
 

@@ -99,7 +99,7 @@ public partial class Main : Node
                         new Vector2I(@event.New.X,
                         @event.New.Y));
 
-                    var cEvent = new ComplexEvent<Vector2, Vector2>(got, got, false);
+                    var cEvent = new ComplexEvent<Vector2, Vector2>(got, got);
 
                     this.CameraEvent.Fire(cEvent);
 

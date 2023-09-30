@@ -42,7 +42,7 @@ public class TranslateManager : SafeDictionary<Guuid, ITranslateProvider>, ITran
         lock (this._lock)
         {
             this.TranslateID++;
-            this.TranslateUpdatedEvent.Fire(new EventWithParam<ITranslateManager>(this, true));
+            this.TranslateUpdatedEvent.Fire(new EventWithParam<ITranslateManager>(this));
         }
     }
 

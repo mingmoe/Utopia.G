@@ -27,7 +27,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Benchmark", "Utopia.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.MSBuild", "Utopia.MSBuild\Utopia.MSBuild.csproj", "{0F286ADC-3885-48D4-8687-B57448F47414}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.FastNoise", "Utopia.FastNoise\Utopia.FastNoise.csproj", "{58F1E3D7-FC6F-43C0-AC47-008DD8DC35B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.FastNoise", "Utopia.FastNoise\Utopia.FastNoise.csproj", "{58F1E3D7-FC6F-43C0-AC47-008DD8DC35B2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F1E708FC-EB03-4723-A455-10E00E4D71E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

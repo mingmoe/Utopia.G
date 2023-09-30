@@ -1,19 +1,18 @@
-//===--------------------------------------------------------------===//
-// Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
+#region copyright
+// This file(may named World.cs) is a part of the project: Utopia.Server.
 // 
-// This file is licensed under the MIT license.
-// MIT LICENSE:https://opensource.org/licenses/MIT
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Server.
 //
-//===--------------------------------------------------------------===//
+// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using CommunityToolkit.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Utopia.Core.Map;
 using Utopia.Core.Utilities;
 using Utopia.Server.Logic;
@@ -142,5 +141,18 @@ public class World : IWorld
                 y.Update(updater);
             }
         }
+    }
+
+    public void SaveTo(string path)
+    {
+        MemoryStream stream = new();
+        foreach (var x in this._areas)
+        {
+            foreach (var y in x)
+            {
+                stream.Write(((IArea)y).Save());
+            }
+        }
+        File.WriteAllBytes(Path.Join(path, "data.bin"), stream.ToArray());
     }
 }

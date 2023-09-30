@@ -1,5 +1,5 @@
 #region copyright
-// This file(may named IEventManager.cs) is a part of the project: Utopia.Core.
+// This file(may named ISaveable.cs) is a part of the project: Utopia.Core.
 // 
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // 
@@ -12,18 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-namespace Utopia.Core.Events;
+namespace Utopia.Core;
 
-/// <summary>
-/// 事件管理器，应该是线程安全的。
-/// </summary>
-public interface IEventManager<EventT>
+public interface ISaveable
 {
-    void Register(Action<EventT> handler);
 
-    void Unregister(Action<EventT> handler);
+    byte[] Save();
 
-    void ClearRegisters();
-
-    void Fire(EventT e);
 }

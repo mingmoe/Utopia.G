@@ -1,9 +1,18 @@
+#region copyright
+// This file(may named ILogicThread.cs) is a part of the project: Utopia.Server.
+// 
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Server.
+//
+// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using CommunityToolkit.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Utopia.Core.Collections;
 
 namespace Utopia.Server.Logic;
@@ -58,7 +67,7 @@ public class SimplyLogicThread : ILogicThread
 
     public IUpdater Updater { get; }
 
-    public long Ticks => _ticker.MillisecondFromLastTick;
+    public long Ticks => this._ticker.MillisecondFromLastTick;
 
     public void Run()
     {
@@ -68,14 +77,14 @@ public class SimplyLogicThread : ILogicThread
             {
                 throw new InvalidOperationException("The thread has started");
             }
-            _started = true;
+            this._started = true;
         }
 
         this._ticker.Start();
 
         while (true)
         {
-            while (_isRunning)
+            while (this._isRunning)
             {
                 IUpdatable[] todos;
                 lock (this._lock)
@@ -95,7 +104,7 @@ public class SimplyLogicThread : ILogicThread
 
     public void Stop()
     {
-        _isRunning = false;
+        this._isRunning = false;
     }
 
     public void AddUpdatable(IUpdatable updatable)

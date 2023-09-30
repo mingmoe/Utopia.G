@@ -1,3 +1,17 @@
+#region copyright
+// This file(may named TranslatedString.cs) is a part of the project: Utopia.Core.
+// 
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Core.
+//
+// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using CommunityToolkit.Diagnostics;
 using Jeffijoe.MessageFormat;
 using Utopia.Core.Events;
@@ -34,14 +48,14 @@ public class TranslatedString : ITranslatedString
     {
         get
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 return this._value;
             }
         }
         set
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 this._value = value;
             }
@@ -77,14 +91,14 @@ public class ICUTranslatedString : ITranslatedString
     {
         get
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 return this._translated;
             }
         }
         set
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 this._translated = value;
             }
@@ -101,14 +115,14 @@ public class ICUTranslatedString : ITranslatedString
     {
         get
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 return this._key;
             }
         }
         set
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 ArgumentNullException.ThrowIfNull(value);
                 this._key = value;
@@ -126,14 +140,14 @@ public class ICUTranslatedString : ITranslatedString
     {
         get
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 return this._manager;
             }
         }
         set
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 ArgumentNullException.ThrowIfNull(value);
                 this._manager.TranslateUpdatedEvent.Unregister(
@@ -157,14 +171,14 @@ public class ICUTranslatedString : ITranslatedString
     {
         get
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 return this._identifence;
             }
         }
         set
         {
-            lock (_lock)
+            lock (this._lock)
             {
                 ArgumentNullException.ThrowIfNull(value);
                 this._identifence = value;
@@ -186,7 +200,7 @@ public class ICUTranslatedString : ITranslatedString
     /// </param>
     public void UpdateTranslate(object? newData = null)
     {
-        lock (_lock)
+        lock (this._lock)
         {
             if (newData != null)
             {

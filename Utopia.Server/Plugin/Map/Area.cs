@@ -1,16 +1,17 @@
-//===--------------------------------------------------------------===//
-// Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
+#region copyright
+// This file(may named Area.cs) is a part of the project: Utopia.Server.
 // 
-// This file is licensed under the MIT license.
-// MIT LICENSE:https://opensource.org/licenses/MIT
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Server.
 //
-//===--------------------------------------------------------------===//
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using Utopia.Core.Collections;
 using Utopia.Core.Map;
 using Utopia.Server.Map;
@@ -47,8 +48,10 @@ public class Area : IArea
 
     private IBiome _biome = new EmptyBiome();
 
-    public IBiome Biome {
-        get {
+    public IBiome Biome
+    {
+        get
+        {
             lock (this._lock)
             {
                 return this._biome;
@@ -130,7 +133,8 @@ public class Area : IArea
 
     public bool TryGetBlock(Position position, out IBlock? block)
     {
-        var floor = _floors.GetOrAdd(position.Z, (k) => {
+        var floor = this._floors.GetOrAdd(position.Z, (k) =>
+        {
             return new AreaLayer(
                     new WorldPosition(this.Position.X,
                     this.Position.Y,
@@ -158,11 +162,24 @@ public class Area : IArea
 
     public void Update(Logic.IUpdater updater)
     {
-        var floor = _floors.ToArray();
+        var floor = this._floors.ToArray();
 
         foreach (var z in floor)
         {
             z.Value.Update(updater);
         }
+    }
+
+    public byte[] Save()
+    {
+        var floors = this._floors.ToArray();
+        var stream = new MemoryStream();
+
+        foreach(var floor in floors)
+        {
+            stream.Write(((IAreaLayer)floor.Value).Save());
+        }
+
+        return stream.ToArray();
     }
 }

@@ -1,9 +1,17 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+#region copyright
+// This file(may named IEventBus.cs) is a part of the project: Utopia.Core.
+// 
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Core.
+//
+// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using Utopia.Core.Collections;
 
 namespace Utopia.Core.Events;
@@ -39,7 +47,7 @@ public class EventBus : IEventBus
 
     public void Clear<T>()
     {
-        lock (_lock)
+        lock (this._lock)
         {
             this._Get<T>().Clear();
         }
@@ -47,7 +55,7 @@ public class EventBus : IEventBus
 
     public void ClearAll()
     {
-        lock (_lock)
+        lock (this._lock)
         {
             this._handlers.Clear();
         }
@@ -55,7 +63,7 @@ public class EventBus : IEventBus
 
     public void Fire<T>(T @event)
     {
-        lock (_lock)
+        lock (this._lock)
         {
             var handlers = this._Get<T>();
 
@@ -68,7 +76,7 @@ public class EventBus : IEventBus
 
     public void Register<T>(Action<T> handler)
     {
-        lock (_lock)
+        lock (this._lock)
         {
             this._Get<T>().Add(handler);
         }
@@ -76,7 +84,7 @@ public class EventBus : IEventBus
 
     public void Unregister<T>(Action<T> handler)
     {
-        lock (_lock)
+        lock (this._lock)
         {
             this._Get<T>().Remove(handler);
         }

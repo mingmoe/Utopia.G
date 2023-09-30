@@ -1,8 +1,18 @@
-using Microsoft.Build.Framework;
+#region copyright
+// This file(may named ReleaseEnvironmentPrepareTask.cs) is a part of the project: Utopia.MSBuild.
+// 
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.MSBuild.
+//
+// Utopia.MSBuild is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.MSBuild is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.MSBuild. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using Microsoft.Build.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Utopia.MSBuild
 {
@@ -11,9 +21,9 @@ namespace Utopia.MSBuild
 
         public override bool Execute()
         {
-            var pro = this.BuildEngine9.GetGlobalProperties();
+            var _ = this.BuildEngine9.GetGlobalProperties();
 
-// TODO
+            // TODO
 
             return true;
         }

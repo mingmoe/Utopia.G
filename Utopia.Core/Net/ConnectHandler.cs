@@ -1,15 +1,10 @@
 using CommunityToolkit.Diagnostics;
 using CommunityToolkit.HighPerformance;
-using NLog;
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.IO.Pipelines;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using Utopia.Core.Utilities;
 using Utopia.G.Net;
 
@@ -30,7 +25,7 @@ public class ConnectHandler : IConnectHandler
         Guard.IsNotNull(socket);
         this._socket = socket;
 
-        if(!this._socket.Connected)
+        if (!this._socket.Connected)
         {
             throw new ArgumentException("the socket haven't connect yet");
         }
@@ -42,7 +37,7 @@ public class ConnectHandler : IConnectHandler
 
     private async Task _ReadLoop()
     {
-        var writer = _pipe.Writer;
+        var writer = this._pipe.Writer;
 
         while (this._running)
         {
@@ -58,7 +53,7 @@ public class ConnectHandler : IConnectHandler
 
     private async Task _ProcessLoop()
     {
-        async Task<int> readInt(PipeReader reader)
+        static async Task<int> readInt(PipeReader reader)
         {
             var got = await reader.ReadAtLeastAsync(4);
 
@@ -76,7 +71,7 @@ public class ConnectHandler : IConnectHandler
             return num;
         }
 
-        var reader = _pipe.Reader;
+        var reader = this._pipe.Reader;
 
         while (this._running)
         {
@@ -106,7 +101,7 @@ public class ConnectHandler : IConnectHandler
             // release
             var packet = this.Packetizer.ConvertPacket(id, data);
 
-            this.Dispatcher.DispatchPacket(id,packet);
+            this.Dispatcher.DispatchPacket(id, packet);
         }
     }
 
@@ -114,15 +109,15 @@ public class ConnectHandler : IConnectHandler
     {
         lock (this._lock)
         {
-            if (_running)
+            if (this._running)
             {
                 return;
             }
-            _running = true;
+            this._running = true;
         }
 
         // wait for shutdown sign
-        while(this._socket.Connected && this._running)
+        while (this._socket.Connected && this._running)
         {
             await Task.Yield();
         }
@@ -130,7 +125,7 @@ public class ConnectHandler : IConnectHandler
         // shutdown
         lock (this._lock)
         {
-            _running = false;
+            this._running = false;
         }
 
         await Task.WhenAll(this._ReadLoop(), this._ProcessLoop());
@@ -143,7 +138,7 @@ public class ConnectHandler : IConnectHandler
 
     public void Write(byte[] bytes)
     {
-        lock (_lock)
+        lock (this._lock)
         {
             this._Write(bytes);
         }
@@ -151,7 +146,7 @@ public class ConnectHandler : IConnectHandler
 
     public void WritePacket(Guuid packetTypeId, byte[] data)
     {
-        lock (_lock)
+        lock (this._lock)
         {
             var encoderedId = Encoding.UTF8.GetBytes(packetTypeId.ToString());
 

@@ -1,11 +1,18 @@
-//===--------------------------------------------------------------===//
-// Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
+#region copyright
+// This file(may named Block.cs) is a part of the project: Utopia.Server.
 // 
-// This file is licensed under the MIT license.
-// MIT LICENSE:https://opensource.org/licenses/MIT
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Server.
 //
-//===--------------------------------------------------------------===//
+// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
+#endregion
 
+using System.Net;
 using Utopia.Core.Map;
 using Utopia.Server.Map;
 
@@ -23,9 +30,9 @@ public class Block : IBlock
     {
         get
         {
-            lock (_locker)
+            lock (this._locker)
             {
-                return _collidable;
+                return this._collidable;
             }
         }
     }
@@ -34,9 +41,9 @@ public class Block : IBlock
     {
         get
         {
-            lock (_locker)
+            lock (this._locker)
             {
-                return _cannotAccessable == 0;
+                return this._cannotAccessable == 0;
             }
         }
     }
@@ -51,15 +58,15 @@ public class Block : IBlock
     public bool Contains(IEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-        lock (_locker)
+        lock (this._locker)
         {
-            return _entities.Contains(entity);
+            return this._entities.Contains(entity);
         }
     }
 
     public long EntityCount()
     {
-        lock (_locker)
+        lock (this._locker)
         {
             return this._entities.Count;
         }
@@ -67,16 +74,16 @@ public class Block : IBlock
 
     public IReadOnlyCollection<IEntity> GetAllEntities()
     {
-        lock (_locker)
+        lock (this._locker)
         {
             // to array to prevent user to change list
-            return _entities.ToArray();
+            return this._entities.ToArray();
         }
     }
 
     public bool IsEmpty()
     {
-        lock (_locker)
+        lock (this._locker)
         {
             return this._entities.Count == 0;
         }
@@ -85,9 +92,9 @@ public class Block : IBlock
     public void RemoveEntity(IEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-        lock (_locker)
+        lock (this._locker)
         {
-            var found = _entities.Remove(entity);
+            var found = this._entities.Remove(entity);
 
             if (!found)
             {
@@ -103,27 +110,27 @@ public class Block : IBlock
                 return;
             }
 
-            _cannotAccessable--;
+            this._cannotAccessable--;
         }
     }
 
     public bool TryAddEntity(IEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-        lock (_locker)
+        lock (this._locker)
         {
-            if (_collidable && entity.Collidable)
+            if (this._collidable && entity.Collidable)
             {
                 return false;
             }
-            _entities.Add(entity);
+            this._entities.Add(entity);
             entity.WorldPosition = this.Position;
 
             this._collidable = entity.Collidable;
 
             if (!entity.Accessible)
             {
-                _cannotAccessable++;
+                this._cannotAccessable++;
             }
         }
         return true;
@@ -131,12 +138,30 @@ public class Block : IBlock
 
     public void LogicUpdate()
     {
-        lock (_locker)
+        lock (this._locker)
         {
-            foreach (var item in _entities)
+            foreach (var item in this._entities)
             {
                 item.LogicUpdate();
             }
         }
+    }
+
+    public byte[] Save()
+    {
+        MemoryStream stream = new();
+        lock (this._locker)
+        {
+            stream.Write(BitConverter.GetBytes(IPAddress.HostToNetworkOrder(this._entities.Count)));
+            foreach (var item in this._entities)
+            {
+                Core.Utilities.IO.StreamUtility.WriteStringWithLength(stream, item.Id.ToString()).Wait();
+                var data = item.Save();
+                Core.Utilities.IO.StreamUtility.WriteInt(stream, data.Length).Wait();
+                stream.Write(data);
+            }
+        }
+
+        return stream.ToArray();
     }
 }

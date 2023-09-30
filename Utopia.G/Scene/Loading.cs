@@ -1,10 +1,17 @@
-//===--------------------------------------------------------------===//
-// Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
+#region copyright
+// This file(may named Loading.cs) is a part of the project: Utopia.G.
 // 
-// This file is licensed under the MIT license.
-// MIT LICENSE:https://opensource.org/licenses/MIT
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.G.
 //
-//===--------------------------------------------------------------===//
+// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using Godot;
 using System.Diagnostics;
 using Utopia.Core.Logging;
@@ -32,46 +39,46 @@ public partial class Loading : Node2D
         this.AddChild(Player);
         Player.Stream = (Godot.AudioStream)ResourceLoader.Load("res://music/main.ogg");
         Player.Play();
-        _stopwatch.Start();
+        this._stopwatch.Start();
 
-        _logo = (CompressedTexture2D)ResourceLoader.Load("res://images/utopia.png");
-        _license_logo = (CompressedTexture2D)ResourceLoader.Load("res://images/license.png");
-        _image = this.GetNode<Sprite2D>("Background/Image");
-        _background = this.GetNode<Sprite2D>("Background");
+        this._logo = (CompressedTexture2D)ResourceLoader.Load("res://images/utopia.png");
+        this._license_logo = (CompressedTexture2D)ResourceLoader.Load("res://images/license.png");
+        this._image = this.GetNode<Sprite2D>("Background/Image");
+        this._background = this.GetNode<Sprite2D>("Background");
 
-        _key = Utility.SetBackground(this, _background);
+        this._key = Utility.SetBackground(this, this._background);
 
-        _next = ResourceLoader.Load<PackedScene>("res://Menu.tscn");
+        this._next = ResourceLoader.Load<PackedScene>("res://Menu.tscn");
 
         LogManager.Init(true);
     }
 
     public override void _Process(double delta)
     {
-        var mc = _stopwatch.ElapsedMilliseconds;
+        var mc = this._stopwatch.ElapsedMilliseconds;
 
         // switch logo
-        if (mc >= 500 && mc <= 3800 && _first_logo)
+        if (mc >= 500 && mc <= 3800 && this._first_logo)
         {
-            _image!.Texture = _logo;
-            _first_logo = false;
+            this._image!.Texture = this._logo;
+            this._first_logo = false;
         }
-        else if (mc >= 3800 && mc <= 7050 && _second_logo)
+        else if (mc >= 3800 && mc <= 7050 && this._second_logo)
         {
-            _image!.Texture = _license_logo;
-            _second_logo = false;
+            this._image!.Texture = this._license_logo;
+            this._second_logo = false;
         }
-        else if (mc > 7100 && !_first_logo && !_second_logo)
+        else if (mc > 7100 && !this._first_logo && !this._second_logo)
         {
-            _image!.Texture = null;
+            this._image!.Texture = null;
         }
 
         // change scene after show logos
         if (mc > 7100)
         {
             this.RemoveChild(Player);
-            Utility.CancelBackground(this, _key);
-            this.GetTree().ChangeSceneToPacked(_next);
+            Utility.CancelBackground(this, this._key);
+            this.GetTree().ChangeSceneToPacked(this._next);
         }
     }
 }

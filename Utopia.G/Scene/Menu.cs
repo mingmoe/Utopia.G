@@ -1,10 +1,16 @@
-//===--------------------------------------------------------------===//
-// Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
+#region copyright
+// This file(may named Menu.cs) is a part of the project: Utopia.G.
 // 
-// This file is licensed under the MIT license.
-// MIT LICENSE:https://opensource.org/licenses/MIT
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.G.
 //
-//===--------------------------------------------------------------===//
+// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
+#endregion
 
 using Godot;
 using Utopia.G.Scene;
@@ -27,25 +33,25 @@ public partial class Menu : Node
             this.AddChild(Loading.Player);
         }
 
-        _camera = this.GetNode<Camera2D>("Camera2D");
+        this._camera = this.GetNode<Camera2D>("Camera2D");
 
-        _viewport = this.GetViewport();
+        this._viewport = this.GetViewport();
 
-        _background = (Sprite2D)this.GetNode("Background");
-        _key = Utility.SetBackground(this, _background);
+        this._background = (Sprite2D)this.GetNode("Background");
+        this._key = Utility.SetBackground(this, this._background);
 
-        _exit = (Button)this.GetNode("Control/GridContainer/CenterContainerExit/Exit");
-        _play = (Button)this.GetNode("Control/GridContainer/CenterContainerPlay/Play");
+        this._exit = (Button)this.GetNode("Control/GridContainer/CenterContainerExit/Exit");
+        this._play = (Button)this.GetNode("Control/GridContainer/CenterContainerPlay/Play");
 
-        _exit.Pressed += () =>
+        this._exit.Pressed += () =>
         {
-            Utility.CancelBackground(this, _key);
+            Utility.CancelBackground(this, this._key);
             this.GetTree().Quit();
         };
 
-        _play.Pressed += () =>
+        this._play.Pressed += () =>
         {
-            Utility.CancelBackground(this, _key);
+            Utility.CancelBackground(this, this._key);
             this.GetTree().ChangeSceneToFile("res://Main.tscn");
         };
     }

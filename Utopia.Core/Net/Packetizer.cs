@@ -1,13 +1,19 @@
-using CommunityToolkit.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+#region copyright
+// This file(may named Packetizer.cs) is a part of the project: Utopia.Core.
+// 
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Core.
+//
+// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using Utopia.Core.Collections;
 using Utopia.Core.Utilities;
-using Utopia.Core.Utilities.IO;
 
 namespace Utopia.Core.Net;
 
@@ -53,7 +59,7 @@ public class Packetizer : IPacketizer
     /// </summary>
     private bool _TryGetFormatter(Guuid id, out IPacketFormatter? formatter)
     {
-        _formatters.EnterList(tryGetFormatter);
+        this._formatters.EnterList(tryGetFormatter);
 
         IPacketFormatter? result = null;
         void tryGetFormatter(IList<IPacketFormatter> list)

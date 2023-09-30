@@ -1,21 +1,24 @@
-//===--------------------------------------------------------------===//
-// Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
+#region copyright
+// This file(may named Main.cs) is a part of the project: Utopia.G.
 // 
-// This file is licensed under the MIT license.
-// MIT LICENSE:https://opensource.org/licenses/MIT
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.G.
 //
-//===--------------------------------------------------------------===//
+// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using Godot;
 using System;
-using Utopia.Core;
 using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
-using Utopia.Core.Translate;
 using Utopia.G.Game;
-using Utopia.G.Game.Player;
 using Utopia.G.Graphy;
 using Utopia.G.Scene;
-using Utopia.Server.Net;
 
 namespace Utopia.G;
 
@@ -43,7 +46,7 @@ public partial class Main : Node
     /// 时间不可以取消.
     /// </summary>
     public IEventManager<IEventWithParamAndResult<Vector2, Vector2>> CameraEvent
-    { get; init; } = new EventManager<IEventWithParamAndResult<Vector2,Vector2>>();
+    { get; init; } = new EventManager<IEventWithParamAndResult<Vector2, Vector2>>();
 
     /// <summary>
     /// 在启动后被设置为非null
@@ -66,8 +69,8 @@ public partial class Main : Node
         };
         source.CreateTile(new(0, 0), new(8, 8));
 
-        _set.AddSource(source, 1);
-        _set.TileSize = new Vector2I(32, 32);
+        this._set.AddSource(source, 1);
+        this._set.TileSize = new Vector2I(32, 32);
 
         Random random = new();
 
@@ -76,7 +79,7 @@ public partial class Main : Node
         {
             for (int y = -31; y != 32; y++)
             {
-                _map.SetCell(1, new Vector2I(x, y), 1, new Vector2I(
+                this._map.SetCell(1, new Vector2I(x, y), 1, new Vector2I(
                     random.Next(0, 7),
                     random.Next(0, 7)));
             }

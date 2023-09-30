@@ -1,10 +1,16 @@
-//===--------------------------------------------------------------===//
-// Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
+#region copyright
+// This file(may named ITranslateManager.cs) is a part of the project: Utopia.Core.
 // 
-// This file is licensed under the MIT license.
-// MIT LICENSE:https://opensource.org/licenses/MIT
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Core.
 //
-//===--------------------------------------------------------------===//
+// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
+#endregion
 
 using Utopia.Core.Collections;
 using Utopia.Core.Events;
@@ -28,16 +34,6 @@ public interface ITranslateManager : ISafeDictionary<Guuid, ITranslateProvider>
     /// <param name="result">获取到的结果，如果获取失败，设置为null。</param>
     /// <returns>如果获取成功，返回true。</returns>
     bool TryGetTranslate(TranslateIdentifence language, Guuid? translateProviderId, Guuid translateItemId, out string? result);
-
-    /// <summary>
-    /// 获取尝试获取翻译.
-    /// 效果和
-    /// <see cref="TryGetTranslate(TranslateIdentifence, Guuid?, Guuid, out string?)"/>
-    /// 差不多.
-    /// </summary>
-    /// <param name="key">要获取的翻译</param>
-    /// <param name="result">获取到的翻译.如果没找到,返回null</param>
-    bool TryGetTranslate(TranslateKey key, out string? result);
 
     /// <summary>
     /// 检查翻译条目是否存在

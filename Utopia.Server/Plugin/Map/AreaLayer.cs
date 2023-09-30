@@ -1,8 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+#region copyright
+// This file(may named AreaLayer.cs) is a part of the project: Utopia.Server.
+// 
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Server.
+//
+// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using Utopia.Core.Map;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
@@ -24,7 +33,7 @@ public class AreaLayer : IAreaLayer
         {
             lock (this._lock)
             {
-                return this._stage; 
+                return this._stage;
             }
         }
         set
@@ -67,7 +76,7 @@ public class AreaLayer : IAreaLayer
 
     public bool TryGetBlock(FlatPosition position, out IBlock? block)
     {
-        if(position.X <= 0 || position.X >= IArea.XSize
+        if (position.X <= 0 || position.X >= IArea.XSize
             || position.Y <= 0 || position.Y >= IArea.YSize)
         {
             block = null;
@@ -81,12 +90,27 @@ public class AreaLayer : IAreaLayer
 
     public void Update(IUpdater updater)
     {
-        foreach(var blocks in this._blocks)
+        foreach (var blocks in this._blocks)
         {
-            foreach(var block in blocks)
+            foreach (var block in blocks)
             {
                 updater.AssignTask(block.LogicUpdate);
             }
         }
+    }
+
+    public byte[] Save()
+    {
+        MemoryStream stream = new();
+
+        foreach (var x in this._blocks)
+        {
+            foreach (var y in x)
+            {
+                stream.Write(y.Save());
+            }
+        }
+
+        return stream.ToArray();
     }
 }

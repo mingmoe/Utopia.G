@@ -1,11 +1,22 @@
+#region copyright
+// This file(may named StreamUtility.cs) is a part of the project: Utopia.Core.
+// 
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Core.
+//
+// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using CommunityToolkit.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
+using System;
+using System.Runtime.CompilerServices;
 
 namespace Utopia.Core.Utilities.IO;
 
@@ -82,4 +93,31 @@ public static class StreamUtility
         return Guuid.ParseString(await ReadString(stream));
     }
 
+    /// <summary>
+    /// This will call <see cref="IPAddress.HostToNetworkOrder(int)"/> method to covert the value.
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static async Task WriteInt(Stream stream,int value)
+    {
+        var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
+
+        await stream.WriteAsync(bytes);
+    }
+
+    /// <summary>
+    /// will call <see cref="WriteInt"/> to write length.
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static async Task WriteStringWithLength(Stream stream,string value)
+    {
+        await WriteInt(stream,value.Length);
+
+        await stream.WriteAsync(Encoding.UTF8.GetBytes(value));
+
+    }
 }
+

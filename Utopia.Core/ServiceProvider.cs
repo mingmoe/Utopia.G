@@ -1,11 +1,17 @@
-//===--------------------------------------------------------------===//
-// Copyright (C) 2021-2023 mingmoe(me@kawayi.moe)(https://kawayi.moe)
+#region copyright
+// This file(may named ServiceProvider.cs) is a part of the project: Utopia.Core.
 // 
-// This file is licensed under the MIT license.
-// MIT LICENSE:https://opensource.org/licenses/MIT
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// 
+// This file is part of Utopia.Core.
 //
-//===--------------------------------------------------------------===//
-using System.Collections.Concurrent;
+// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// 
+// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+// 
+// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
+#endregion
+
 using Utopia.Core.Collections;
 using Utopia.Core.Events;
 
@@ -45,7 +51,7 @@ public class ServiceProvider : IServiceProvider
 
     public IReadOnlyCollection<object> GetServices()
     {
-        var arr = _services.ToArray();
+        var arr = this._services.ToArray();
         var list = new List<object>(arr.Length);
 
         foreach (var item in arr)
@@ -58,12 +64,12 @@ public class ServiceProvider : IServiceProvider
 
     public bool HasService<T>()
     {
-        return _services.ContainsKey(typeof(T));
+        return this._services.ContainsKey(typeof(T));
     }
 
     public void RemoveService<T>()
     {
-        var r = _services.TryRemove(typeof(T), out object? obj);
+        var r = this._services.TryRemove(typeof(T), out object? obj);
 
         // fire delete event
         if (r)
@@ -77,7 +83,7 @@ public class ServiceProvider : IServiceProvider
     {
         ArgumentNullException.ThrowIfNull(service);
 
-        var r = _services.TryAdd(typeof(T), service);
+        var r = this._services.TryAdd(typeof(T), service);
 
         // fire add event
         if (r)

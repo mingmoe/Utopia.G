@@ -48,19 +48,22 @@ public class SafeList<T> : ISafeList<T>
 {
     protected readonly List<T> _list = new();
 
-    protected readonly SpinLock _lock = new();
+    protected SpinLock _lock = new();
 
     protected void _Invoke(Action<IList<T>> action)
     {
-        bool loacked = false;
+        bool locked = false;
         try
         {
-            this._lock.Enter(ref loacked);
+            this._lock.Enter(ref locked);
             action.Invoke(this._list);
         }
         finally
         {
-            this._lock.Exit();
+            if (locked)
+            {
+                this._lock.Exit();
+            }
         }
     }
 

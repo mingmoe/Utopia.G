@@ -163,4 +163,13 @@ public class Block : IBlock
 
         return stream.ToArray();
     }
+
+    public void OperateEntities(Action<IList<IEntity>> action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        lock (this._locker)
+        {
+            action.Invoke(this._entities);
+        }
+    }
 }

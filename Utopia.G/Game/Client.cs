@@ -23,6 +23,7 @@ using Utopia.Core.Events;
 using Utopia.Core.Translate;
 using Utopia.Core.Utilities.IO;
 using Utopia.G.Game.Entity;
+using Utopia.G.Graphy;
 using Utopia.Server;
 
 namespace Utopia.G.Game;
@@ -97,6 +98,7 @@ public static class Client
         register<ITranslateManager>(new TranslateManager());
         register<IEntityManager>(new EntityManager());
         register<Node>(root);
+        register<TileManager>(new TileManager());
         // end
         provider.TryRegisterService(builder);
 

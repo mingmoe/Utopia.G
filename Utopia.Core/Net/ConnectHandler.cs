@@ -33,7 +33,7 @@ public class ConnectHandler : IConnectHandler
 
     public IDispatcher Dispatcher { get; } = new Dispatcher();
 
-    public Packetizer Packetizer { get; } = new();
+    public IPacketizer Packetizer { get; } = new Packetizer();
 
     private async Task _ReadLoop()
     {

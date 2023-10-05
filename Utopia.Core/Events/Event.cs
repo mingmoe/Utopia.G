@@ -12,6 +12,8 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Utopia.Core.Exceptions;
+
 namespace Utopia.Core.Events;
 
 public class Event : IEvent
@@ -27,6 +29,25 @@ public class Event : IEvent
         {
             this._canceled = value;
         }
+    }
+
+    /// <summary>
+    /// Get the retsult of the event, or throw a <see cref="EventAssertionException"/>
+    /// with information.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="UT"></typeparam>
+    /// <param name="e"></param>
+    /// <returns></returns>
+    /// <exception cref="EventAssertionException"></exception>
+    public static UT GetResult<T,UT>(T e) where T : IEventWithResult<UT>
+    {
+        if(e.Result == null)
+        {
+            throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
+        }
+
+        return e.Result;
     }
 }
 

@@ -13,6 +13,7 @@
 #endregion
 
 using Autofac;
+using Utopia.Core;
 using Utopia.Core.Utilities;
 using Utopia.Server.Map;
 
@@ -25,16 +26,16 @@ public class WorldFactory : IWorldFactory
 {
     public Guuid WorldType => IDs.WorldType;
 
-    private readonly IContainer _container;
+    private readonly Generator _generator;
 
-    public WorldFactory(IContainer container)
+    public WorldFactory(Generator generator)
     {
-        ArgumentNullException.ThrowIfNull(container, nameof(container));
-        this._container = container;
+        ArgumentNullException.ThrowIfNull(generator, nameof(generator));
+        this._generator = generator;
     }
 
     public IWorld GenerateNewWorld()
     {
-        return new World(0, 4, 4, this._container.Resolve<Generator>());
+        return new World(0, 4, 4, this._generator);
     }
 }

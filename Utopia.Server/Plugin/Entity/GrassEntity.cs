@@ -36,7 +36,7 @@ public class GrassEntity : IEntity
 
     public GrassEntity(ITranslateManager msg,TranslateIdentifence id)
     {
-        this.Name = new ICUTranslatedString(ResourcePack.Entity.GrassEntity.TranslateKey, msg, id, new object());
+//        this.Name = new ICUTranslatedString(ResourcePack.Entity.GrassEntity.TranslateKey, msg, id, new object());
     }
 
     public void LogicUpdate()
@@ -46,6 +46,11 @@ public class GrassEntity : IEntity
 
     public byte[] Save()
     {
-        throw new NotImplementedException();
+        return Array.Empty<byte>();
+    }
+
+    public byte[] ClientOnlyData()
+    {
+        return Array.Empty<byte>();
     }
 }

@@ -15,6 +15,7 @@
 using Godot;
 using System;
 using Utopia.Core.Events;
+using Utopia.Core.Map;
 using Utopia.Core.Utilities;
 using Utopia.G.Graphy;
 
@@ -31,9 +32,14 @@ public interface IGodotEntity
     Guuid EntityId { get; }
 
     /// <summary>
-    /// 实体的贴图
+    /// Render the entity,the entity can be rendered as a node or add tile to the tiemap.
+    /// 
     /// </summary>
-    IVariableEvent<Tile> Tile { get; }
+    /// <param name="position">
+    /// This position stands for world position,
+    /// you can use it in tilemap directly.
+    /// </param>
+    Node? Render(WorldPosition position,TileMap map);
 
     /// <summary>
     /// 每帧调用
@@ -48,18 +54,23 @@ public interface IGodotEntity
 /// </summary>
 public abstract class SimplayEntity : IGodotEntity
 {
-
-    public IVariableEvent<Tile> Tile { get; init; }
+    public Tile Tile { get; init; }
 
     public Guuid EntityId { get; init; }
 
     public abstract void FrameUpdate(double deltaSecond, Node node);
 
+    public Node? Render(WorldPosition position, TileMap map)
+    {
+        map.SetCell(new Vector2I(position.X, position.Y), this.Tile);
+        return null;
+    }
+
     public SimplayEntity(Tile tile, Guuid id)
     {
         ArgumentNullException.ThrowIfNull(tile);
         ArgumentNullException.ThrowIfNull(id);
-        this.Tile = new VariableEvent<Tile>(tile);
+        this.Tile = tile;
         this.EntityId = id;
     }
 }

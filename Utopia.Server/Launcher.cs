@@ -226,7 +226,7 @@ public static class Launcher
         register<ILogicThread>(new SimplyLogicThread());
         register<IEventBus>(new EventBus());
         register<IEntityManager>(new EntityManager());
-
+        register<InternetMain>(new InternetMain(provider));
         // init filesystem
         provider.GetService<IFileSystem>().CreateIfNotExist();
 
@@ -238,7 +238,7 @@ public static class Launcher
 
         if (option.DatabaseSource == null)
         {
-            throw new ArgumentException("Database Source option need to be set");
+            // throw new ArgumentException("Database Source option need to be set");
         }
         // TODO:ADD PGSQL
 
@@ -306,8 +306,7 @@ public static class Launcher
         netServer.Listen(port);
         _logger.Info("listen to {port}", port);
 
-        var netThread = new InternetMain(provider);
-        provider.TryRegisterService(netThread);
+        var netThread = provider.GetService<InternetMain>();
         var thread = new Thread(() =>
         {
             // 注册关闭事件

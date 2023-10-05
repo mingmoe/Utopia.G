@@ -56,4 +56,11 @@ public interface IEntity : ISaveable
     /// 世界坐标。
     /// </summary>
     WorldPosition WorldPosition { get; set; }
+
+    /// <summary>
+    /// The data that the client should knows.
+    /// This will be transmitted to the client.
+    /// </summary>
+    /// <returns></returns>
+    byte[] ClientOnlyData();
 }

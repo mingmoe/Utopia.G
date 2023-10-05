@@ -41,4 +41,10 @@ public interface IBlock : ISaveable
     void LogicUpdate();
 
     WorldPosition Position { get; }
+
+    /// <summary>
+    /// Note:This method may break the block infomation
+    /// </summary>
+    /// <param name="action"></param>
+    void OperateEntities(Action<IList<IEntity>> action);
 }

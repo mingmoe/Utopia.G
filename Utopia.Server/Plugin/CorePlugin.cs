@@ -13,7 +13,10 @@
 #endregion
 
 using Autofac;
+using Jeffijoe.MessageFormat;
 using Utopia.Core.Collections;
+using Utopia.Core.Net;
+using Utopia.Core.Net.Packet;
 using Utopia.Core.Utilities;
 using Utopia.ResourcePack;
 using Utopia.Server.Entity;
@@ -31,10 +34,11 @@ public class CorePlugin : CorePluginInformation, IPlugin
 
     private ILifetimeScope _container;
 
-    public CorePlugin(Core.IServiceProvider provider,IContainer container)
+    public CorePlugin(Core.IServiceProvider provider)
     {
         ArgumentNullException.ThrowIfNull(provider);
         this._Provider = provider;
+        var container = provider.GetService<IContainer>();
 
         var scope = container.BeginLifetimeScope((builder) =>
         {
@@ -59,6 +63,48 @@ public class CorePlugin : CorePluginInformation, IPlugin
 
         this._Provider.GetService<IEntityManager>().TryAdd(ResourcePack.Entity.GrassEntity.ID,
             factory);
+
+        // process query_map packet
+        this._Provider.GetService<InternetMain>().ClientCreatedEvent.Register(
+                (e) =>
+                {
+                    var handler = e.Result!;
+
+                    handler.Packetizer.OperateFormatterList((list) =>
+                    {
+                        list.Add(new QueryBlockPacketFormatter());
+                        list.Add(new LoginPacketFormatter());
+                        list.Add(new BlockInfoPacketFormatter());
+                    });
+
+                    handler.Dispatcher.RegisterHandler(QueryBlockPacketFormatter.PacketTypeId,
+                        (object packet) =>
+                        {
+                            var query = (QueryBlockPacket)packet;
+
+                            Task.Run(() =>
+                            {
+                                if(this._Provider.TryGetBlock(query.QueryPosition,out var block))
+                                {
+                                    var packet = new BlockInfoPacket();
+                                    var entities = block!.GetAllEntities();
+                                    packet.Collidable = block.Collidable;
+                                    packet.Accessible = block.Accessable;
+                                    packet.Position = query.QueryPosition;
+                                    packet.Entities = entities.Select((i) => i.Id).ToArray();
+                                    packet.EntityData = entities.Select((i) => i.ClientOnlyData()).ToArray();
+
+                                    handler.WritePacket(BlockInfoPacketFormatter.PacketTypeId,
+                                        packet
+                                        );
+                                }
+                            });
+                        });
+
+
+                }
+                );
+
     }
 
     public void Dispose()

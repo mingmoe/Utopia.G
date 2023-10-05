@@ -26,17 +26,17 @@ public class ClimateGenerator : IClimateGenerator
 {
     public IElevation GetElevation(Position position)
     {
-        throw new NotImplementedException();
+        return new EmptyElevation();
     }
 
     public IPrecipitation GetPrecipitation(Position position)
     {
-        throw new NotImplementedException();
+        return new EmptyPrecipiation();
     }
 
     public ITemperature GetTemperature(Position position)
     {
-        throw new NotImplementedException();
+        return new EmptyTemperature();
     }
 }
 
@@ -44,14 +44,11 @@ public class Generator : IWorldGenerator
 {
 
     private readonly IEntityManager _entityManager;
-    private readonly IContainer _container;
 
-    public Generator(IEntityManager entityManager,IContainer container)
+    public Generator(IEntityManager entityManager)
     {
         ArgumentNullException.ThrowIfNull(entityManager);
-        ArgumentNullException.ThrowIfNull(container);
         this._entityManager = entityManager;
-        this._container = container;
     }
 
     public void Generate(IAreaLayer area)

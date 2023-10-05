@@ -26,11 +26,14 @@ public class LoginPacket
 {
     [Key(0)]
     public string PlayerId { get; set; } = string.Empty;
+
+    [Key(1)]
+    public string Password { get; set; } = string.Empty;
 }
 
 public class LoginPacketFormatter : IPacketFormatter
 {
-    public static readonly Guuid PacketTypeId = new("utopia", "core", "net", "packet", "login");
+    public static readonly Guuid PacketTypeId = Guuid.NewUtopiaGuuid("net","packet","login");
 
     public Guuid Id => PacketTypeId;
 

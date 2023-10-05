@@ -187,7 +187,7 @@ public class ICUTranslatedString : ITranslatedString
     }
 
     public IEventManager<IEventWithParamAndResult<string, string>> TranslateUpdateEvent { get; } =
-        (IEventManager<IEventWithParamAndResult<string, string>>)new EventManager<ComplexEvent<string, string>>();
+        new EventManager<IEventWithParamAndResult<string, string>>();
 
     private object _data;
 

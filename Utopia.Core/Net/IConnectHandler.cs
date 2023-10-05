@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Utopia.Core.Exceptions;
 using Utopia.Core.Net;
 using Utopia.Core.Utilities;
 
@@ -30,11 +31,30 @@ public interface IConnectHandler : IDisposable
     /// <summary>
     /// 包格式化器
     /// </summary>
-    Packetizer Packetizer { get; }
+    IPacketizer Packetizer { get; }
 
     void Write(byte[] bytes);
 
+    /// <summary>
+    /// Write a packet,but it wont covert the packet to bytes.You should do it first.
+    /// Or see <see cref="WritePacket(Guuid, object)"/>.
+    /// </summary>
+    /// <param name="packetTypeId"></param>
+    /// <param name="obj"></param>
     void WritePacket(Guuid packetTypeId, byte[] obj);
+
+    void WritePacket(Guuid packetTypeId, object packetObject)
+    {
+        if(this.Packetizer.TryGetFormatter(packetTypeId, out var formatter))
+        {
+            var bytes = formatter.ToPacket(packetObject);
+
+            WritePacket(packetTypeId, bytes);
+
+            return;
+        }
+        throw new FormatterNotFoundExceptiom(packetTypeId);
+    }
 
     /// <summary>
     /// 服务端进行信息循环

@@ -47,6 +47,12 @@ public interface ILogicThread
     /// 添加要进行更新的操作
     /// </summary>
     void AddUpdatable(IUpdatable updatable);
+
+    /// <summary>
+    /// Remove the updatable object which has been added.
+    /// </summary>
+    /// <param name="updatable"></param>
+    void RemoveUpdatable(IUpdatable updatable);
 }
 
 public class SimplyLogicThread : ILogicThread
@@ -114,6 +120,16 @@ public class SimplyLogicThread : ILogicThread
         lock (this._lock)
         {
             this._updatables.Add(updatable);
+        }
+    }
+
+    public void RemoveUpdatable(IUpdatable updatable)
+    {
+        Guard.IsNotNull(updatable);
+
+        lock (this._lock)
+        {
+            this._updatables.Remove(updatable);
         }
     }
 }

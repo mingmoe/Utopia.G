@@ -59,7 +59,7 @@ public class InternetListener : IInternetListener
 
         var e = new ComplexEvent<Socket, Socket>(socket, null);
         this.AcceptEvent.Fire(e);
-        var newSocket = e.Result ?? e.Parameter!;
+        var newSocket = Event.GetResult<IEventWithResult<Socket>,Socket>(e);
 
         return newSocket;
     }

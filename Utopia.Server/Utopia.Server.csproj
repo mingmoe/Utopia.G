@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -32,15 +32,20 @@
     <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
     <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
     <PackageReference Include="Tomlyn" Version="0.16.2" />
-    
-        <ProjectReference Include="../Utopia.Generator/Utopia.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-  </ItemGroup>
+
+     <ProjectReference Include="../Utopia.PluginGenerator/Utopia.PluginGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+</ItemGroup>
 
   
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
     <ProjectReference Include="..\Utopia.FastNoise\Utopia.FastNoise.csproj" />
     <ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
+  </ItemGroup>
+
+  
+  <ItemGroup>
+    <Folder Include="Net\Packet\" />
   </ItemGroup>
 
 </Project>

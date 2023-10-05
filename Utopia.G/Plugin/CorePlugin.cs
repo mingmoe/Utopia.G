@@ -12,9 +12,17 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
+using Godot;
 using System;
+using System.Threading.Tasks;
 using Utopia.Core;
+using Utopia.Core.Events;
+using Utopia.Core.Net.Packet;
 using Utopia.G.Game;
+using Utopia.G.Game.Entity;
+using Utopia.G.Graphy;
+using Utopia.G.Net;
+using Utopia.G.Plugin.Entity;
 using Utopia.ResourcePack;
 
 namespace Utopia.G.Plugin;
@@ -34,7 +42,75 @@ public class CorePlugin : CorePluginInformation,IPlugin
 
     public void Active()
     {
+        var manager = this._Provider.GetService<IEntityManager>();
+        var factory = new EmptyEntityFactory();
+        var node = this._Provider.GetService<Node>();
 
+        var grass = ResourceLoader.Load<Texture2D>("res://images/textures/grass.png");
+
+        var source = new TileSetAtlasSource
+        {
+            TextureRegionSize = new(32, 32),
+            Texture = grass
+        };
+        var id = TileSource.CreateSingleTile(source, grass);
+
+        ((Main)node).Map.TileSet.AddSource(source,1);
+
+        factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID,
+            new GrassEntity(new Tile((int)TileLayer.Floor, 1,id)));
+
+        manager.TryAdd(
+                ResourcePack.Entity.GrassEntity.ID,
+                factory
+            );
+
+        this._Provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((e) =>
+        {
+            if(e.Order == LifeCycleOrder.After && e.Cycle == LifeCycle.ConnectToServer)
+            {
+                // process
+                var connecter = this._Provider.GetService<ISocketConnecter>();
+
+                connecter.ConnectHandler!.Packetizer.OperateFormatterList(
+                    (list) =>
+                    {
+                        list.Add(new LoginPacketFormatter());
+                        list.Add(new BlockInfoPacketFormatter());
+                        list.Add(new QueryBlockPacketFormatter());
+                    });
+
+                connecter.ConnectHandler!.Dispatcher.RegisterHandler(
+                    BlockInfoPacketFormatter.PacketTypeId, (packet) =>
+                    {
+                        var pack = (BlockInfoPacket)packet;
+
+                        for(var index=0;index != pack.Entities.Length; index++)
+                        {
+                            var entity = pack.Entities[index];
+                            var data = pack.EntityData[index];
+
+                            var got = manager.Create(entity, data);
+
+                            var tile = got.Render(pack.Position, ((Main)node).Map);
+
+                            node.AddChild(tile);
+                        }
+                    });
+
+                Task.Run(() =>
+                {
+                    for(var x =-32;x!= 32; x++)
+                    {
+                        for(var y =-32;y!= 32; y++)
+                        {
+                            connecter.ConnectHandler!.WritePacket(QueryBlockPacketFormatter.PacketTypeId,
+                                new QueryBlockPacket() { QueryPosition = new Core.Map.WorldPosition(x, y, 0, 0) });
+                        }
+                    }
+                });
+            }
+        });
     }
 
     public void Dispose()

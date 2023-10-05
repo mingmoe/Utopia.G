@@ -55,43 +55,25 @@ public partial class Main : Node
 
     public Game.Player.IPlayer Player { get; private set; } = null!;
 
+    public TileMap Map => _map;
+
+    public Camera2D Camera=> _camera;
+
     public override void _Ready()
     {
         GodotBinder.Bind(this, this);
         TileMapHelper.CreateTileMapLayer(this._map);
-
-        var grass = ResourceLoader.Load<Texture2D>("res://images/textures/grass.png");
-
-        var source = new TileSetAtlasSource
-        {
-            TextureRegionSize = new(32, 32),
-            Texture = grass
-        };
-        source.CreateTile(new(0, 0), new(8, 8));
-
-        this._set.AddSource(source, 1);
         this._set.TileSize = new Vector2I(32, 32);
 
-        Random random = new();
-
-        // _map.SetCell(0, new Vector2I(1, 1), 1, new Vector2I(0, 0));
-        for (int x = -31; x != 32; x++)
-        {
-            for (int y = -31; y != 32; y++)
-            {
-                this._map.SetCell(1, new Vector2I(x, y), 1, new Vector2I(
-                    random.Next(0, 7),
-                    random.Next(0, 7)));
-            }
-        }
 
         var server = Client.CreateLocalServer();
         this.Service = Client.Initlize(this);
         Client.Start(server, this.Service);
 
-        this.Player = this.Service.GetService<Game.Player.IPlayer>();
+        // this.Player = this.Service.GetService<Game.Player.IPlayer>();
 
         // set camera position
+        if(false)
         this.Player.Position.Event.Register(
                 (@event) =>
                 {

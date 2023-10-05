@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core.Events;
+using System.Configuration;
 
 namespace Utopia.Core;
 
@@ -28,8 +29,13 @@ public class LifeCycleEvent<CycleT>
 
     public static void EnterCycle(CycleT cycle,Action action,ILogger logger,IEventBus bus,IServiceProvider provider)
     {
+        if(!provider.HasService<CycleT>())
+        {
+            provider.TryRegisterService(cycle);
+        }
+
         ArgumentNullException.ThrowIfNull(cycle);
-        logger.Info("enter pre-{} lifecycle", cycle.ToString());
+        logger.Info("enter pre-{} lifecycle", cycle);
         bus!.Fire(new LifeCycleEvent<CycleT>(LifeCycleOrder.Before, cycle));
         logger.Info("enter {} lifecycle", cycle);
         provider.TryUpdate(provider.GetService<CycleT>(), cycle);

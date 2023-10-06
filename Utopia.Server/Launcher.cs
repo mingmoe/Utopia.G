@@ -13,11 +13,9 @@
 #endregion
 
 using Autofac;
-using Autofac.Core;
 using CommunityToolkit.Diagnostics;
 using Npgsql;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using Utopia.Core;
 using Utopia.Core.Collections;
 using Utopia.Core.Events;

@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using System.Net;
 using System.Net.Sockets;
 using Utopia.Core.Events;
 

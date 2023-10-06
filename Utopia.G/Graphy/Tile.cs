@@ -89,7 +89,6 @@ public enum TileLayer : byte
     Highest = 216,
 }
 
-
 public static class TileMapHelper
 {
     public static void CreateTileMapLayer(in TileMap map)

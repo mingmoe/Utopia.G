@@ -33,7 +33,7 @@ public class LoginPacket
 
 public class LoginPacketFormatter : IPacketFormatter
 {
-    public static readonly Guuid PacketTypeId = Guuid.NewUtopiaGuuid("net","packet","login");
+    public static readonly Guuid PacketTypeId = Guuid.NewUtopiaGuuid("net", "packet", "login");
 
     public Guuid Id => PacketTypeId;
 

@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using Tomlyn;
 using Utopia.Core.Utilities.IO;
 
@@ -11,7 +7,7 @@ namespace Utopia.Core.Configuration;
 public static class ConfigurationLoader
 {
 
-    private static string _GetFile<T>(IPluginInformation plugin,IFileSystem system)
+    private static string _GetFile<T>(IPluginInformation plugin, IFileSystem system)
     {
         // get path
         var path = system.GetConfigurationOfPlugin(plugin);
@@ -40,16 +36,16 @@ public static class ConfigurationLoader
     /// <param name="plugin"></param>
     /// <param name="system"></param>
     /// <returns></returns>
-    public static T Load<T>(IPluginInformation plugin,IFileSystem system) where T : class, new() 
+    public static T Load<T>(IPluginInformation plugin, IFileSystem system) where T : class, new()
     {
         var toml = _GetFile<T>(plugin, system);
-        return Toml.ToModel<T>(File.ReadAllText(toml,Encoding.UTF8));
+        return Toml.ToModel<T>(File.ReadAllText(toml, Encoding.UTF8));
     }
 
-    public static void Store<T>(IPluginInformation plugin,IFileSystem system,T config)
+    public static void Store<T>(IPluginInformation plugin, IFileSystem system, T config)
     {
         ArgumentNullException.ThrowIfNull(config);
-        var toml = _GetFile<T>(plugin,system);
+        var toml = _GetFile<T>(plugin, system);
 
         File.WriteAllText(toml, Toml.FromModel(config));
     }

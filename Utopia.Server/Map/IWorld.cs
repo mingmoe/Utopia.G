@@ -21,7 +21,7 @@ namespace Utopia.Server.Map;
 /// <summary>
 /// 世界接口
 /// </summary>
-public interface IWorld : Logic.IUpdatable,ISaveableTo<DirectoryInfo>
+public interface IWorld : Logic.IUpdatable, ISaveableTo<DirectoryInfo>
 {
 
     /// <summary>

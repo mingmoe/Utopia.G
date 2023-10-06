@@ -139,7 +139,7 @@ public static class LogManager
         });
         logconsole.Layout = @"[${longdate}][${level}][${threadname}::${logger}]:${message}${onexception:inner=${newline}${demystifiedException}}";
 
-        config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+        config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
         config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
 
         NLog.LogManager.Configuration = config;

@@ -19,7 +19,7 @@ namespace Utopia.Server;
 /// <summary>
 /// 服务端插件
 /// </summary>
-public interface IPlugin : IPluginBase 
+public interface IPlugin : IPluginBase
 {
 
 }

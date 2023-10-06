@@ -13,7 +13,6 @@
 #endregion
 
 using Godot;
-using System;
 using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
 using Utopia.G.Game;
@@ -55,16 +54,15 @@ public partial class Main : Node
 
     public Game.Player.IPlayer Player { get; private set; } = null!;
 
-    public TileMap Map => _map;
+    public TileMap Map => this._map;
 
-    public Camera2D Camera=> _camera;
+    public Camera2D Camera => this._camera;
 
     public override void _Ready()
     {
         GodotBinder.Bind(this, this);
         TileMapHelper.CreateTileMapLayer(this._map);
         this._set.TileSize = new Vector2I(32, 32);
-
 
         var server = Client.CreateLocalServer();
         this.Service = Client.Initlize(this);
@@ -73,23 +71,23 @@ public partial class Main : Node
         // this.Player = this.Service.GetService<Game.Player.IPlayer>();
 
         // set camera position
-        if(false)
-        this.Player.Position.Event.Register(
-                (@event) =>
-                {
-                    var got = TileMapHelper.GetCameraPosition(this._map,
-                        new Vector2I(@event.New.X,
-                        @event.New.Y));
+        if (false)
+            this.Player.Position.Event.Register(
+                    (@event) =>
+                    {
+                        var got = TileMapHelper.GetCameraPosition(this._map,
+                            new Vector2I(@event.New.X,
+                            @event.New.Y));
 
-                    var cEvent = new ComplexEvent<Vector2, Vector2>(got, got);
+                        var cEvent = new ComplexEvent<Vector2, Vector2>(got, got);
 
-                    this.CameraEvent.Fire(cEvent);
+                        this.CameraEvent.Fire(cEvent);
 
-                    EventAssertionException.ThrowIfResultIsNull(cEvent);
+                        EventAssertionException.ThrowIfResultIsNull(cEvent);
 
-                    this._camera.Position = cEvent.Result;
-                }
-            );
+                        this._camera.Position = cEvent.Result;
+                    }
+                );
     }
 
     public override void _Process(double delta)

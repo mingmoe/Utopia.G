@@ -85,7 +85,7 @@ public interface IFileSystem
 
     string GetConfigurationOfPlugin(IPluginInformation plugin)
     {
-        
+
         var path = Path.Join(this.Configurations, plugin.Id.ToString());
         return path;
     }

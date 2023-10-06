@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using Utopia.Core.Events;
 using Utopia.Server.Net;
 
 namespace Utopia.Server.Plugin.Net;
-public class InternetListener : IInternetListener 
+public class InternetListener : IInternetListener
 {
 
     private Socket? _socket = null;
@@ -59,7 +55,7 @@ public class InternetListener : IInternetListener
 
         var e = new ComplexEvent<Socket, Socket>(socket, null);
         this.AcceptEvent.Fire(e);
-        var newSocket = Event.GetResult<IEventWithResult<Socket>,Socket>(e);
+        var newSocket = Event.GetResult<IEventWithResult<Socket>, Socket>(e);
 
         return newSocket;
     }

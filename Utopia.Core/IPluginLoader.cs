@@ -137,7 +137,7 @@ public static class PluginLoadHelper
         {
             var file = Path.GetFullPath(f);
             logger.Info("loading plugin from dll:{plugin}", file);
-            loader.RegisterPluginFromDll(builder,file);
+            loader.RegisterPluginFromDll(builder, file);
         }
     }
 }

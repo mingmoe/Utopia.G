@@ -15,9 +15,9 @@
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Build.Locator;
 using NLog;
-using Utopia.Tools;
+using Utopia.Tools.Generators;
 
-namespace Utopia.Analysis;
+namespace Utopia.Tools;
 
 public class Program
 {
@@ -31,15 +31,14 @@ public class Program
 
     static int Main(string[] args)
     {
-        Utopia.Core.Logging.LogManager.Init(true);
+        Core.Logging.LogManager.Init(true);
 
-        _Logger.Info("logging system started");
         _Logger.Info("arguments: {args}", args);
 
         var app = new CommandLineApplication
         {
-            Name = "Utopia.Analyzer",
-            Description = "A C# tool is used for utopia(and its plugin) development",
+            Name = "Utopia.Tools",
+            Description = "A C# tool which is used for utopia(and its plugin) development",
         };
 
         MSBuildLocator.RegisterDefaults();
@@ -47,8 +46,9 @@ public class Program
         //-------------
         // 获取翻译条目
         //-------------
-        app.Command("getTranslateItem", TranslateFinder.Command);
-        app.Command("generateDocuments", GenerateDocs.Command);
+        app.Command("extractTranslate", TranslateFinder.Command);
+        app.Command("docs", GenerateDocs.Command);
+        app.Command("generate", GeneratorCommand.Command);
 
         app.HelpOption(inherited: true);
 

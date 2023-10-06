@@ -30,7 +30,7 @@ namespace Utopia.G.Plugin;
 /// <summary>
 /// 核心插件
 /// </summary>
-public class CorePlugin : CorePluginInformation,IPlugin
+public class CorePlugin : PluginInformation, IPlugin
 {
     private Core.IServiceProvider _Provider { get; init; }
 
@@ -55,10 +55,10 @@ public class CorePlugin : CorePluginInformation,IPlugin
         };
         var id = TileSource.CreateSingleTile(source, grass);
 
-        ((Main)node).Map.TileSet.AddSource(source,1);
+        ((Main)node).Map.TileSet.AddSource(source, 1);
 
         factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID,
-            new GrassEntity(new Tile((int)TileLayer.Floor, 1,id)));
+            new GrassEntity(new Tile((int)TileLayer.Floor, 1, id)));
 
         manager.TryAdd(
                 ResourcePack.Entity.GrassEntity.ID,
@@ -67,7 +67,7 @@ public class CorePlugin : CorePluginInformation,IPlugin
 
         this._Provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((e) =>
         {
-            if(e.Order == LifeCycleOrder.After && e.Cycle == LifeCycle.ConnectToServer)
+            if (e.Order == LifeCycleOrder.After && e.Cycle == LifeCycle.ConnectToServer)
             {
                 // process
                 var connecter = this._Provider.GetService<ISocketConnecter>();
@@ -85,7 +85,7 @@ public class CorePlugin : CorePluginInformation,IPlugin
                     {
                         var pack = (BlockInfoPacket)packet;
 
-                        for(var index=0;index != pack.Entities.Length; index++)
+                        for (var index = 0; index != pack.Entities.Length; index++)
                         {
                             var entity = pack.Entities[index];
                             var data = pack.EntityData[index];
@@ -100,9 +100,9 @@ public class CorePlugin : CorePluginInformation,IPlugin
 
                 Task.Run(() =>
                 {
-                    for(var x =-32;x!= 32; x++)
+                    for (var x = -32; x != 32; x++)
                     {
-                        for(var y =-32;y!= 32; y++)
+                        for (var y = -32; y != 32; y++)
                         {
                             connecter.ConnectHandler!.WritePacket(QueryBlockPacketFormatter.PacketTypeId,
                                 new QueryBlockPacket() { QueryPosition = new Core.Map.WorldPosition(x, y, 0, 0) });

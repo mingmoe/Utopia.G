@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Utopia.Generator;
+namespace Utopia.Tools.Generators;
 
 /// <summary>
 /// This class will manage the translate files of the game/plugin.
@@ -27,10 +20,10 @@ public static class TranslateManager
     /// <returns></returns>
     public static string GetTranslateDirectory(string? identifence = null)
     {
-        return Path.GetFullPath(Path.Combine(TranslateDirectory,identifence?.ToString() ?? "root"));
+        return Path.GetFullPath(Path.Combine(TranslateDirectory, identifence?.ToString() ?? "root"));
     }
 
-    public static string GetTranslateFileOf(string fileName,string? identifence)
+    public static string GetTranslateFileOf(string fileName, string? identifence)
     {
         return Path.Combine(
             GetTranslateDirectory(identifence),

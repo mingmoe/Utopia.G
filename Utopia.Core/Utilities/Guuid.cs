@@ -15,9 +15,8 @@
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
-using Standart.Hash.xxHash;
+using System.IO.Hashing;
 using System.Security.Cryptography;
-using System.Security.Policy;
 using System.Text;
 
 namespace Utopia.Core.Utilities;
@@ -215,9 +214,9 @@ public sealed class Guuid
     {
         int hash = this.Root.GetHashCode();
 
-        foreach(var node in this.Nodes)
+        foreach (var node in this.Nodes)
         {
-            hash = HashCode.Combine(hash, xxHash32.ComputeHash(node));
+            hash = HashCode.Combine(hash, XxHash64.Hash(Encoding.UTF8.GetBytes(node)));
         }
         return hash;
     }

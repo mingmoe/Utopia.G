@@ -1,11 +1,5 @@
-using System;
 using NLog;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Utopia.Core.Events;
-using System.Configuration;
 
 namespace Utopia.Core;
 
@@ -27,9 +21,9 @@ public class LifeCycleEvent<CycleT>
         this.Order = order;
     }
 
-    public static void EnterCycle(CycleT cycle,Action action,ILogger logger,IEventBus bus,IServiceProvider provider)
+    public static void EnterCycle(CycleT cycle, Action action, ILogger logger, IEventBus bus, IServiceProvider provider)
     {
-        if(!provider.HasService<CycleT>())
+        if (!provider.HasService<CycleT>())
         {
             provider.TryRegisterService(cycle);
         }

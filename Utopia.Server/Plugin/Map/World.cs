@@ -153,7 +153,7 @@ public class World : IWorld
             {
                 StreamUtility.WriteInt(stream, y.Position.X).Wait();
                 StreamUtility.WriteInt(stream, y.Position.Y).Wait();
-                StreamUtility.WriteDataWithLength(stream,y.Save()).Wait();
+                StreamUtility.WriteDataWithLength(stream, y.Save()).Wait();
             }
         }
         File.WriteAllBytes(Path.Join(path.FullName, "data.bin"), stream.ToArray());

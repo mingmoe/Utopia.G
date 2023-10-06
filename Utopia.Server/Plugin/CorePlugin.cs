@@ -13,9 +13,7 @@
 #endregion
 
 using Autofac;
-using Jeffijoe.MessageFormat;
 using Utopia.Core.Collections;
-using Utopia.Core.Net;
 using Utopia.Core.Net.Packet;
 using Utopia.Core.Utilities;
 using Utopia.ResourcePack;
@@ -28,7 +26,7 @@ using Utopia.Server.Plugin.Net;
 
 namespace Utopia.Server.Plugin;
 
-public class CorePlugin : CorePluginInformation, IPlugin
+public class CorePlugin : PluginInformation, IPlugin
 {
     private Core.IServiceProvider _Provider { get; init; }
 
@@ -59,7 +57,7 @@ public class CorePlugin : CorePluginInformation, IPlugin
             new InternetListener());
 
         var factory = new EmptyEntityFactory();
-        factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID,this._container.Resolve<GrassEntity>());
+        factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID, this._container.Resolve<GrassEntity>());
 
         this._Provider.GetService<IEntityManager>().TryAdd(ResourcePack.Entity.GrassEntity.ID,
             factory);
@@ -84,7 +82,7 @@ public class CorePlugin : CorePluginInformation, IPlugin
 
                             Task.Run(() =>
                             {
-                                if(this._Provider.TryGetBlock(query.QueryPosition,out var block))
+                                if (this._Provider.TryGetBlock(query.QueryPosition, out var block))
                                 {
                                     var packet = new BlockInfoPacket();
                                     var entities = block!.GetAllEntities();
@@ -100,7 +98,6 @@ public class CorePlugin : CorePluginInformation, IPlugin
                                 }
                             });
                         });
-
 
                 }
                 );

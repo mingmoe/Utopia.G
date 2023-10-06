@@ -1,11 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard 2.0</TargetFramework>
+    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
     <AssemblyName>Utopia.Generator</AssemblyName>
     <RootNamespace>Utopia.Generator</RootNamespace>
-      <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
+  </PropertyGroup>
+  
+  <!-- disable the nullable warnings when compiling for .NET Standard 2.0 -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <NoWarn>$(NoWarn);nullable</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,7 +39,7 @@
 
 
     <ItemGroup>
-        <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
+    
     </ItemGroup>
 
 </Project>

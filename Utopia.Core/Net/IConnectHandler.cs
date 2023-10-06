@@ -45,11 +45,11 @@ public interface IConnectHandler : IDisposable
 
     void WritePacket(Guuid packetTypeId, object packetObject)
     {
-        if(this.Packetizer.TryGetFormatter(packetTypeId, out var formatter))
+        if (this.Packetizer.TryGetFormatter(packetTypeId, out var formatter))
         {
             var bytes = formatter.ToPacket(packetObject);
 
-            WritePacket(packetTypeId, bytes);
+            this.WritePacket(packetTypeId, bytes);
 
             return;
         }

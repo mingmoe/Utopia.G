@@ -40,9 +40,9 @@ public class Event : IEvent
     /// <param name="e"></param>
     /// <returns></returns>
     /// <exception cref="EventAssertionException"></exception>
-    public static UT GetResult<T,UT>(T e) where T : IEventWithResult<UT>
+    public static UT GetResult<T, UT>(T e) where T : IEventWithResult<UT>
     {
-        if(e.Result == null)
+        if (e.Result == null)
         {
             throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
         }

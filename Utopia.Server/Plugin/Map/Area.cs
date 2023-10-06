@@ -176,9 +176,9 @@ public class Area : IArea
         var floors = this._floors.ToArray();
         var stream = new MemoryStream();
 
-        foreach(var floor in floors)
+        foreach (var floor in floors)
         {
-            StreamUtility.WriteInt(stream,floor.Key).Wait();
+            StreamUtility.WriteInt(stream, floor.Key).Wait();
             StreamUtility.WriteDataWithLength(stream, floor.Value.Save()).Wait();
         }
 

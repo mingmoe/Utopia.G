@@ -14,7 +14,6 @@
 
 using Godot;
 using System;
-using Utopia.Core.Events;
 using Utopia.Core.Map;
 using Utopia.Core.Utilities;
 using Utopia.G.Graphy;
@@ -39,7 +38,7 @@ public interface IGodotEntity
     /// This position stands for world position,
     /// you can use it in tilemap directly.
     /// </param>
-    Node? Render(WorldPosition position,TileMap map);
+    Node? Render(WorldPosition position, TileMap map);
 
     /// <summary>
     /// 每帧调用

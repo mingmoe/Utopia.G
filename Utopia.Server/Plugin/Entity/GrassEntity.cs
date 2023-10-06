@@ -34,9 +34,11 @@ public class GrassEntity : IEntity
 
     public WorldPosition WorldPosition { get; set; }
 
-    public GrassEntity(ITranslateManager msg,TranslateIdentifence id)
+    public GrassEntity(ITranslateManager msg, TranslateIdentifence id)
     {
-//        this.Name = new ICUTranslatedString(ResourcePack.Entity.GrassEntity.TranslateKey, msg, id, new object());
+        //        this.Name = new ICUTranslatedString(ResourcePack.Entity.GrassEntity.TranslateKey, msg, id, new object());
+        this.WorldPosition = new WorldPosition(1, 1, 1, 1);
+        this.Name = new TranslatedString("translated");
     }
 
     public void LogicUpdate()

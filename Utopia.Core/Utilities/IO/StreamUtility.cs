@@ -15,8 +15,6 @@
 using CommunityToolkit.Diagnostics;
 using System.Net;
 using System.Text;
-using System;
-using System.Runtime.CompilerServices;
 
 namespace Utopia.Core.Utilities.IO;
 
@@ -99,7 +97,7 @@ public static class StreamUtility
     /// <param name="stream"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static async Task WriteInt(Stream stream,int value)
+    public static async Task WriteInt(Stream stream, int value)
     {
         var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
 
@@ -109,9 +107,9 @@ public static class StreamUtility
     /// <summary>
     /// will call <see cref="WriteInt"/> to write length.
     /// </summary>
-    public static async Task WriteStringWithLength(Stream stream,string value)
+    public static async Task WriteStringWithLength(Stream stream, string value)
     {
-        await WriteInt(stream,value.Length);
+        await WriteInt(stream, value.Length);
 
         await stream.WriteAsync(Encoding.UTF8.GetBytes(value));
 

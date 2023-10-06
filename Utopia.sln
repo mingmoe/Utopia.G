@@ -17,8 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决�
 		docfx.json = docfx.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Generator", "Utopia.Generator\Utopia.Generator.csproj", "{EDA68296-F967-40DA-A63F-4EF950847A7B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Tools", "Utopia.Tools\Utopia.Tools.csproj", "{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.ResourcePack", "Utopia.ResourcePack\Utopia.ResourcePack.csproj", "{A082E1E8-9CCA-4792-ABF6-07F7A75B7CEE}"
@@ -30,8 +28,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.FastNoise", "Utopia.FastNoise\Utopia.FastNoise.csproj", "{58F1E3D7-FC6F-43C0-AC47-008DD8DC35B2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F1E708FC-EB03-4723-A455-10E00E4D71E0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.PluginGenerator", "Utopia.PluginGenerator\Utopia.PluginGenerator.csproj", "{BF58F40D-630F-4123-9285-0832C88BB2F0}"
+	ProjectSection(SolutionItems) = preProject
+		AutoUpdateAssemblyName.txt = AutoUpdateAssemblyName.txt
+		version.txt = version.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,14 +73,6 @@ Global
 		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1076BBC5-F8F7-426F-A2A2-1E92B6340032}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EDA68296-F967-40DA-A63F-4EF950847A7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EDA68296-F967-40DA-A63F-4EF950847A7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EDA68296-F967-40DA-A63F-4EF950847A7B}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EDA68296-F967-40DA-A63F-4EF950847A7B}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
-		{EDA68296-F967-40DA-A63F-4EF950847A7B}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
-		{EDA68296-F967-40DA-A63F-4EF950847A7B}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
-		{EDA68296-F967-40DA-A63F-4EF950847A7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EDA68296-F967-40DA-A63F-4EF950847A7B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -121,14 +113,6 @@ Global
 		{58F1E3D7-FC6F-43C0-AC47-008DD8DC35B2}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{58F1E3D7-FC6F-43C0-AC47-008DD8DC35B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58F1E3D7-FC6F-43C0-AC47-008DD8DC35B2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BF58F40D-630F-4123-9285-0832C88BB2F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BF58F40D-630F-4123-9285-0832C88BB2F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BF58F40D-630F-4123-9285-0832C88BB2F0}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BF58F40D-630F-4123-9285-0832C88BB2F0}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
-		{BF58F40D-630F-4123-9285-0832C88BB2F0}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
-		{BF58F40D-630F-4123-9285-0832C88BB2F0}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
-		{BF58F40D-630F-4123-9285-0832C88BB2F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BF58F40D-630F-4123-9285-0832C88BB2F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

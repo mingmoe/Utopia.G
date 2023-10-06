@@ -6,7 +6,24 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
+    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
+        <Version>$([System.IO.File]::ReadAllText("version.txt"))</Version>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
+        <Version>$([System.IO.File]::ReadAllText("version.txt"))-$(VersionSuffix)</Version>
+    </PropertyGroup>
+
+    <Target Name="AssemblyVersion">
+        <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\VersionInfo.generated.cs" AssemblyVersion="$(Version)" AssemblyFileVersion="$(Version)" />
+        <Message Text="Version: $(Version)" />
+    </Target>
+
+    <Target Name="GenerateSource" BeforeTargets="Build">
+        <Exec Command="dotnet run --configuration Release --project &quot;$(ProjectDir)/../Utopia.Tools&quot; -- generate --version-file &quot;$(ProjectDir)/../version.txt&quot; --project $(ProjectDir) --rootNamespace $(RootNameSpace) pluginInfo" />
+    </Target>
+    
+    <ItemGroup>
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="MessageFormat" Version="7.0.0" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />

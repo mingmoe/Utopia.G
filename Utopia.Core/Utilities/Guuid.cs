@@ -158,7 +158,9 @@ public sealed class Guuid
         builder.Append(this.Root);
         foreach (var node in this.Nodes)
         {
+#pragma warning disable CA1834 // Consider using 'StringBuilder.Append(char)' when applicable
             builder.Append(SEPARATOR).Append(node);
+#pragma warning restore CA1834 // Consider using 'StringBuilder.Append(char)' when applicable
         }
         return builder.ToString();
     }

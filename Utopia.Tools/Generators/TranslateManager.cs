@@ -1,32 +1,45 @@
 namespace Utopia.Tools.Generators;
 
+public enum TranslateItemType
+{
+    PluginInformation,
+    Entity,
+    Other
+}
+
 /// <summary>
 /// This class will manage the translate files of the game/plugin.
 /// </summary>
-public static class TranslateManager
+public sealed class TranslateManager
 {
 
-    public const string TranslateDirectory = "translate";
+    private readonly IFileSystem _fileSystem;
 
-    /// <summary>
-    /// Get the translate directory.
-    /// If you pass a null language identifence(by default),you will get a
-    /// root-translate directory. The files under the directory wont
-    /// be translated to any langugae. Those files just record what to be
-    /// translated.Source generators should operate the root-translate directory.
-    /// The target language will be chosen by the user.
-    /// </summary>
-    /// <param name="identifence"></param>
-    /// <returns></returns>
-    public static string GetTranslateDirectory(string? identifence = null)
+    public TranslateManager(IFileSystem fileSystem)
     {
-        return Path.GetFullPath(Path.Combine(TranslateDirectory, identifence?.ToString() ?? "root"));
+        this._fileSystem = fileSystem;
     }
 
-    public static string GetTranslateFileOf(string fileName, string? identifence)
+    private static void _EnsureFile(string path)
     {
-        return Path.Combine(
-            GetTranslateDirectory(identifence),
-            fileName);
+        if(!File.Exists(path))
+        {
+            File.Create(path);
+        }
     }
+
+    private void _EnsureFile(string origin,string path)
+    {
+        var p = Path.GetFullPath(Path.Join(this._fileSystem.TranslateDir,Path.GetRelativePath(origin,path)));
+
+        _EnsureFile(p);
+    }
+
+    public void EnsurePluginInformationTrnaslate()
+    {
+        var path = this._fileSystem.GetTranslatedTomlFilePath("plugin.translated.toml");
+
+        _EnsureFile(path);
+    }
+
 }

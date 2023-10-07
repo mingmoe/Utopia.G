@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <UsingTask TaskName="Utopia.MSBuild.RunUtopiaToolTask" AssemblyFile="$(ProjectDir)\..\Utopia.MSBuild\bin\Debug\netstandard2.0\Utopia.MSBuild.dll"/>
+  <UsingTask TaskName="Utopia.MSBuild.GeneratePluginInformationTask" AssemblyFile="$(ProjectDir)\..\Utopia.MSBuild\bin\Debug\netstandard2.0\Utopia.MSBuild.dll"/>
+
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -20,7 +23,10 @@
     </Target>
 
     <Target Name="GenerateSource" BeforeTargets="Build">
-        <Exec Command="dotnet run --configuration Release --project &quot;$(ProjectDir)/../Utopia.Tools&quot; -- generate --version-file &quot;$(ProjectDir)/../version.txt&quot; --project $(ProjectDir) --rootNamespace $(RootNameSpace) pluginInfo" />
+      <GeneratePluginInformationTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(ProjectDir)" Namespace="$(RootNamespace)">
+          <Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
+      </GeneratePluginInformationTask>
+      <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(ProjectDir)/../Utopia.Tools"/>
     </Target>
     
     <ItemGroup>

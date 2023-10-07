@@ -11,7 +11,7 @@ public class GeneratorCommand
         var assertsDir = application.Option("--assert-dir <DIR>", "the path to the assert files", CommandOptionType.SingleValue);
         var generatedDir = application.Option("--generated-dir <DIR>", "the path to the generated .cs files", CommandOptionType.SingleValue);
         var project = application.Option("--project <DIR>", "the path to the projects which need to generate source files", CommandOptionType.SingleValue).IsRequired();
-        var rootNamespace = application.Option("--rootNamespace <NAMESPACE>", "the rootnamespace", CommandOptionType.SingleValue);
+        var @namespace = application.Option("--namespace <NAMESPACE>", "the target namespace of the generated code", CommandOptionType.SingleValue).IsRequired();
 
         IFileSystem createFileSystem(string project)
         {
@@ -37,6 +37,8 @@ public class GeneratorCommand
                 system.GeneratedDir = generatedDir.Value()!;
             }
 
+            ((IFileSystem)system).CreateNotExistsDirectory();
+
             return system;
         }
 
@@ -44,12 +46,11 @@ public class GeneratorCommand
         {
             sub.OnExecute(() =>
             {
-                var generator = new PluginInformationGenerator
-                {
-                    TargetProject = createFileSystem(project.Value()!),
-                    RootNamespace = rootNamespace.Value()!,
-                };
-                generator.Execute();
+                var generator = new PluginInformationGenerator();
+
+                var option = new GeneratorOption(@namespace.Value()!, createFileSystem(project.Value()!));
+
+                generator.Execute(option);
             });
         });
     }

@@ -47,7 +47,7 @@ public interface IConnectHandler : IDisposable
     {
         if (this.Packetizer.TryGetFormatter(packetTypeId, out var formatter))
         {
-            var bytes = formatter.ToPacket(packetObject);
+            var bytes = formatter!.ToPacket(packetObject);
 
             this.WritePacket(packetTypeId, bytes);
 

@@ -20,10 +20,24 @@ public interface IFileSystem
 
     string GeneratedDir { get; }
 
-    string GetGeneratedCsFileName(string origin)
+    string GetGeneratedCsFilePath(string origin)
     {
         origin = Path.GetFileName(origin);
         return Path.Join(this.GeneratedDir, $"{origin}.generated.cs");
+    }
+    string GetGeneratedCsFilePath(string origin,string path,string classify = "")
+    {
+        return Path.Join(this.GeneratedDir,Path.GetRelativePath(origin,path) + $".{classify}.generated.cs");
+    }
+
+    string GetTranslatedTomlFilePath(string origin)
+    {
+        origin = Path.GetFileName(origin);
+        return Path.Join(this.TranslateDir, $"{origin}.translated.toml");
+    }
+    string GetTranslatedTomlFilePath(string origin, string path, string classify = "")
+    {
+        return Path.Join(this.TranslateDir, Path.GetRelativePath(origin, path) + $".{classify}.translated.toml");
     }
 
     void CreateNotExistsDirectory()

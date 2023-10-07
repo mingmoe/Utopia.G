@@ -136,4 +136,25 @@ public class ServiceProvider : IServiceProvider
 
         return ret;
     }
+
+    public void Dispose()
+    {
+        var list = new List<IDisposable>();
+
+        list.AddRange((IEnumerable<IDisposable>)this._services.ToArray().TakeWhile((pair) =>
+        {
+            return (pair.Value is IDisposable);
+        }));
+
+        list.AddRange((IEnumerable<IDisposable>)this._managers.ToArray().TakeWhile((pair) =>
+        {
+            return (pair.Value is IDisposable);
+        }));
+
+        foreach(var item in list)
+        {
+            item.Dispose();
+        }
+        GC.SuppressFinalize(this);
+    }
 }

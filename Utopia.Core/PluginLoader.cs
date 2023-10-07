@@ -14,9 +14,12 @@
 
 using Autofac;
 using NLog;
+using System.CodeDom;
 using System.Collections.Immutable;
+using System.Reflection.Metadata.Ecma335;
 using Utopia.Core;
 using Utopia.Core.Events;
+using Utopia.Core.Exceptions;
 
 namespace Utopia.Server;
 
@@ -44,7 +47,7 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
         }
     }
 
-    public ImmutableArray<Type> UnregisterPlugins
+    public ImmutableArray<Type> UnresolveredPlugins
     {
         get
         {
@@ -67,7 +70,43 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
     public IEventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs> ActivePlguinEvent { get; }
     = new EventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs>();
 
-    public ImmutableArray<Type> UnresolveredPlugins => throw new NotImplementedException();
+    private void _AddPlugin(PluginT plugin, Type type,IContainer? container)
+    {
+        var args = new IPluginLoader<PluginT>.ActivePlguinEventArgs(plugin, type, container);
+        this.ActivePlguinEvent.Fire(args);
+
+        if (args.PluginInstance == null)
+        {
+            return;
+        }
+        if (args.PluginType == null)
+        {
+            throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
+        }
+
+        plugin = args.PluginInstance;
+
+        try
+        {
+            plugin.Active();
+        }
+        catch (Exception e)
+        {
+            this._logger.Error(e,
+                "failed to active plugin:`{pluginName}`(ID {pluginId}) try to access {pluginHomepage} for help",
+                plugin.Name,
+                plugin.Id,
+                plugin.Homepage);
+            return;
+        }
+
+        lock (this._locker)
+        {
+            this._ActivePlugins.Add((args.PluginType, plugin));
+        }
+
+    }
+
 
     public void Active(IContainer container)
     {
@@ -79,41 +118,32 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
             {
                 if (!type.IsAssignableTo(typeof(PluginT)))
                 {
-                    throw new ArgumentException($"try to active a type without implening {typeof(PluginT)} interafce");
+                    throw new ArgumentException($"try to active a type without implementing {typeof(PluginT)} interafce");
                 }
                 var p = (PluginT)container.Resolve(type);
-                var args = new IPluginLoader<PluginT>.ActivePlguinEventArgs(type, container)
-                {
-                    PluginInstance = p
-                };
-                this.ActivePlguinEvent.Fire(args);
-
-                if (args.PluginInstance == null)
-                {
-                    return;
-                }
-
-                p = args.PluginInstance;
-
-                try
-                {
-                    p.Active();
-                }
-                catch (Exception e)
-                {
-                    this._logger.Error(e,
-                        "failed to active plugin:`{pluginName}`(ID {pluginId}) try to access {pluginHomepage} for help",
-                        p.Name,
-                        p.Id,
-                        p.Homepage);
-                }
-
-                lock (this._locker)
-                {
-                    this._ActivePlugins.Add((type, p));
-                }
+                this._AddPlugin(p,type, container);
             }
             this._UnresolvedPlugins.Clear();
         }
+    }
+
+    public void Dispose()
+    {
+        lock (this._locker)
+        {
+            foreach(var plugin in this._ActivePlugins)
+            {
+                plugin.Item2.Dispose();
+            }
+            this._ActivePlugins.Clear();
+            this._UnresolvedPlugins.Clear();
+            GC.SuppressFinalize(this);
+        }
+    }
+
+    public void AddResolved(PluginT plugin, Type? typed = null)
+    {
+        ArgumentNullException.ThrowIfNull(plugin);
+        this._AddPlugin(plugin, typed ?? plugin.GetType(), null);
     }
 }

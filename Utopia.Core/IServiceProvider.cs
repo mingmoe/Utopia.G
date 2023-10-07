@@ -19,7 +19,7 @@ namespace Utopia.Core;
 /// <summary>
 /// 服务提供者接口
 /// </summary>
-public interface IServiceProvider
+public interface IServiceProvider : IDisposable
 {
     /// <summary>
     /// 获取服务

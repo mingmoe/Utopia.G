@@ -1,3 +1,4 @@
+using NLog;
 using Tomlyn;
 
 namespace Utopia.Tools.Generators;
@@ -21,16 +22,29 @@ public class PluginInfo
 /// </summary>
 public class PluginInformationGenerator : IGenerator
 {
-    public IFileSystem TargetProject { get; set; } = null!;
 
-    public string RootNamespace { get; set; } = null!;
+    private readonly static Logger _logger = LogManager.GetCurrentClassLogger();
 
-    public void Execute()
+    public void Execute(GeneratorOption option)
     {
         // read toml
-        this.TargetProject.CreateNotExistsDirectory();
-        var text = File.ReadAllText(this.TargetProject.PluginInfoFile, System.Text.Encoding.UTF8);
-        var version = File.ReadAllText(this.TargetProject.VersionFile, System.Text.Encoding.UTF8);
+        option.TargetProject.CreateNotExistsDirectory();
+
+        var output = option.TargetProject.GetGeneratedCsFilePath(option.TargetProject.PluginInfoFile);
+        var inputPlugin = option.TargetProject.PluginInfoFile;
+        var inputVersion = option.TargetProject.VersionFile;
+
+        if (!Utilities.NeedUpdateFile(output,inputPlugin,inputVersion))
+        {
+            _logger.Trace("(incremental compiles)skip generate file {output} from {input};{input}",
+                output,
+                inputPlugin,
+                inputVersion);
+            return;
+        }
+
+        var text = File.ReadAllText(inputPlugin, System.Text.Encoding.UTF8);
+        var version = File.ReadAllText(inputVersion, System.Text.Encoding.UTF8);
 
         var info = Toml.ToModel<PluginInfo>(text);
 
@@ -39,21 +53,23 @@ public class PluginInformationGenerator : IGenerator
         builder.Usings.Add("Utopia.Core");
         builder.Usings.Add("Utopia.Core.Translate");
         builder.Usings.Add("Utopia.Core.Utilities");
-        builder.Namespace = this.RootNamespace;
+        builder.Namespace = option.TargetNamespace;
 
-        builder.Lines.Add("public class PluginInformation : IPluginInformation{");
-        builder.Lines.Add($"\tpublic readonly static Guuid ID = Guuid.ParseString(\"{info.Id}\");");
-        builder.Lines.Add($"\tpublic readonly static TranslatedString NAME = new(\"{info.Name}\");");
-        builder.Lines.Add($"\tpublic readonly static TranslatedString DESC = new(\"{info.Description}\");");
-        builder.Lines.Add($"\tpublic readonly static System.Version VER = Version.Parse(\"{version}\");");
-        builder.Lines.Add($"\tITranslatedString IPluginInformation.Name => NAME;");
-        builder.Lines.Add($"\tITranslatedString IPluginInformation.Description => DESC;");
-        builder.Lines.Add($"\tGuuid IPluginInformation.Id => ID;");
-        builder.Lines.Add($"\tVersion IPluginInformation.Version => VER;");
-        builder.Lines.Add($"\tstring IPluginInformation.License => \"{info.License}\";");
-        builder.Lines.Add($"\tstring IPluginInformation.Homepage => \"{info.Homepage}\";");
-        builder.Lines.Add("}");
+        builder.AddClass("PluginInformation",isPublic: true,parentClass: "IPluginInformation",
+            from: $"this file was generated from {option.TargetProject.PluginInfoFile}");
+        builder.AddField("public", "Guuid", "ID", $"Guuid.ParseString(\"{info.Id}\")", true, true);
+        builder.AddField("public", "TranslatedString", "NAME", $"new(\"{info.Name}\")", true, true);
+        builder.AddField("public", "TranslatedString", "DESC", $"new(\"{info.Description}\")", true, true);
+        builder.AddField("public", "System.Version", "VER", $"Version.Parse(\"{version}\")", true, true);
+        builder.AddLine($"ITranslatedString IPluginInformation.Name => NAME;");
+        builder.AddLine($"ITranslatedString IPluginInformation.Description => DESC;");
+        builder.AddLine($"Guuid IPluginInformation.Id => ID;");
+        builder.AddLine($"Version IPluginInformation.Version => VER;");
+        builder.AddLine($"string IPluginInformation.License => \"{info.License}\";");
+        builder.AddLine($"string IPluginInformation.Homepage => \"{info.Homepage}\";");
+        builder.CloseCodeBlock();
 
-        File.WriteAllText(this.TargetProject.GetGeneratedCsFileName(this.TargetProject.PluginInfoFile), builder.Generate(), System.Text.Encoding.UTF8);
+        File.WriteAllText(output, builder.Generate(),
+            System.Text.Encoding.UTF8);
     }
 }

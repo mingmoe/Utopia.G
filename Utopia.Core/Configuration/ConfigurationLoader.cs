@@ -17,12 +17,8 @@ public static class ConfigurationLoader
         // get attribute
         var type = typeof(T);
 
-        var config = type.GetCustomAttribute<ConfigurationAttribute>();
-
-        if (config == null)
-        {
+        var config = type.GetCustomAttribute<ConfigurationAttribute>() ??
             throw new ArgumentException("the configuration type has no " + nameof(ConfigurationAttribute) + " attribute");
-        }
 
         var file = Path.Join(path, config.FileName);
 

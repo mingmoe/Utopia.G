@@ -1,7 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-    <UsingTask TaskName="Utopia.Build.RunUtopiaToolTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
-    <UsingTask TaskName="Utopia.Build.GeneratePluginSourceTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
+﻿<Project Sdk="Kawayi.Utopia.Sdk/0.1.1">
 
     <PropertyGroup>
     <OutputType>Exe</OutputType>

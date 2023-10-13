@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Kawayi.Utopia.Sdk/0.1.4">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -8,17 +8,14 @@
       <Description>The SDK of the Project Utopia.</Description>
       <Copyright>Copyright ©MingMoe 2023</Copyright>
       <GenerateDependencyFile>true</GenerateDependencyFile>
+      <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+      <PackageId>Kawayi.Utopia.Sdk</PackageId>
+
+      <UseUtopiaSdk>false</UseUtopiaSdk>
+      <UseUtopiaBuild>false</UseUtopiaBuild>
+      <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
   </PropertyGroup>
-
-    <!--Read version.txt file-->
-    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
-        <Version>$([System.IO.File]::ReadAllText("$(ProjectDir)./version.txt"))</Version>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
-        <Version>$([System.IO.File]::ReadAllText("./version.txt"))-$(VersionSuffix)</Version>
-    </PropertyGroup>
-
+    
     <!-- generate .dep.json -->
     <Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput" BeforeTargets="BuiltProjectOutputGroup" Condition=" '$(GenerateDependencyFile)' == 'true'">
         <ItemGroup>
@@ -29,25 +26,16 @@
     <!--replace our file-->
     <Target Name="Replace" AfterTargets="CoreCompile">
       <PropertyGroup>
-          <InputFile>$(ProjectDir)\build\Utopia.Sdk.props</InputFile>
-          <OutputFile>$(OutputPath)\Utopia.Sdk.props</OutputFile>
+          <InputFile>$(ProjectDir)\Sdk\Sdk.props</InputFile>
+          <OutputFile>$(OutputPath)\Sdk.props</OutputFile>
       </PropertyGroup>
-      <WriteLinesToFile
-          File="$(OutputFile)"
-          Lines="$([System.IO.File]::ReadAllText($(InputFile)).Replace('$VERSION$','$(Version)'))"
-          Overwrite="true"
-          Encoding="UTF-8"/>
+      <WriteLinesToFile File="$(OutputFile)" Lines="$([System.IO.File]::ReadAllText($(InputFile)).Replace('$VERSION$','$(Version)'))" Overwrite="true" Encoding="UTF-8" />
           <Message Importance="high" Text="generate Utopia.Sdk version $(Version)" />
     </Target>
 
     <ItemGroup>
-      <None Remove="build\VersionReader.targets" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="$(OutputPath)\Utopia.Sdk.props" PackagePath="build\" />
-        <Content Include="$(ProjectDir)\build\Utopia.Sdk.targets" PackagePath="build\" />
-        <Content Include="build\VersionReader.targets" PackagePath="build\" />
+        <Content Include="$(OutputPath)\Sdk.props" PackagePath="Sdk\" />
+        <Content Include="$(ProjectDir)\Sdk\Sdk.targets" PackagePath="Sdk\" />
     </ItemGroup>
 
 </Project>

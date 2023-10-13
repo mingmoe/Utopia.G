@@ -1,16 +1,27 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    
+
+    <ItemGroup>
+        <PackageReference Condition="'$(UseUtopiaBuild)' != 'false'" Include="Utopia.Build" Version="$(UtopiaSdkVersion)" />
+        <PackageReference Condition="'$(UseUtopiaSdk)' != 'false'" Include="Kawayi.Utopia.Sdk" Version="$(UtopiaSdkVersion)" />
+    </ItemGroup>
+
+
+    <!-- About version -->
     <PropertyGroup Condition="'$(VersionSuffix)' == '' And '$(DisableAutoVersionFileRead)' != 'true'">
-        <Version>$([System.IO.File]::ReadAllText("version.txt"))</Version>
+        <Version>$([System.IO.File]::ReadAllText("$(UtopiaVersionFilePath)"))</Version>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(VersionSuffix)' != '' And '$(DisableAutoVersionFileRead)' != 'true'">
-        <Version>$([System.IO.File]::ReadAllText("version.txt"))-$(VersionSuffix)</Version>
+        <Version>$([System.IO.File]::ReadAllText("$(UtopiaVersionFilePath)"))-$(VersionSuffix)</Version>
     </PropertyGroup>
 
     <Target Name="GenerateAssemblyVersion" Condition="'$(DisableAutoVersionFileRead)' != 'true'">
         <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\VersionInfo.generated.cs" AssemblyVersion="$(Version)" AssemblyFileVersion="$(Version)" />
         <Message Importance="high" Text="set version: $(Version)" />
     </Target>
-    
+
+
+    <!--Import .NET Sdk-->
+    <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets"/>
+
 </Project>

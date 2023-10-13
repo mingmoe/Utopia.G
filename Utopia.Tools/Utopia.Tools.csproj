@@ -11,9 +11,21 @@
       <Description>The command line tool for the Project Utopia.</Description>
       <Copyright>Copyright ©MingMoe 2023</Copyright>
 
+      <PackAsTool>True</PackAsTool>
+
+      <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
   </PropertyGroup>
 
-  <ItemGroup>
+    <!--Read version.txt file-->
+    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
+        <Version>$([System.IO.File]::ReadAllText("$(ProjectDir)./version.txt"))</Version>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
+        <Version>$([System.IO.File]::ReadAllText("./version.txt"))-$(VersionSuffix)</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="CommunityToolkit.Common" Version="8.2.1" />
     <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.1" />

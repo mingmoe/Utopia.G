@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Kawayi.Utopia.Sdk/0.1.4">
 
   <PropertyGroup>
 	  <TargetFramework>netstandard2.0</TargetFramework>
@@ -9,19 +9,14 @@
 	  <Description>A package that add some useful MSBuild tasks.</Description>
 	  <Copyright>Copyright ©MingMoe 2023</Copyright>
 	  <GenerateDependencyFile>true</GenerateDependencyFile>
+	  <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+	  
+	  <UseUtopiaBuild>false</UseUtopiaBuild>
+      <UseUtopiaSdk>false</UseUtopiaSdk>
+	  <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
   </PropertyGroup>
 
-	<!--Read version.txt file-->
-	<PropertyGroup Condition="'$(VersionSuffix)' == ''">
-		<Version>$([System.IO.File]::ReadAllText("./version.txt"))</Version>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(VersionSuffix)' != ''">
-		<Version>$([System.IO.File]::ReadAllText("./version.txt"))-$(VersionSuffix)</Version>
-   </PropertyGroup>
-
-
-	<ItemGroup>
+  <ItemGroup>
 	<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.7.2" PrivateAssets="all" ExcludeAssets="runtime" />
   </ItemGroup>
 

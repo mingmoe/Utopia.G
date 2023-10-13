@@ -15,21 +15,25 @@
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
+using System.Collections;
 using System.IO.Hashing;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace Utopia.Core.Utilities;
 
 /// <summary>
+/// globally unique universally identifier.
+/// This is a constant class(like string).
 /// 人类可读的唯一标识符。由name组成。至少必须要存在有两个name。
-/// 第一个name称为root。其余的name称为node(s)。
+/// 第一个name称为root。其余的all name称为node(s)。
 /// name的长度不能为0，只能由字母、数字、下划线组成。
 /// 并且只能由字母开头。
 /// guuid的字符串形式类似于：root:namespaces1:namespaces2...
 /// </summary>
 [MessagePackObject]
-public sealed class Guuid
+public sealed class Guuid : IEnumerable<string>
 {
     /// <summary>
     /// utopia游戏所使用的GUUID的root.
@@ -223,9 +227,44 @@ public sealed class Guuid
         return hash;
     }
 
+    public Guuid Append(Guuid guuid)
+    {
+        string root = this.Root;
+        var nodes = this.Nodes.ToList();
+        nodes.Add(guuid.Root);
+        nodes.AddRange(guuid.Nodes);
+        return new Guuid(root, nodes.ToArray());
+    }
+
+    /// <summary>
+    /// Cover this guuid to C# identifier
+    /// </summary>
+    /// <returns></returns>
+    public string ToCsIdentifier()
+    {
+        return this.Nodes.Aggregate(this.Root,(result, value) =>
+        {
+            return result + "_" + value;
+        });
+    }
+
     public static Guuid NewUtopiaGuuid(params string[] nodes)
     {
         return new Guuid(UTOPIA_ROOT, nodes);
+    }
+
+    public IEnumerator<string> GetEnumerator()
+    {
+        yield return this.Root;
+        foreach(var s in this.Nodes)
+        {
+            yield return s;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        yield return (IEnumerable)this.GetEnumerator();
     }
 }
 

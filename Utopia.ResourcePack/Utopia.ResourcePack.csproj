@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <UsingTask TaskName="Utopia.MSBuild.RunUtopiaToolTask" AssemblyFile="$(ProjectDir)\..\Utopia.MSBuild\bin\Debug\netstandard2.0\Utopia.MSBuild.dll"/>
-  <UsingTask TaskName="Utopia.MSBuild.GeneratePluginInformationTask" AssemblyFile="$(ProjectDir)\..\Utopia.MSBuild\bin\Debug\netstandard2.0\Utopia.MSBuild.dll"/>
+  <UsingTask TaskName="Utopia.Build.RunUtopiaToolTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
+  <UsingTask TaskName="Utopia.Build.GeneratePluginSourceTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -9,25 +9,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
-        <Version>$([System.IO.File]::ReadAllText("version.txt"))</Version>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
-        <Version>$([System.IO.File]::ReadAllText("version.txt"))-$(VersionSuffix)</Version>
-    </PropertyGroup>
-
-    <Target Name="AssemblyVersion">
-        <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\VersionInfo.generated.cs" AssemblyVersion="$(Version)" AssemblyFileVersion="$(Version)" />
-        <Message Text="Version: $(Version)" />
-    </Target>
-
+    <!--
     <Target Name="GenerateSource" BeforeTargets="Build">
-      <GeneratePluginInformationTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(ProjectDir)" Namespace="$(RootNamespace)">
+        <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(ProjectDir)" Namespace="$(RootNamespace)" Generate="pluginInfo">
           <Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
-      </GeneratePluginInformationTask>
-      <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(ProjectDir)/../Utopia.Tools"/>
+      </GeneratePluginSourceTask>
+      <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(ProjectDir)/../Utopia.Tools" />
     </Target>
+    -->
     
     <ItemGroup>
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />

@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+    <UsingTask TaskName="Utopia.Build.RunUtopiaToolTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
+    <UsingTask TaskName="Utopia.Build.GeneratePluginSourceTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
+
+    <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -8,7 +11,20 @@
     <StartupObject>Utopia.Server.Launcher</StartupObject>
   </PropertyGroup>
 
-  <ItemGroup>
+    <!--
+    <Target Name="GenerateSource" BeforeTargets="Build">
+        <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(ProjectDir)" Namespace="$(RootNamespace)" Generate="pluginInfo">
+            <Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
+        </GeneratePluginSourceTask>
+        <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(ProjectDir)/../Utopia.Tools"/>
+        <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(ProjectDir)" Namespace="$(RootNamespace)" Generate="plugin">
+            <Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
+        </GeneratePluginSourceTask>
+        <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(ProjectDir)/../Utopia.Tools"/>
+    </Target>
+    -->
+
+    <ItemGroup>
     <PackageReference Include="Autofac" Version="7.1.0" />
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="CommunityToolkit.Common" Version="8.2.1" />

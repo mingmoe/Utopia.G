@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace Utopia.MSBuild
+namespace Utopia.Build
 {
     /// <summary>
     /// This task will run Utopia.Tools.
@@ -36,6 +36,8 @@ namespace Utopia.MSBuild
             var sb = new StringBuilder();
             var proc = new Process();
             var info = proc.StartInfo;
+            info.RedirectStandardError = true;
+            info.RedirectStandardOutput = true;
             info.UseShellExecute = false;
 
             // find tools
@@ -74,6 +76,9 @@ namespace Utopia.MSBuild
             var code = proc.ExitCode;
 
             this.Log.LogMessageFromText($"Utopia.Tools: run [{info.FileName} {info.Arguments}] exit with code {code}", MessageImportance.High);
+
+            this.Log.LogError("stdio:{0}",proc.StandardOutput.ReadToEnd());
+            this.Log.LogError("stderr:{0}", proc.StandardError.ReadToEnd());
 
             return code == 0;
         }

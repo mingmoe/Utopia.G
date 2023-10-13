@@ -1,0 +1,12 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!--This will be replace by the MSBuild-->
+        <UtopiaSdkVersion>$VERSION$</UtopiaSdkVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Utopia.Build" Version="$(UtopiaSdkVersion)" />
+    </ItemGroup>
+
+</Project>

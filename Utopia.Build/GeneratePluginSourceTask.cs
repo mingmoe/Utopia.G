@@ -5,9 +5,9 @@ using System.IO;
 using System.Security.AccessControl;
 using System.Text;
 
-namespace Utopia.MSBuild
+namespace Utopia.Build
 {
-    public class GeneratePluginInformationTask : Microsoft.Build.Utilities.Task
+    public class GeneratePluginSourceTask : Microsoft.Build.Utilities.Task
     {
 
         public bool AccessVersionFromParent { get; set; } = false;
@@ -19,6 +19,9 @@ namespace Utopia.MSBuild
 
         [Required]
         public string Namespace { get;set; }
+
+        [Required]
+        public string Generate { get; set; }
 
         [Output]
         public string[] Arguments { get; set; }
@@ -45,7 +48,7 @@ namespace Utopia.MSBuild
                 projectDir,
                 "--namespace",
                 targetNamespace,
-                "pluginInfo"
+                this.Generate
             };
 
             this.Arguments = arguments.ToArray();

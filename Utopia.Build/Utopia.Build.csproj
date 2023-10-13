@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>netstandard2.0</TargetFramework>
+	  <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+	  <IsPackable>true</IsPackable>
+	  <Version>0.1.0</Version>
+	  <Authors>MingMoe</Authors>
+	  <Description>A package that add some useful MSBuild tasks.</Description>
+	  <Copyright>Copyright ©MingMoe 2023</Copyright>
+	  <GenerateDependencyFile>true</GenerateDependencyFile>
+  </PropertyGroup>
+
+	<!--Read version.txt file-->
+	<PropertyGroup Condition="'$(VersionSuffix)' == ''">
+		<Version>$([System.IO.File]::ReadAllText("./version.txt"))</Version>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(VersionSuffix)' != ''">
+		<Version>$([System.IO.File]::ReadAllText("./version.txt"))-$(VersionSuffix)</Version>
+   </PropertyGroup>
+
+
+	<ItemGroup>
+	<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.7.2" PrivateAssets="all" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+	<Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput" BeforeTargets="BuiltProjectOutputGroup" Condition=" '$(GenerateDependencyFile)' == 'true'">
+
+	<ItemGroup>
+		<BuiltProjectOutputGroupOutput Include="$(ProjectDepsFilePath)" TargetPath="$(ProjectDepsFileName)" FinalOutputPath="$(ProjectDepsFilePath)" />
+		</ItemGroup>
+	</Target>
+
+
+ <ItemGroup>
+	<Content Include="build\Utopia.Build.props" PackagePath="build\" />
+	<Content Include="build\Utopia.Build.targets" PackagePath="build\" />
+ </ItemGroup>
+</Project>

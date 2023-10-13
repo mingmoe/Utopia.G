@@ -1,0 +1,16 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    
+    <PropertyGroup Condition="'$(VersionSuffix)' == '' And '$(DisableAutoVersionFileRead)' != 'true'">
+        <Version>$([System.IO.File]::ReadAllText("version.txt"))</Version>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(VersionSuffix)' != '' And '$(DisableAutoVersionFileRead)' != 'true'">
+        <Version>$([System.IO.File]::ReadAllText("version.txt"))-$(VersionSuffix)</Version>
+    </PropertyGroup>
+
+    <Target Name="GenerateAssemblyVersion" Condition="'$(DisableAutoVersionFileRead)' != 'true'">
+        <AssemblyInfo CodeLanguage="CS" OutputFile="$(MSBuildProjectDirectory)\Properties\VersionInfo.generated.cs" AssemblyVersion="$(Version)" AssemblyFileVersion="$(Version)" />
+        <Message Importance="high" Text="set version: $(Version)" />
+    </Target>
+    
+</Project>

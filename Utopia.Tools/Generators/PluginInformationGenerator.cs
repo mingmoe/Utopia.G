@@ -34,15 +34,6 @@ public class PluginInformationGenerator : IGenerator
         var inputPlugin = option.TargetProject.PluginInfoFile;
         var inputVersion = option.TargetProject.VersionFile;
 
-        if (!Utilities.NeedUpdateFile(output,inputPlugin,inputVersion))
-        {
-            _logger.Trace("(incremental compiles)skip generate file {output} from {input};{input}",
-                output,
-                inputPlugin,
-                inputVersion);
-            return;
-        }
-
         var text = File.ReadAllText(inputPlugin, System.Text.Encoding.UTF8);
         var version = File.ReadAllText(inputVersion, System.Text.Encoding.UTF8);
 

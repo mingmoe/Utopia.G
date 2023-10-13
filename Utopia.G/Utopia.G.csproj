@@ -34,7 +34,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
-    <ProjectReference Include="..\Utopia.MSBuild\Utopia.MSBuild.csproj" />
     <ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
     <ProjectReference Include="..\Utopia.Server\Utopia.Server.csproj" />
   </ItemGroup>

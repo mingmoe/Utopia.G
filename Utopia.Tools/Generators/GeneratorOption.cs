@@ -11,10 +11,13 @@ public sealed class GeneratorOption
 
     public IFileSystem TargetProject { get; set; }
 
+    public TranslateManager TranslateManager { get; set; }
+
     public GeneratorOption(string targetNamespace, IFileSystem targetProject)
     {
         this.TargetNamespace = targetNamespace;
         this.TargetProject = targetProject;
+        this.TranslateManager = new TranslateManager(targetProject);
     }
 }
 

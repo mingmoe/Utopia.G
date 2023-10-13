@@ -5,7 +5,7 @@
       <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
       <IsPackable>true</IsPackable>
       <Authors>MingMoe</Authors>
-      <Description>A package that add some useful MSBuild tasks.</Description>
+      <Description>The SDK of the Project Utopia.</Description>
       <Copyright>Copyright ©MingMoe 2023</Copyright>
       <GenerateDependencyFile>true</GenerateDependencyFile>
   </PropertyGroup>

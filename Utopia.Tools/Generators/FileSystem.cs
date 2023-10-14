@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Utopia.Tools.Generators;
 
 /// <summary>
@@ -46,6 +48,21 @@ public interface IFileSystem
         Directory.CreateDirectory(this.EntitiesDir);
         Directory.CreateDirectory(this.AssertDir);
         Directory.CreateDirectory(this.GeneratedDir);
+    }
+
+    string ToString()
+    {
+        StringBuilder sb = new StringBuilder();
+
+        sb.AppendLine("Target Project Root:" + this.ProjectRootDir);
+        sb.AppendLine("Target Entities:" + this.EntitiesDir);
+        sb.AppendLine("Target Asserts:" + this.AssertDir);
+        sb.AppendLine("Target Generated:" + this.GeneratedDir);
+        sb.AppendLine("Target Translate:" + this.TranslateDir);
+        sb.AppendLine("Target Version File:" + this.VersionFile);
+        sb.AppendLine("Target Plugin Information File:" + this.PluginInfoFile);
+
+        return sb.ToString();
     }
 }
 

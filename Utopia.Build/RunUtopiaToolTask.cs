@@ -77,8 +77,16 @@ namespace Utopia.Build
 
             this.Log.LogMessageFromText($"Utopia.Tools: run [{info.FileName} {info.Arguments}] exit with code {code}", MessageImportance.High);
 
-            this.Log.LogError("stdio:{0}",proc.StandardOutput.ReadToEnd());
-            this.Log.LogError("stderr:{0}", proc.StandardError.ReadToEnd());
+            if (code == 0)
+            {
+                this.Log.LogMessage("stdio:{0}", proc.StandardOutput.ReadToEnd());
+                this.Log.LogMessage("stderr:{0}", proc.StandardError.ReadToEnd());
+            }
+            else
+            {
+                this.Log.LogError("stdio:{0}", proc.StandardOutput.ReadToEnd());
+                this.Log.LogError("stderr:{0}", proc.StandardError.ReadToEnd());
+            }
 
             return code == 0;
         }

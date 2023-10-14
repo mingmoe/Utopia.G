@@ -15,7 +15,7 @@
       <UseUtopiaBuild>false</UseUtopiaBuild>
       <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
   </PropertyGroup>
-    
+
     <!-- generate .dep.json -->
     <Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput" BeforeTargets="BuiltProjectOutputGroup" Condition=" '$(GenerateDependencyFile)' == 'true'">
         <ItemGroup>

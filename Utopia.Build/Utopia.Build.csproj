@@ -4,7 +4,6 @@
 	  <TargetFramework>netstandard2.0</TargetFramework>
 	  <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 	  <IsPackable>true</IsPackable>
-	  <Version>0.1.0</Version>
 	  <Authors>MingMoe</Authors>
 	  <Description>A package that add some useful MSBuild tasks.</Description>
 	  <Copyright>Copyright ©MingMoe 2023</Copyright>

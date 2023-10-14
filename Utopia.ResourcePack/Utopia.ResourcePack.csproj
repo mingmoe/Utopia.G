@@ -1,8 +1,5 @@
 <Project Sdk="Kawayi.Utopia.Sdk">
 
-  <UsingTask TaskName="Utopia.Build.RunUtopiaToolTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
-  <UsingTask TaskName="Utopia.Build.GeneratePluginSourceTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
-
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -10,14 +7,12 @@
 	<UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
   </PropertyGroup>
 
-    <!--
     <Target Name="GenerateSource" BeforeTargets="Build">
-        <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(ProjectDir)" Namespace="$(RootNamespace)" Generate="pluginInfo">
+        <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace)" Generate="pluginInfo">
           <Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
       </GeneratePluginSourceTask>
-      <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(ProjectDir)/../Utopia.Tools" />
+      <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
     </Target>
-    -->
     
     <ItemGroup>
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />

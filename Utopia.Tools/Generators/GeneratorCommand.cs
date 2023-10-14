@@ -1,8 +1,11 @@
 using McMaster.Extensions.CommandLineUtils;
+using NLog;
 
 namespace Utopia.Tools.Generators;
 public class GeneratorCommand
 {
+    private static Logger _logger = LogManager.GetCurrentClassLogger();
+
     public static void Command(CommandLineApplication application)
     {
         var version = application.Option("--version-file <FILE>", "the path of version file", CommandOptionType.SingleValue);
@@ -49,8 +52,9 @@ public class GeneratorCommand
             sub.OnExecute(() =>
             {
                 var generator = new PluginInformationGenerator();
-
                 var option = new GeneratorOption(@namespace.Value()!, createFileSystem(project.Value()!));
+
+                _logger.Info("Generate source for:\n{}",option);
 
                 generator.Execute(option);
             });
@@ -61,6 +65,8 @@ public class GeneratorCommand
             {
                 var generator = new PluginGenerator();
                 var option = new GeneratorOption(@namespace.Value()!,createFileSystem(project.Value()!));
+
+                _logger.Info("Generate source for:\n{}",option);
 
                 generator.Execute(option);
             });

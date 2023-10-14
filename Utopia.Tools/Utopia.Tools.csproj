@@ -18,15 +18,6 @@
       
   </PropertyGroup>
 
-    <!--Read version.txt file-->
-    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
-        <Version>$([System.IO.File]::ReadAllText("$(ProjectDir)./version.txt"))</Version>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
-        <Version>$([System.IO.File]::ReadAllText("./version.txt"))-$(VersionSuffix)</Version>
-    </PropertyGroup>
-
     <ItemGroup>
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="CommunityToolkit.Common" Version="8.2.1" />

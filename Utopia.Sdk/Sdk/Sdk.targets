@@ -1,5 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+    <!-- Add package -->
     <ItemGroup>
         <PackageReference Condition="'$(UseUtopiaBuild)' != 'false'" Include="Utopia.Build" Version="$(UtopiaSdkVersion)" />
         <PackageReference Condition="'$(UseUtopiaSdk)' != 'false'" Include="Kawayi.Utopia.Sdk" Version="$(UtopiaSdkVersion)" />
@@ -8,11 +9,11 @@
 
     <!-- About version -->
     <PropertyGroup Condition="'$(VersionSuffix)' == '' And '$(DisableAutoVersionFileRead)' != 'true'">
-        <Version>$([System.IO.File]::ReadAllText("$(UtopiaVersionFilePath)"))</Version>
+        <Version>$([System.IO.File]::ReadAllText("$(UtopiaVersionFilePath)").Trim())</Version>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(VersionSuffix)' != '' And '$(DisableAutoVersionFileRead)' != 'true'">
-        <Version>$([System.IO.File]::ReadAllText("$(UtopiaVersionFilePath)"))-$(VersionSuffix)</Version>
+        <Version>$([System.IO.File]::ReadAllText("$(UtopiaVersionFilePath)").Trim())-$(VersionSuffix)</Version>
     </PropertyGroup>
 
     <Target Name="GenerateAssemblyVersion" Condition="'$(DisableAutoVersionFileRead)' != 'true'">
@@ -22,6 +23,6 @@
 
 
     <!--Import .NET Sdk-->
-    <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets"/>
+    <Import  Condition="'$(UseNetSdk)' != 'false'" Sdk="Microsoft.NET.Sdk" Project="Sdk.targets"/>
 
 </Project>

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Kawayi.Utopia.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -14,6 +14,8 @@
       <PackAsTool>True</PackAsTool>
 
       <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+      <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
+      
   </PropertyGroup>
 
     <!--Read version.txt file-->

@@ -1,4 +1,4 @@
-<Project Sdk="Kawayi.Utopia.Sdk/0.1.4">
+<Project Sdk="Kawayi.Utopia.Sdk">
 
   <PropertyGroup>
 	  <TargetFramework>netstandard2.0</TargetFramework>

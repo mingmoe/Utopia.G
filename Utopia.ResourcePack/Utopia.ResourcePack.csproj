@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Kawayi.Utopia.Sdk">
 
   <UsingTask TaskName="Utopia.Build.RunUtopiaToolTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
   <UsingTask TaskName="Utopia.Build.GeneratePluginSourceTask" AssemblyFile="$(ProjectDir)\..\Utopia.Build\bin\Debug\netstandard2.0\Utopia.Build.dll" />
@@ -7,6 +7,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
   </PropertyGroup>
 
     <!--

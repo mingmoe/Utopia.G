@@ -1,8 +1,12 @@
 <Project Sdk="Godot.NET.Sdk/4.1.1">
+
+    <Sdk Name="Kawayi.Utopia.Sdk" />
+    
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Nullable>enable</Nullable>
+	  <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="src\**" />

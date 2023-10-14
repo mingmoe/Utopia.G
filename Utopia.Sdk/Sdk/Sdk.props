@@ -1,5 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-    <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+    <Import Condition="'$(UseNetSdk)' != 'false'" Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+
+    <PropertyGroup>
+        <UtopiaSdkVersion>$VERSION$</UtopiaSdkVersion>
+    </PropertyGroup>
 
 </Project>

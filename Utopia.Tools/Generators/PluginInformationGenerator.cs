@@ -28,14 +28,12 @@ public class PluginInformationGenerator : IGenerator
     public void Execute(GeneratorOption option)
     {
         // read toml
-        option.TargetProject.CreateNotExistsDirectory();
-
         var output = option.TargetProject.GetGeneratedCsFilePath(option.TargetProject.PluginInfoFile);
         var inputPlugin = option.TargetProject.PluginInfoFile;
         var inputVersion = option.TargetProject.VersionFile;
 
         var text = File.ReadAllText(inputPlugin, System.Text.Encoding.UTF8);
-        var version = File.ReadAllText(inputVersion, System.Text.Encoding.UTF8);
+        var version = File.ReadAllText(inputVersion, System.Text.Encoding.UTF8).Trim();
 
         var info = Toml.ToModel<PluginInfo>(text);
 
@@ -47,7 +45,7 @@ public class PluginInformationGenerator : IGenerator
         builder.Namespace = option.TargetNamespace;
 
         builder.AddClass("PluginInformation",isPublic: true,parentClass: "IPluginInformation",
-            from: $"this file was generated from {option.TargetProject.PluginInfoFile}");
+            from: $"this class was generated from {option.TargetProject.PluginInfoFile}");
         builder.AddField("public", "Guuid", "ID", $"Guuid.ParseString(\"{info.Id}\")", true, true);
         builder.AddField("public", "TranslatedString", "NAME", $"new(\"{info.Name}\")", true, true);
         builder.AddField("public", "TranslatedString", "DESC", $"new(\"{info.Description}\")", true, true);

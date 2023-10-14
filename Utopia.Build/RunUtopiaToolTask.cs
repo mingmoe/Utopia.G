@@ -2,6 +2,7 @@ using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 
 namespace Utopia.Build
@@ -28,34 +29,40 @@ namespace Utopia.Build
 
         public string DotnetPath { get; set; } = "dotnet";
 
+        public string PwshPath { get; set; } = "pwsh";
+
         [Required]
         public string[] Arguments { get; set; } = Array.Empty<string>();
+
+        private static string _EscapePwsh(string str)
+        {
+            var formatted = str.Replace("\"", "`\"");
+            formatted = formatted.Replace("'", "`\\'");
+            return formatted;
+        }
 
         public override bool Execute()
         {
             var sb = new StringBuilder();
-            var proc = new Process();
-            var info = proc.StartInfo;
-            info.RedirectStandardError = true;
-            info.RedirectStandardOutput = true;
-            info.UseShellExecute = false;
 
             // find tools
+            string tool;
+
             if (!string.IsNullOrEmpty(this.RunFromProject))
             {
-                info.FileName = this.DotnetPath;
-                sb.Append($" run  --configuration {this.ProjectCondifuration} --project {this.RunFromProject} -- ");
+                tool = _EscapePwsh(this.DotnetPath);
+                sb.Append($" run  --configuration \"{_EscapePwsh(this.ProjectCondifuration)}\" --project \"{_EscapePwsh(this.RunFromProject)}\" -- ");
             }
             else
             {
-                if (this.LocalTool)
+                if (!this.LocalTool)
                 {
-                    info.FileName = "Utopia.Tools";
+                    tool = _EscapePwsh("Utopia.Tools");
 
                 }
                 else
                 {
-                    info.FileName = this.DotnetPath;
+                    tool = _EscapePwsh(this.DotnetPath);
                     sb.Append(" tool run Utopia.Tools ");
                 }
             }
@@ -63,14 +70,37 @@ namespace Utopia.Build
             // build argument
             foreach(var argument in this.Arguments)
             {
-                var formatted = argument.Replace("\"","\\\"");
-                formatted = formatted.Replace("'", "\\'");
-                sb.Append($" \"{formatted}\" ");
+                sb.Append($" \"{_EscapePwsh(argument)}\" ");
             }
-            info.Arguments = sb.ToString();
+
+            // build script file
+            var scriptFile = Path.GetTempFileName() + ".ps1";
+
+            while(File.Exists(scriptFile))
+            {
+                scriptFile = Path.GetTempFileName() + ".ps1";
+            }
+            var script = $"\n&\"{tool}\" {sb}\n";
+
+            this.Log.LogMessage(MessageImportance.High,$"generate powershell script file({scriptFile}):{script}");
+
+            File.WriteAllText(scriptFile, script, Encoding.UTF8);
+
+            // build pwsh
+            var proc = new Process();
+            var info = new ProcessStartInfo(this.PwshPath, $" -f \"{scriptFile}\"")
+            {
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false
+            };
+            proc.StartInfo = info;
+
+            this.Log.LogCommandLine(MessageImportance.High,$"{info.FileName} {info.Arguments}");
 
             // run
             proc.Start();
+            this.BuildEngine9.Yield();
             proc.WaitForExit();
 
             var code = proc.ExitCode;
@@ -87,6 +117,8 @@ namespace Utopia.Build
                 this.Log.LogError("stdio:{0}", proc.StandardOutput.ReadToEnd());
                 this.Log.LogError("stderr:{0}", proc.StandardError.ReadToEnd());
             }
+
+            proc.Dispose();
 
             return code == 0;
         }

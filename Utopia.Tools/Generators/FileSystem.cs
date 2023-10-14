@@ -50,7 +50,7 @@ public interface IFileSystem
         Directory.CreateDirectory(this.GeneratedDir);
     }
 
-    string ToString()
+    string CreateString()
     {
         StringBuilder sb = new StringBuilder();
 
@@ -92,5 +92,10 @@ public class FileSystem : IFileSystem
     public string VersionFile { get; set; }
 
     public string GeneratedDir { get; set; }
+
+    public override string ToString()
+    {
+        return ((IFileSystem)this).CreateString();
+    }
 }
 

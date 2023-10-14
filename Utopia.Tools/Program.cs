@@ -15,6 +15,7 @@
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Build.Locator;
 using NLog;
+using System.Text;
 using Utopia.Tools.Generators;
 
 namespace Utopia.Tools;
@@ -33,7 +34,16 @@ public class Program
     {
         Core.Logging.LogManager.Init(true);
 
-        _Logger.Info("arguments: {args}", args);
+        var sb = new StringBuilder("[ \"Utopia.Tools");
+
+        foreach(var arg in args)
+        {
+            sb.Append("\",\"");
+            sb.Append(arg);
+        }
+        sb.Append("\" ]");
+
+        _Logger.Info("arguments: {args}", sb.ToString());
 
         var app = new CommandLineApplication
         {

@@ -5,6 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
+
+      <!--
+      <UseUtopiaBuild>false</UseUtopiaBuild>
+      <UseUtopiaSdk>false</UseUtopiaSdk>
+      -->
+
   </PropertyGroup>
 
     <Target Name="GenerateSource" BeforeTargets="Build">
@@ -20,10 +26,19 @@
     <PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />
     <PackageReference Include="System.CodeDom" Version="7.0.0" />
     <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
-  </ItemGroup>
+    <!--
+    <PackageReference Include="Utopia.Build" Version="0.1.11" />
+        <PackageReference Include="Kawayi.Utopia.Sdk" Version="0.1.11" />
+            -->
+
+    </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Generated\" />
   </ItemGroup>
 
 </Project>

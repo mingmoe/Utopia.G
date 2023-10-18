@@ -11,20 +11,23 @@ using Tomlyn.Model;
 
 namespace Utopia.Tools.Generators;
 
-public class EntityInfo
+/// <summary>
+/// The entity information of the generated.
+/// </summary>
+public class GeneratedEntityInfo
 {
     public bool Collidable { get; set; }
 
     public bool Accessible { get; set; }
 
-    public string Guuid { get; set; }
+    public string Guuid { get; set; } = null!;
 
     /// <summary>
     /// This hint use which entity generator.
     /// </summary>
-    public string Type { get; set; }
+    public string Type { get; set; } = null!;
 
-    public TomlTable Data { get; set; }
+    public TomlTable Data { get; set; } = null!;
 }
 
 /// <summary>
@@ -40,6 +43,8 @@ public class EntityGenerator : IGenerator
     public int ThreadCount { get; set; }
 
     public ConcurrentDictionary<string, IEntityGenerator> Generators { get; } = new();
+
+    public string SubcommandName => "entity";
 
     private static IEnumerable<string> _GetAllFile(string dir)
     {
@@ -75,7 +80,7 @@ public class EntityGenerator : IGenerator
         {
             try
             {
-                var info = Toml.ToModel<EntityInfo>(toml);
+                var info = Toml.ToModel<GeneratedEntityInfo>(toml);
 
                 // find type
                 var type = info.Type;

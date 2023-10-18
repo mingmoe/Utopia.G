@@ -50,7 +50,7 @@ public partial class Loading : Node2D
 
         this._next = ResourceLoader.Load<PackedScene>("res://Menu.tscn");
 
-        LogManager.Init(true);
+        LogManager.Init(LogManager.LogOption.CreateBatch());
     }
 
     public override void _Process(double delta)

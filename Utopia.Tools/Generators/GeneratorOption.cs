@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Utopia.Tools.Generators;
-public sealed class GeneratorOption
+public sealed class GeneratorOption : IDisposable
 {
     public string TargetNamespace { get; set; }
 
@@ -22,11 +23,17 @@ public sealed class GeneratorOption
 
     public override string ToString()
     {
-        StringBuilder builder = new StringBuilder();
+        var builder = new StringBuilder();
 
         builder.AppendLine(this.TargetProject.ToString());
         builder.AppendLine("Target Namespace:" + this.TargetNamespace);
         return builder.ToString();
+    }
+
+    public void Dispose()
+    {
+        this.TranslateManager.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
 

@@ -4,7 +4,6 @@ using NLog;
 namespace Utopia.Tools.Generators;
 public class GeneratorCommand
 {
-    private static Logger _logger = LogManager.GetCurrentClassLogger();
 
     public static void Command(CommandLineApplication application)
     {
@@ -47,29 +46,24 @@ public class GeneratorCommand
             return system;
         }
 
-        application.Command("pluginInfo", (sub) =>
+        GeneratorOption getOption()
         {
-            sub.OnExecute(() =>
-            {
-                var generator = new PluginInformationGenerator();
-                var option = new GeneratorOption(@namespace.Value()!, createFileSystem(project.Value()!));
+            return new GeneratorOption(@namespace.Value()!, createFileSystem(project.Value()!));
+        }
 
-                _logger.Info("Generate source for:\n{}",option);
+        var generators = new IGenerator[] {
+            new PluginInformationGenerator(),
+            new PluginGenerator(),
+            new TranslateKeyGenerator(),
+        };
 
-                generator.Execute(option);
-            });
-        });
-        application.Command("plugin", (sub) =>
+        foreach(var generator in generators)
         {
-            sub.OnExecute(() =>
+            application.Command(generator.SubcommandName, (config) =>
             {
-                var generator = new PluginGenerator();
-                var option = new GeneratorOption(@namespace.Value()!,createFileSystem(project.Value()!));
-
-                _logger.Info("Generate source for:\n{}",option);
-
-                generator.Execute(option);
+                generator.Command(config, getOption);
             });
-        });
+        }
+
     }
 }

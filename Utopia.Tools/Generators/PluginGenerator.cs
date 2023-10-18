@@ -11,6 +11,7 @@ namespace Utopia.Tools.Generators;
 /// </summary>
 public class PluginGenerator : IGenerator
 {
+    public string SubcommandName => "plugin";
 
     public void Execute(GeneratorOption option)
     {
@@ -22,8 +23,8 @@ public class PluginGenerator : IGenerator
         builder.Usings.Add("Utopia.Core");
         builder.Usings.Add("Autofac");
 
-        builder.AddClass(className: "Plugin", isPublic: true, isStatic: false, from: "needless any origin file",isPartial: true,
-            "IPlugin", "PluginInformation");
+        builder.AddClass("Plugin",
+             isPublic: true, isStatic: false, isPartial: true, "IPlugin", "PluginInformation");
 
         builder.AddField("private", "Core.IServiceProvider","_provider",isReadonly: true);
         builder.AddField("private", "ILifetimeScope", "_container", isReadonly: true);

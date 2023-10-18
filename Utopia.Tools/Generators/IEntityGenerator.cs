@@ -8,6 +8,5 @@ namespace Utopia.Tools.Generators;
 
 public interface IEntityGenerator
 {
-
-    void Generate(string path,EntityInfo info,GeneratorOption option);
+    void Generate(string tomlPath,GeneratedEntityInfo info,GeneratorOption option);
 }

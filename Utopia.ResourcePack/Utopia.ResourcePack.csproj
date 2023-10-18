@@ -7,17 +7,21 @@
 	<UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
 
       <!--
+         -->
       <UseUtopiaBuild>false</UseUtopiaBuild>
       <UseUtopiaSdk>false</UseUtopiaSdk>
-      -->
 
   </PropertyGroup>
 
     <Target Name="GenerateSource" BeforeTargets="Build">
-        <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace)" Generate="pluginInfo">
+      <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace)" Generate="plugin-info">
           <Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
       </GeneratePluginSourceTask>
       <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
+        <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace)" Generate="translate-key">
+            <Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
+        </GeneratePluginSourceTask>
+        <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
     </Target>
     
     <ItemGroup>
@@ -27,18 +31,15 @@
     <PackageReference Include="System.CodeDom" Version="7.0.0" />
     <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
     <!--
-    <PackageReference Include="Utopia.Build" Version="0.1.11" />
-        <PackageReference Include="Kawayi.Utopia.Sdk" Version="0.1.11" />
-            -->
+                -->
+        <PackageReference Include="Utopia.Build" Version="0.1.12" />
+        <PackageReference Include="Kawayi.Utopia.Sdk" Version="0.1.12" />
+
 
     </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Generated\" />
   </ItemGroup>
 
 </Project>

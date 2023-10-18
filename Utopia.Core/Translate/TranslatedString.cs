@@ -209,8 +209,8 @@ public class ICUTranslatedString : ITranslatedString
 
             if (!this._manager.TryGetTranslate(
                 this._identifence,
-                this.Key.TranslateProviderId == null ? null : Guuid.ParseString(this.Key.TranslateProviderId),
-                Guuid.ParseString(this.Key.TranslateItemId),
+                this.Key.TranslateProviderId == null ? null : Guuid.Parse(this.Key.TranslateProviderId),
+                Guuid.Parse(this.Key.TranslateItemId),
                 out string? got))
             {
                 got = this._key.TranslateItemId;

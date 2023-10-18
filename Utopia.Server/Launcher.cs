@@ -19,6 +19,7 @@ using System.Globalization;
 using Utopia.Core;
 using Utopia.Core.Collections;
 using Utopia.Core.Events;
+using Utopia.Core.Logging;
 using Utopia.Core.Translate;
 using Utopia.Core.Utilities;
 using Utopia.Core.Utilities.IO;
@@ -62,10 +63,7 @@ public static class Launcher
         /// </summary>
         public bool SkipInitLog { get; set; } = false;
 
-        /// <summary>
-        /// 是否关闭RegexLog
-        /// </summary>
-        public bool DisableRegexLog { get; set; } = false;
+        public LogManager.LogOption LogOption { get; set; } = LogManager.LogOption.CreateDefault();
 
         /// <summary>
         /// 文件系统
@@ -112,9 +110,9 @@ public static class Launcher
             {
                 option.SkipInitLog = true;
             }
-            else if (arg == "--disbale-regex-log")
+            else if (arg == "--batch")
             {
-                option.DisableRegexLog = true;
+                option.LogOption = LogManager.LogOption.CreateBatch();
             }
             else if (arg == "--postgreSql")
             {
@@ -208,7 +206,7 @@ public static class Launcher
         // 初始化日志系统
         if (!option.SkipInitLog)
         {
-            Core.Logging.LogManager.Init(!option.DisableRegexLog);
+            LogManager.Init(option.LogOption);
         }
 
         // 初始化依赖注入和服务提供者

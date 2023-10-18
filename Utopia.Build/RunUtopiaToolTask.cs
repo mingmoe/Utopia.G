@@ -86,7 +86,7 @@ namespace Utopia.Build
 
             File.WriteAllText(scriptFile, script, Encoding.UTF8);
 
-            // build pwsh
+            // build pwsh process
             var proc = new Process();
             var info = new ProcessStartInfo(this.PwshPath, $" -f \"{scriptFile}\"")
             {
@@ -100,7 +100,6 @@ namespace Utopia.Build
 
             // run
             proc.Start();
-            this.BuildEngine9.Yield();
             proc.WaitForExit();
 
             var code = proc.ExitCode;

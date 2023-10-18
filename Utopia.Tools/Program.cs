@@ -16,6 +16,7 @@ using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Build.Locator;
 using NLog;
 using System.Text;
+using Utopia.Core.Logging;
 using Utopia.Tools.Generators;
 
 namespace Utopia.Tools;
@@ -23,7 +24,64 @@ namespace Utopia.Tools;
 public class Program
 {
 
-    private static readonly Lazy<Logger> _loggerHandler = new(() => { return LogManager.GetLogger(typeof(Program).FullName); });
+    private static readonly Lazy<Logger> _loggerHandler = new(() => { return NLog.LogManager.GetLogger(typeof(Program).FullName); });
+
+    private const string _art =
+        """
+                                      .-'''-.                                          
+                             '   _    \                                        
+                           /   /` '.   \_________   _...._      .--.           
+                          .   |     \  '\        |.'      '-.   |__|           
+                       .| |   '      |  '\        .'```'.    '. .--.           
+                     .' |_\    \     / /  \      |       \     \|  |    __     
+           _    _  .'     |`.   ` ..' /    |     |        |    ||  | .:--.'.   
+          | '  / |'--.  .-'   '-...-'`     |      \      /    . |  |/ |   \ |  
+         .' | .' |   |  |                  |     |\`'-.-'   .'  |  |`" __ | |  
+         /  | /  |   |  |                  |     | '-....-'`    |__| .'.''| |  
+        |   `'.  |   |  '.'               .'     '.                 / /   | |_ 
+        '   .'|  '/  |   /              '-----------'               \ \._,\ '/ 
+         `-'  `--'   `'-'                                            `--'  `"  
+        """;
+
+    /// <summary>
+    /// Print logo. It will check the console weight to decide whether print it or no.
+    /// </summary>
+    public static void PrintArt()
+    {
+        try
+        {
+            var lines = _art.Split(new string[] { "\n","\r","\r\n" }, StringSplitOptions.None);
+
+            var maxWeidth = lines.MaxBy((s) => s.Length)?.Length ?? int.MaxValue;
+
+            if(Console.BufferWidth >= maxWeidth)
+            {
+                Console.WriteLine(_art);
+            }
+        }
+        catch(NotImplementedException)
+        {
+            // avoid that Console.BufferWidth throw this
+            return;
+        }
+    }
+
+    public static bool DetectBatch()
+    {
+        // obviously,we're under CI environment
+        if (Environment.GetEnvironmentVariable("CI") != null)
+        {
+            return true;
+        }
+
+        // may be a good way
+        if (Console.IsErrorRedirected || Console.IsOutputRedirected || Console.IsInputRedirected)
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     private static Logger _Logger
     {
@@ -32,7 +90,14 @@ public class Program
 
     static int Main(string[] args)
     {
-        Core.Logging.LogManager.Init(true);
+        if(DetectBatch())
+        {
+            Core.Logging.LogManager.Init(Core.Logging.LogManager.LogOption.CreateBatch());
+        }
+        else
+        {
+            Core.Logging.LogManager.Init(Core.Logging.LogManager.LogOption.CreateDefault());
+        }
 
         var sb = new StringBuilder("[ \"Utopia.Tools");
 
@@ -43,7 +108,7 @@ public class Program
         }
         sb.Append("\" ]");
 
-        _Logger.Info("arguments: {args}", sb.ToString());
+        _Logger.Debug("arguments: {args}", sb.ToString());
 
         var app = new CommandLineApplication
         {
@@ -51,17 +116,51 @@ public class Program
             Description = "A C# tool which is used for utopia(and its plugin) development",
         };
 
-        MSBuildLocator.RegisterDefaults();
-
-        //-------------
-        // 获取翻译条目
-        //-------------
+        // build command
         app.Command("extractTranslate", TranslateFinder.Command);
         app.Command("docs", GenerateDocs.Command);
         app.Command("generate", GeneratorCommand.Command);
 
+        // build option
         app.HelpOption(inherited: true);
+
+        var version = app.Option("-v|--version", "show version", CommandOptionType.NoValue);
+        var batch = app.Option<bool>(
+            "--batch-mode",
+            "enable/or disable batch mode. The default value was detected automatically.(e.g. false in CI, true in terminals)",
+            CommandOptionType.SingleValue);
+        batch.DefaultValue = DetectBatch();
+
+        app.OnExecute(() =>
+        {
+            // detect batch
+            if (batch.ParsedValue)
+            {
+                Core.Logging.LogManager.Init(Core.Logging.LogManager.LogOption.CreateBatch());
+            }
+            else
+            {
+                Core.Logging.LogManager.Init(Core.Logging.LogManager.LogOption.CreateDefault());
+            }
+
+            // detect version
+            if (!version.HasValue())
+            {
+                return;
+            }
+            var v = typeof(Program).Assembly.GetName().Version?.ToString();
+            Console.WriteLine(v ?? "0.0.0-FAIL-TO-GET");
+            if (v == null)
+            {
+                Console.WriteLine("Failed to get the Assembly verion(null). return Default Value.");
+            }
+            Console.WriteLine("Licensed by AGPL 3.0-or-later");
+            Console.WriteLine("Copyright 2020-2023 mingmoe(http://kawayi.moe)");
+            PrintArt();
+            return;
+        });
 
         return app.Execute(args);
     }
 }
+

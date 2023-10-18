@@ -87,7 +87,7 @@ public class ConnectHandler : IConnectHandler
 
             reader.AdvanceTo(got.Buffer.GetPosition(strLength));
 
-            var id = Guuid.ParseString(Encoding.UTF8.GetString(data));
+            var id = Guuid.Parse(Encoding.UTF8.GetString(data));
 
             // read packet
             got = await reader.ReadAtLeastAsync(length);

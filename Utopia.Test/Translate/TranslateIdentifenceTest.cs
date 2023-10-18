@@ -30,10 +30,10 @@ public class TranslateIdentifenceTest
     [Fact]
     public void CheckTranslateIdToString()
     {
-        var id = new Core.Translate.TranslateIdentifence("zho", "chn");
+        var id = new Core.Translate.TranslateIdentifence("zh", "cn");
 
         var str = id.ToString();
 
-        Assert.Equal("zho_chn", str);
+        Assert.Equal("zh_cn", str);
     }
 }

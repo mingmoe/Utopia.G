@@ -15,11 +15,13 @@
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
+using System.CodeDom;
 using System.Collections;
 using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using Tomlyn;
 
 namespace Utopia.Core.Utilities;
 
@@ -45,6 +47,8 @@ public sealed class Guuid : IEnumerable<string>
     /// Will use this to separate root and each namespaces when use the string of Guuid.
     /// </summary>
     public const string SEPARATOR = ".";
+
+    public static readonly Guuid Empty = new("empty","empty");
 
     /// <summary>
     /// 检查name是否符合要求
@@ -146,7 +150,7 @@ public sealed class Guuid : IEnumerable<string>
 
     public static bool operator !=(Guuid c1, Guuid c2)
     {
-        return c1.Root != c2.Root || !c1.Nodes.SequenceEqual(c2.Nodes);
+        return (c1.Root != c2.Root) || (!c1.Nodes.SequenceEqual(c2.Nodes));
     }
 
     /// <summary>
@@ -174,23 +178,52 @@ public sealed class Guuid : IEnumerable<string>
     /// </summary>
     /// <param name="s">字符串应该是来自Guuid的ToString()的结果。</param>
     /// <exception cref="ArgumentException">输入的字符串有误</exception>
-    public static Guuid ParseString(string s)
+    public static Guuid Parse(string s)
+    {
+        if (!TryParse(s,out var result,out var msg))
+        {
+            throw new ArgumentException(msg);
+        }
+        return result!;
+    }
+
+    /// <summary>
+    /// See <see cref="Parse(string)"/>
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="result"></param>
+    /// <param name="errorMessage"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static bool TryParse(string s, out Guuid? result,out string? errorMessage)
     {
         if (string.IsNullOrEmpty(s))
         {
             throw new ArgumentException("param is empty or null");
         }
+        result = null;
+        errorMessage = null;
 
         var strs = s.Split(SEPARATOR);
 
         if (strs.Length < 2)
         {
-            throw new ArgumentException("the guuid format is illegal");
+            errorMessage = "the guuid format is illegal.(get too less substring from Split(),check the separator is right)";
+            return false;
         }
 
-        return new Guuid(strs.First(), strs[1..]);
-    }
+        foreach(var item in strs)
+        {
+            if(!CheckName(item))
+            {
+                errorMessage = $"the name of guuid '{item}' is invalid.";
+                return false;
+            }
+        }
 
+        result = new Guuid(strs.First(), strs[1..]);
+        return true;
+    }
     /// <summary>
     /// 获取一个新的随机的标识符。
     /// </summary>
@@ -218,13 +251,16 @@ public sealed class Guuid : IEnumerable<string>
 
     public override int GetHashCode()
     {
-        int hash = this.Root.GetHashCode();
+        var hasher = new XxHash32(0);
+        hasher.Append(Encoding.UTF8.GetBytes(this.Root));
 
         foreach (var node in this.Nodes)
         {
-            hash = HashCode.Combine(hash, XxHash64.Hash(Encoding.UTF8.GetBytes(node)));
+            hasher.Append(Encoding.UTF8.GetBytes(node));
         }
-        return hash;
+
+        var bytes = hasher.GetHashAndReset();
+        return BitConverter.ToInt32(bytes);
     }
 
     public Guuid Append(Guuid guuid)
@@ -233,6 +269,14 @@ public sealed class Guuid : IEnumerable<string>
         var nodes = this.Nodes.ToList();
         nodes.Add(guuid.Root);
         nodes.AddRange(guuid.Nodes);
+        return new Guuid(root, nodes.ToArray());
+    }
+
+    public Guuid Append(params string[] otherNodes)
+    {
+        string root = this.Root;
+        var nodes = this.Nodes.ToList();
+        nodes.AddRange(otherNodes);
         return new Guuid(root, nodes.ToArray());
     }
 
@@ -266,6 +310,42 @@ public sealed class Guuid : IEnumerable<string>
     {
         yield return (IEnumerable)this.GetEnumerator();
     }
+
+    public static TomlModelOptions AddTomlOption(TomlModelOptions? options = null)
+    {
+        options ??= new TomlModelOptions();
+
+        var defaultToToml = options.ConvertToToml;
+        var defaultToModel = options.ConvertToModel;
+
+        options.ConvertToToml = (obj) =>
+        {
+            if (obj is Guuid id)
+            {
+                return id.ToString();
+            }
+            else
+            {
+                return defaultToToml?.Invoke(obj);
+            }
+        };
+        options.ConvertToModel = (obj, type) =>
+        {
+            if(type.IsAssignableTo(typeof(Guuid)))
+            {
+                return Parse((string)obj);
+            }
+            if(obj is Guuid id && type.IsAssignableTo(typeof(string)))
+            {
+                return id.ToString();
+            }
+            else
+            {
+                return defaultToModel?.Invoke(obj,type);
+            }
+        };
+        return options;
+    }
 }
 
 public class GuuidMsgPackFormatter : IMessagePackFormatter<Guuid>
@@ -285,7 +365,7 @@ public class GuuidMsgPackFormatter : IMessagePackFormatter<Guuid>
 
         reader.Depth--;
 
-        return Guuid.ParseString(id!);
+        return Guuid.Parse(id!);
     }
 
     public void Serialize(ref MessagePackWriter writer, Guuid value, MessagePackSerializerOptions options)

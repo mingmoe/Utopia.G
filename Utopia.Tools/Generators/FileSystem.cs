@@ -1,4 +1,6 @@
 using System.Text;
+using Tomlyn;
+using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators;
 
@@ -35,11 +37,16 @@ public interface IFileSystem
     string GetTranslatedTomlFilePath(string origin)
     {
         origin = Path.GetFileName(origin);
-        return Path.Join(this.TranslateDir, $"{origin}.translated.toml");
+        return Path.Join(this.TranslateDir, $"{origin}.translation.toml");
     }
     string GetTranslatedTomlFilePath(string origin, string path, string classify = "")
     {
         return Path.Join(this.TranslateDir, Path.GetRelativePath(origin, path) + $".{classify}.translated.toml");
+    }
+
+    string GetTranslatedTomlFilePath(TranslateItemType type)
+    {
+        return this.GetTranslatedTomlFilePath(type.ToString());
     }
 
     void CreateNotExistsDirectory()
@@ -52,7 +59,7 @@ public interface IFileSystem
 
     string CreateString()
     {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
 
         sb.AppendLine("Target Project Root:" + this.ProjectRootDir);
         sb.AppendLine("Target Entities:" + this.EntitiesDir);
@@ -64,11 +71,29 @@ public interface IFileSystem
 
         return sb.ToString();
     }
+
+    PluginInfo ReadPluginInfo(bool forceReread = false);
 }
 
 public class FileSystem : IFileSystem
 {
     public string ProjectRootDir { get; set; }
+
+    private PluginInfo? _info = null;
+
+    public PluginInfo ReadPluginInfo(bool forceReread = false)
+    {
+        if (forceReread || this._info == null)
+        {
+            var text = File.ReadAllText(this.PluginInfoFile, Encoding.UTF8);
+
+            var option = Guuid.AddTomlOption();
+
+            this._info = Toml.ToModel<PluginInfo>(text, options: option);
+        }
+
+        return this._info;
+    }
 
     public FileSystem(string rootDir = ".")
     {

@@ -22,35 +22,68 @@ namespace Utopia.Core.Translate;
 public class TranslateIdentifence
 {
     /// <summary>
-    /// ISO 639-3所指定的三位字母语言编码。
+    /// ISO 639-1所指定的两位字母语言编码。
     /// </summary>
     public readonly string Language;
 
     /// <summary>
-    /// ISO 3166-1所指定的三位字母地区编码。
+    /// ISO 3166-1所指定的两位字母地区编码。
     /// </summary>
     public readonly string Location;
 
     public TranslateIdentifence()
     {
-        this.Language = CultureInfo.CurrentCulture.ThreeLetterISOLanguageName.ToLower();
-        this.Location = RegionInfo.CurrentRegion.ThreeLetterISORegionName.ToLower();
+        this.Language = CultureInfo.CurrentCulture.TwoLetterISOLanguageName.ToLower();
+        this.Location = RegionInfo.CurrentRegion.TwoLetterISORegionName.ToLower();
+    }
+
+    /// <summary>
+    /// Can parse [LANGUAGE][separator][LOCATION].
+    /// [separator] can be '-' or '_' or ' '(SPACE).
+    /// [LANGUAGE] and [LOCATION] obey the ISO 639-1 and ISO 3166-1 standard(Two letter version).
+    /// </summary>
+    public static TranslateIdentifence Parse(string id)
+    {
+        if(!TryParse(id, out TranslateIdentifence? identifence))
+        {
+            throw new ArgumentException("the format of TranslateIdentifence is invalid");
+        }
+        return identifence!;
+    }
+
+    /// <summary>
+    /// see <see cref="Parse(string)"/>
+    /// </summary>
+    public static bool TryParse(string id, out TranslateIdentifence? result)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+
+        var parts = id.Split('_', '-', ' ');
+
+        if (parts.Length != 2)
+        {
+            result = null;
+            return false;
+        }
+
+        result = new TranslateIdentifence(parts[0], parts[1]);
+        return true;
     }
 
     /// <summary>
     /// 构造一个翻译条目
     /// </summary>
-    /// <param name="language">ISO 639-3标准语言代码</param>
-    /// <param name="location">ISO 3166-1标准地区代码</param>
+    /// <param name="language">ISO 639-1标准语言代码(Two letter)</param>
+    /// <param name="location">ISO 3166-1标准地区代码(Two letter)</param>
     /// <exception cref="ArgumentException">如果参数不符合标准。</exception>
     public TranslateIdentifence(string language, string location)
     {
         ArgumentNullException.ThrowIfNull(language);
         ArgumentNullException.ThrowIfNull(location);
 
-        if (language.Length != 3 || location.Length != 3)
+        if (language.Length != 2 || location.Length != 2)
         {
-            throw new ArgumentException("the length of language or location is not 3");
+            throw new ArgumentException("the length of language or location is not 2");
         }
         if (!(language.All(char.IsLetter) && location.All(char.IsLetter)))
         {

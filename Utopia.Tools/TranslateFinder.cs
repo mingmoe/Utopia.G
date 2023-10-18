@@ -13,6 +13,7 @@
 #endregion
 
 using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -163,6 +164,9 @@ public class TranslateFinder
 
         configCmd.OnExecute(async () =>
         {
+            // Find MSBuild
+            MSBuildLocator.RegisterDefaults();
+
             var sln = slnOpt.Value();
             var proj = projOpt.Value();
             var opt = optOpt.Value();

@@ -43,7 +43,7 @@ public class GuuidBenchmark
     [Benchmark]
     public Guuid PauseGuuid()
     {
-        return Guuid.ParseString(this._converted);
+        return Guuid.Parse(this._converted);
     }
 
     [Benchmark]

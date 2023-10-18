@@ -11,3 +11,10 @@ Set `UseUtopiaSdk` to `false` to remove the `<PackageReference Include="Kawayi.U
 
 set `UseNetSdk` to `false` to remove the `<Sdk Name="Microsoft.NET.Sdk" />`(If you want to set this option,you need use `<Import>` instead of `<Sdk>`,see https://learn.microsoft.com/en-us/visualstudio/msbuild/how-to-use-project-sdk?view=vs-2022#use-the-import-element-anywhere-in-your-project)
 
+
+TODO:
+
+If you want to enable code generator support,use below options:
+ - set `EnableUtopiaCodeGenerator` property to `true`
+ - 
+

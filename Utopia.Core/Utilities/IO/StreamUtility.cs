@@ -88,7 +88,7 @@ public static class StreamUtility
     /// </summary>
     public static async Task<Guuid> ReadGuuid(Stream stream)
     {
-        return Guuid.ParseString(await ReadString(stream));
+        return Guuid.Parse(await ReadString(stream));
     }
 
     /// <summary>

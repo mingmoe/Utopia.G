@@ -27,10 +27,55 @@ public static class LogManager
 {
 
     /// <summary>
+    /// log option
+    /// </summary>
+    public class LogOption
+    {
+        public bool ColorfulOutput { get; set; }
+
+        /// <summary>
+        /// <see cref="ColorfulOutput"/> must be ture to enable this.
+        /// </summary>
+        public bool EnableDateRegexColor { get; set; }
+
+        public bool DetailCmdOutput { get; set; }
+
+        private LogOption() { }
+
+        /// <summary>
+        /// Create a new default log option. e.g. use colorful output.
+        /// </summary>
+        /// <returns></returns>
+        public static LogOption CreateDefault()
+        {
+            return new LogOption()
+            {
+                ColorfulOutput = true,
+                EnableDateRegexColor = true,
+                DetailCmdOutput = false,
+            };
+        }
+
+        /// <summary>
+        /// Create a new log option for batch. e.g. disable colorful output.
+        /// </summary>
+        /// <returns></returns>
+        public static LogOption CreateBatch()
+        {
+            return new LogOption()
+            {
+                ColorfulOutput = false,
+                EnableDateRegexColor = false,
+                DetailCmdOutput = true,
+            };
+        }
+    }
+
+    /// <summary>
     /// 初始化日志
     /// </summary>
     /// <param name="enableRegexColored">是否启用正则表达式进行着色，这会导致性能降低，但是输出将会变得beautiful</param>
-    public static void Init(bool enableRegexColored)
+    public static void Init(LogOption option)
     {
         var config = new NLog.Config.LoggingConfiguration();
 
@@ -50,46 +95,62 @@ public static class LogManager
         };
 
         // config console
-        var logconsole = new ColoredConsoleTarget("logconsole")
+        TargetWithLayoutHeaderAndFooter logconsole = null!;
+
+        // detect color option
+        if (option.ColorfulOutput)
         {
-            UseDefaultRowHighlightingRules = false,
-            Encoding = Encoding.UTF8,
-            EnableAnsiOutput = true
-        };
-        logconsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
+            var colorConsole = new ColoredConsoleTarget("logconsole")
+            {
+                UseDefaultRowHighlightingRules = false,
+                Encoding = Encoding.UTF8,
+                EnableAnsiOutput = true
+            };
+            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
+            {
+                Condition = "level == LogLevel.Debug",
+                ForegroundColor = ConsoleOutputColor.Blue,
+            });
+            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
+            {
+                Condition = "level == LogLevel.Trace",
+                ForegroundColor = ConsoleOutputColor.Cyan,
+            });
+            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
+            {
+                Condition = "level == LogLevel.Info",
+                ForegroundColor = ConsoleOutputColor.White,
+            });
+            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
+            {
+                Condition = "level == LogLevel.Warn",
+                ForegroundColor = ConsoleOutputColor.Yellow,
+            });
+            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
+            {
+                Condition = "level == LogLevel.Error",
+                ForegroundColor = ConsoleOutputColor.Red,
+            });
+            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
+            {
+                Condition = "level == LogLevel.Fatal",
+                ForegroundColor = ConsoleOutputColor.DarkRed,
+            });
+            logconsole = colorConsole;
+        }
+        else
         {
-            Condition = "level == LogLevel.Debug",
-            ForegroundColor = ConsoleOutputColor.Blue,
-        });
-        logconsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-        {
-            Condition = "level == LogLevel.Trace",
-            ForegroundColor = ConsoleOutputColor.Cyan,
-        });
-        logconsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-        {
-            Condition = "level == LogLevel.Info",
-            ForegroundColor = ConsoleOutputColor.White,
-        });
-        logconsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-        {
-            Condition = "level == LogLevel.Warn",
-            ForegroundColor = ConsoleOutputColor.Yellow,
-        });
-        logconsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-        {
-            Condition = "level == LogLevel.Error",
-            ForegroundColor = ConsoleOutputColor.Red,
-        });
-        logconsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-        {
-            Condition = "level == LogLevel.Fatal",
-            ForegroundColor = ConsoleOutputColor.DarkRed,
-        });
-        if (enableRegexColored)
+            var console = new ConsoleTarget("logconsole")
+            {
+                Encoding = Encoding.UTF8,
+            };
+            logconsole = console;
+        }
+
+        if (logconsole is ColoredConsoleTarget colored && option.EnableDateRegexColor)
         {
             // colored datetime
-            logconsole.WordHighlightingRules.Add(new ConsoleWordHighlightingRule()
+            colored.WordHighlightingRules.Add(new ConsoleWordHighlightingRule()
             {
                 BackgroundColor = ConsoleOutputColor.Blue,
                 ForegroundColor = ConsoleOutputColor.White,
@@ -98,7 +159,7 @@ public static class LogManager
             });
         }
 
-        // setup
+        // setup output file format
         logfile.Layout = new JsonLayout()
         {
             Attributes =
@@ -124,6 +185,7 @@ public static class LogManager
             },
             IndentJson = true,
         };
+
         // 设置更好的异常格式
         NLog.LogManager.Setup().SetupExtensions((e) =>
         {
@@ -139,10 +201,19 @@ public static class LogManager
         });
         logconsole.Layout = @"[${longdate}][${level}][${threadname}::${logger}]:${message}${onexception:inner=${newline}${demystifiedException}}";
 
-        config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
+        // set up
+        if (option.DetailCmdOutput)
+        {
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+        }
+        else
+        {
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
+        }
         config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
 
         NLog.LogManager.Configuration = config;
+        NLog.LogManager.ReconfigExistingLoggers();
         NLog.LogManager.Flush();
     }
 

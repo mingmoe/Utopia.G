@@ -2,7 +2,7 @@
   "profiles": {
     "Utopia.Analyzer": {
       "commandName": "Project",
-      "commandLineArgs": "generateDocuments",
+      "commandLineArgs": "generate\r\n--version-file\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.ResourcePack\\../version.txt\r\n--plugin-info-file\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.ResourcePack\\../utopia.toml\r\n--project\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.ResourcePack\\\r\n--namespace\r\nUtopia.ResourcePack\r\nplugin-info",
       "workingDirectory": "C:\\Users\\mingm\\Projects\\utopia-godot"
     }
   }

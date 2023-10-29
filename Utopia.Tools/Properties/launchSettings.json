@@ -1,9 +1,10 @@
 {
   "profiles": {
-    "Utopia.Analyzer": {
+    "Utopia.Tools": {
       "commandName": "Project",
-      "commandLineArgs": "generate\r\n--version-file\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.ResourcePack\\../version.txt\r\n--plugin-info-file\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.ResourcePack\\../utopia.toml\r\n--project\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.ResourcePack\\\r\n--namespace\r\nUtopia.ResourcePack\r\nplugin-info",
-      "workingDirectory": "C:\\Users\\mingm\\Projects\\utopia-godot"
+      "commandLineArgs": "generate\r\n--version-file\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.Server.Plugin\\../version.txt\r\n--plugin-info-file\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.Server.Plugin\\../utopia.toml\r\n--project\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.Server.Plugin\\\r\n--namespace\r\nUtopia.Server.Plugin\r\nserver-plugin",
+      "workingDirectory": "C:\\Users\\mingm\\Projects\\utopia-godot",
+      "hotReloadEnabled": false
     }
   }
 }

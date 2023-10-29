@@ -1,5 +1,7 @@
-using NLog;
-using Tomlyn;
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators;
@@ -28,34 +30,34 @@ public class PluginInformationGenerator : IGenerator
     public void Execute(GeneratorOption option)
     {
         // read toml
-        var output = option.TargetProject.GetGeneratedCsFilePath(option.TargetProject.PluginInfoFile);
-        var inputPlugin = option.TargetProject.PluginInfoFile;
-        var inputVersion = option.TargetProject.VersionFile;
+        string output = option.TargetProject.GetGeneratedCsFilePath(option.TargetProject.PluginInfoFile);
+        string inputPlugin = option.TargetProject.PluginInfoFile;
+        string inputVersion = option.TargetProject.VersionFile;
 
-        var version = File.ReadAllText(inputVersion, System.Text.Encoding.UTF8).Trim();
+        string version = File.ReadAllText(inputVersion, System.Text.Encoding.UTF8).Trim();
 
-        var info = option.TargetProject.ReadPluginInfo();
+        PluginInfo info = option.TargetProject.ReadPluginInfo();
 
-        var builder = new CsBuilder(inputPlugin,inputVersion);
+        var builder = new CsBuilder(inputPlugin, inputVersion);
 
-        builder.Usings.Add("Utopia.Core");
-        builder.Usings.Add("Utopia.Core.Translate");
+        builder.Usings.Add("Utopia.Core.Plugin");
+        builder.Usings.Add("Utopia.Core.Transition");
         builder.Usings.Add("Utopia.Core.Utilities");
         builder.Namespace = option.TargetNamespace;
 
-        builder.AddClass("PluginInformation",isPublic: true,parentClass: "IPluginInformation");
-        builder.AddField("public", "Guuid", "ID", $"Guuid.Parse(\"{info.Id}\")", true, true);
-        builder.AddField("public", "TranslatedString", "NAME", $"new(\"{info.Name}\")", true, true);
-        builder.AddField("public", "TranslatedString", "DESC", $"new(\"{info.Description}\")", true, true);
-        builder.AddField("public", "System.Version", "VER", $"Version.Parse(\"{version}\")", true, true);
-        builder.AddField("public", "string", "HOMEPAGE", $"\"{info.Homepage}\"", true, true);
-        builder.AddField("public", "string", "LICENSE", $"\"{info.License}\"", true, true);
-        builder.AddLine($"ITranslatedString IPluginInformation.Name => NAME;");
-        builder.AddLine($"ITranslatedString IPluginInformation.Description => DESC;");
-        builder.AddLine($"Guuid IPluginInformation.Id => ID;");
-        builder.AddLine($"Version IPluginInformation.Version => VER;");
-        builder.AddLine($"string IPluginInformation.License => LICENSE;");
-        builder.AddLine($"string IPluginInformation.Homepage => HOMEPAGE;");
+        builder.EmitClass("PluginInformation", isPublic: true, parentClass: "IPluginInformation");
+        builder.EmitField("public", "Guuid", "ID", $"Guuid.Parse(\"{info.Id}\")", true, true);
+        builder.EmitField("public", "TranslatedString", "NAME", $"new(\"{info.Name}\")", true, true);
+        builder.EmitField("public", "TranslatedString", "DESC", $"new(\"{info.Description}\")", true, true);
+        builder.EmitField("public", "System.Version", "VER", $"Version.Parse(\"{version}\")", true, true);
+        builder.EmitField("public", "string", "HOMEPAGE", $"\"{info.Homepage}\"", true, true);
+        builder.EmitField("public", "string", "LICENSE", $"\"{info.License}\"", true, true);
+        builder.EmitLine($"ITranslatedString IPluginInformation.Name => NAME;");
+        builder.EmitLine($"ITranslatedString IPluginInformation.Description => DESC;");
+        builder.EmitLine($"Guuid IPluginInformation.Id => ID;");
+        builder.EmitLine($"Version IPluginInformation.Version => VER;");
+        builder.EmitLine($"string IPluginInformation.License => LICENSE;");
+        builder.EmitLine($"string IPluginInformation.Homepage => HOMEPAGE;");
         builder.CloseCodeBlock();
 
         File.WriteAllText(output, builder.Generate(),

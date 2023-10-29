@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named World.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using CommunityToolkit.Diagnostics;
 using Utopia.Core.Map;
@@ -23,26 +13,26 @@ namespace Utopia.Server.Plugin.Map;
 
 public class World : IWorld
 {
-    readonly Area[][] _areas;
+    private readonly Area[][] _areas;
 
     public World(long id, int xSize, int ySize, IWorldGenerator generator)
     {
         ArgumentNullException.ThrowIfNull(generator);
-        this.Id = id;
-        this.XAreaCount = xSize;
-        this.XAreaNegativeCount = xSize;
-        this.YAreaCount = ySize;
-        this.YAreaNegativeCount = ySize;
+        Id = id;
+        XAreaCount = xSize;
+        XAreaNegativeCount = xSize;
+        YAreaCount = ySize;
+        YAreaNegativeCount = ySize;
 
-        this._areas = new Area[xSize * 2][];
+        _areas = new Area[xSize * 2][];
 
         for (int xIndex = -xSize, xAbs = 0; xIndex != xSize; xIndex++, xAbs++)
         {
-            this._areas[xAbs] = new Area[ySize * 2];
+            _areas[xAbs] = new Area[ySize * 2];
 
             for (int yIndex = -ySize, yAbs = 0; yIndex != ySize; yIndex++, yAbs++)
             {
-                this._areas[xAbs][yAbs] = new Area(new FlatPositionWithId(
+                _areas[xAbs][yAbs] = new Area(new FlatPositionWithId(
                     xIndex * IArea.YSize,
                     yIndex * IArea.XSize,
                     id
@@ -50,7 +40,7 @@ public class World : IWorld
             }
         }
 
-        this.Generator = generator;
+        Generator = generator;
     }
 
     public IWorldGenerator Generator { get; init; }
@@ -67,15 +57,8 @@ public class World : IWorld
 
     public Guuid WorldType => IDs.WorldType;
 
-    private bool _InRange(FlatPosition position)
-    {
-        if (position.X >= this.XAreaCount * IArea.XSize || position.X < -this.XAreaNegativeCount * IArea.XSize
-           || position.Y >= this.YAreaCount * IArea.YSize || position.Y < -this.YAreaNegativeCount * IArea.YSize)
-        {
-            return false;
-        }
-        return true;
-    }
+    private bool _InRange(FlatPosition position) => position.X < XAreaCount * IArea.XSize && position.X >= -XAreaNegativeCount * IArea.XSize
+           && position.Y < YAreaCount * IArea.YSize && position.Y >= -YAreaNegativeCount * IArea.YSize;
 
     private static (int areaIndex, int posInArea) _GetPosInArea(int originIndex, int split)
     {
@@ -97,35 +80,35 @@ public class World : IWorld
 
     public bool TryGetArea(FlatPosition position, out IArea? area)
     {
-        if (!this._InRange(position))
+        if (!_InRange(position))
         {
             area = null;
             return false;
         }
 
-        var xa = _GetPosInArea(position.X, IArea.XSize).areaIndex;
-        var ya = _GetPosInArea(position.Y, IArea.YSize).areaIndex;
+        int xa = _GetPosInArea(position.X, IArea.XSize).areaIndex;
+        int ya = _GetPosInArea(position.Y, IArea.YSize).areaIndex;
 
-        area = this._areas[xa + this.XAreaCount][ya + this.YAreaCount];
+        area = _areas[xa + XAreaCount][ya + YAreaCount];
         return true;
     }
 
     public bool TryGetBlock(Position position, out IBlock? block)
     {
-        this._InRange(position.ToFlat());
+        _ = _InRange(position.ToFlat());
 
-        var (xArea, xIndex) = _GetPosInArea(position.X, IArea.XSize);
-        var (yArea, yIndex) = _GetPosInArea(position.Y, IArea.YSize);
+        (int xArea, int xIndex) = _GetPosInArea(position.X, IArea.XSize);
+        (int yArea, int yIndex) = _GetPosInArea(position.Y, IArea.YSize);
 
-        var area = this._areas[xArea + this.XAreaCount][yArea + this.YAreaCount];
-        area!.TryGetBlock(new Position(xIndex, yIndex, position.Z), out block);
+        Area area = _areas[xArea + XAreaCount][yArea + YAreaCount];
+        _ = area!.TryGetBlock(new Position(xIndex, yIndex, position.Z), out block);
 
         // 生成世界
-        var layer = area.GetLayer(position.Z);
+        IAreaLayer layer = area.GetLayer(position.Z);
 
         if (layer.Stage != GenerationStage.Finish)
         {
-            this.Generator.Generate(layer);
+            Generator.Generate(layer);
         }
 
         return true;
@@ -135,9 +118,9 @@ public class World : IWorld
     {
         Guard.IsNotNull(updater);
 
-        foreach (var x in this._areas)
+        foreach (Area[] x in _areas)
         {
-            foreach (var y in x)
+            foreach (Area y in x)
             {
                 y.Update(updater);
             }
@@ -147,9 +130,9 @@ public class World : IWorld
     public void SaveTo(DirectoryInfo path)
     {
         MemoryStream stream = new();
-        foreach (var x in this._areas)
+        foreach (Area[] x in _areas)
         {
-            foreach (var y in x)
+            foreach (Area y in x)
             {
                 StreamUtility.WriteInt(stream, y.Position.X).Wait();
                 StreamUtility.WriteInt(stream, y.Position.Y).Wait();

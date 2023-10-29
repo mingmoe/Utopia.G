@@ -1,12 +1,15 @@
-using CommunityToolkit.Diagnostics;
-using CommunityToolkit.HighPerformance;
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using CommunityToolkit.Diagnostics;
+using CommunityToolkit.HighPerformance;
 using Utopia.Core.Utilities;
-using Utopia.G.Net;
 
 namespace Utopia.Core.Net;
 
@@ -23,9 +26,9 @@ public class ConnectHandler : IConnectHandler
     public ConnectHandler(Socket socket)
     {
         Guard.IsNotNull(socket);
-        this._socket = socket;
+        _socket = socket;
 
-        if (!this._socket.Connected)
+        if (!_socket.Connected)
         {
             throw new ArgumentException("the socket haven't connect yet");
         }
@@ -37,12 +40,12 @@ public class ConnectHandler : IConnectHandler
 
     private async Task _ReadLoop()
     {
-        var writer = this._pipe.Writer;
+        PipeWriter writer = _pipe.Writer;
 
-        while (this._running)
+        while (_running)
         {
             Memory<byte> memory = writer.GetMemory(512);
-            int bytesRead = await this._socket.ReceiveAsync(memory, SocketFlags.None);
+            int bytesRead = await _socket.ReceiveAsync(memory, SocketFlags.None);
 
             writer.Advance(bytesRead);
 
@@ -55,14 +58,14 @@ public class ConnectHandler : IConnectHandler
     {
         static async Task<int> readInt(PipeReader reader)
         {
-            var got = await reader.ReadAtLeastAsync(4);
+            ReadResult got = await reader.ReadAtLeastAsync(4);
 
-            var buf = got.Buffer.Slice(0, 4);
+            ReadOnlySequence<byte> buf = got.Buffer.Slice(0, 4);
 
-            var span = new byte[4];
+            byte[] span = new byte[4];
             buf.CopyTo(span);
 
-            var num = BitConverter.ToInt32(span);
+            int num = BitConverter.ToInt32(span);
             // 从网络端序转换过来
             num = IPAddress.NetworkToHostOrder(num);
 
@@ -71,17 +74,17 @@ public class ConnectHandler : IConnectHandler
             return num;
         }
 
-        var reader = this._pipe.Reader;
+        PipeReader reader = _pipe.Reader;
 
-        while (this._running)
+        while (_running)
         {
-            var length = await readInt(reader);
-            var strLength = await readInt(reader);
+            int length = await readInt(reader);
+            int strLength = await readInt(reader);
 
             // read id
-            var got = await reader.ReadAtLeastAsync(strLength);
+            ReadResult got = await reader.ReadAtLeastAsync(strLength);
 
-            var data = new byte[strLength];
+            byte[] data = new byte[strLength];
 
             got.Buffer.CopyTo(data);
 
@@ -99,84 +102,81 @@ public class ConnectHandler : IConnectHandler
             reader.AdvanceTo(got.Buffer.GetPosition(length));
 
             // release
-            var packet = this.Packetizer.ConvertPacket(id, data);
+            object packet = Packetizer.ConvertPacket(id, data);
 
-            this.Dispatcher.DispatchPacket(id, packet);
+            _ = Dispatcher.DispatchPacket(id, packet);
         }
     }
 
     public async Task InputLoop()
     {
-        lock (this._lock)
+        lock (_lock)
         {
-            if (this._running)
+            if (_running)
             {
                 return;
             }
-            this._running = true;
+            _running = true;
         }
 
         // wait for shutdown sign
-        while (this._socket.Connected && this._running)
+        while (_socket.Connected && _running)
         {
             await Task.Yield();
         }
 
         // shutdown
-        lock (this._lock)
+        lock (_lock)
         {
-            this._running = false;
+            _running = false;
         }
 
-        await Task.WhenAll(this._ReadLoop(), this._ProcessLoop());
+        await Task.WhenAll(_ReadLoop(), _ProcessLoop());
     }
 
-    private void _Write(byte[] bytes)
-    {
-        this._socket.Send(bytes);
-    }
+    private void _Write(byte[] bytes) => _socket.Send(bytes);
 
     public void Write(byte[] bytes)
     {
-        lock (this._lock)
+        lock (_lock)
         {
-            this._Write(bytes);
+            _Write(bytes);
         }
     }
 
     public void WritePacket(Guuid packetTypeId, byte[] data)
     {
-        lock (this._lock)
+        lock (_lock)
         {
-            var encoderedId = Encoding.UTF8.GetBytes(packetTypeId.ToString());
+            byte[] encoderedId = Encoding.UTF8.GetBytes(packetTypeId.ToString());
 
             // 转换到网络端序
-            var length = BitConverter.GetBytes(
+            byte[] length = BitConverter.GetBytes(
                     IPAddress.HostToNetworkOrder(data.Length)
                 );
 
-            var idLength = BitConverter.GetBytes(
+            byte[] idLength = BitConverter.GetBytes(
                     IPAddress.HostToNetworkOrder(encoderedId.Length)
                 );
 
-            this._Write(length);
-            this._Write(idLength);
-            this._Write(encoderedId);
-            this._Write(data);
+            _Write(length);
+            _Write(idLength);
+            _Write(encoderedId);
+            _Write(data);
         }
     }
 
     public void Disconnect()
     {
-        this._socket.Shutdown(SocketShutdown.Both);
-        this._socket.Close();
-        this._pipe.Reset();
+        _socket.Shutdown(SocketShutdown.Both);
+        _socket.Close();
+        _pipe.Reset();
     }
 
     public void Dispose()
     {
-        this.Disconnect();
-        this._socket.Dispose();
+        Disconnect();
+        _socket.Dispose();
         GC.SuppressFinalize(this);
     }
 }

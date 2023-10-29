@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named EventManager.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 namespace Utopia.Core.Events;
 
@@ -40,25 +30,25 @@ public class EventManager<EventT> : IEventManager<EventT> where EventT : IEvent
     /// <param name="handler">事件处理者</param>
     public void Register(Action<EventT> handler)
     {
-        lock (this._locker)
+        lock (_locker)
         {
-            this._events.Add(handler);
+            _events.Add(handler);
         }
     }
 
     public void Unregister(Action<EventT> handler)
     {
-        lock (this._locker)
+        lock (_locker)
         {
-            this._events.Remove(handler);
+            _ = _events.Remove(handler);
         }
     }
 
     public void ClearRegisters()
     {
-        lock (this._locker)
+        lock (_locker)
         {
-            this._events.Clear();
+            _events.Clear();
         }
     }
 
@@ -70,14 +60,14 @@ public class EventManager<EventT> : IEventManager<EventT> where EventT : IEvent
     {
         Action<EventT>[] handlers;
 
-        lock (this._locker)
+        lock (_locker)
         {
-            handlers = this._events.ToArray();
+            handlers = _events.ToArray();
         }
 
-        lock (this._fireLocker)
+        lock (_fireLocker)
         {
-            foreach (var handler in handlers)
+            foreach (Action<EventT> handler in handlers)
             {
                 if (e.Cancel)
                 {

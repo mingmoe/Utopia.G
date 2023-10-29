@@ -1,23 +1,14 @@
-#region copyright
-// This file(may named CorePlugin.cs) is a part of the project: Utopia.G.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.G.
-//
-// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
-using Godot;
 using System;
 using System.Threading.Tasks;
+using Godot;
 using Utopia.Core;
 using Utopia.Core.Events;
 using Utopia.Core.Net.Packet;
+using Utopia.Core.Plugin;
 using Utopia.G.Game;
 using Utopia.G.Game.Entity;
 using Utopia.G.Graphy;
@@ -34,45 +25,49 @@ public class CorePlugin : PluginInformation, IPlugin
 {
     private Core.IServiceProvider _Provider { get; init; }
 
+    public PluginLifeCycle CurrentCycle => throw new NotImplementedException();
+
+    public IEventManager<LifeCycleEvent<PluginLifeCycle>> LifecycleEvent => throw new NotImplementedException();
+
     public CorePlugin(Core.IServiceProvider provider)
     {
         ArgumentNullException.ThrowIfNull(provider);
-        this._Provider = provider;
+        _Provider = provider;
     }
 
-    public void Active()
+    public void Activate()
     {
-        var manager = this._Provider.GetService<IEntityManager>();
+        IEntityManager manager = _Provider.GetService<IEntityManager>();
         var factory = new EmptyEntityFactory();
-        var node = this._Provider.GetService<Node>();
+        Node node = _Provider.GetService<Node>();
 
-        var grass = ResourceLoader.Load<Texture2D>("res://images/textures/grass.png");
+        Texture2D grass = ResourceLoader.Load<Texture2D>("res://images/textures/grass.png");
 
         var source = new TileSetAtlasSource
         {
             TextureRegionSize = new(32, 32),
             Texture = grass
         };
-        var id = TileSource.CreateSingleTile(source, grass);
+        int id = TileSource.CreateSingleTile(source, grass);
 
-        ((Main)node).Map.TileSet.AddSource(source, 1);
+        _ = ((Main)node).Map.TileSet.AddSource(source, 1);
 
-        factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID,
+        _ = factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID,
             new GrassEntity(new Tile((int)TileLayer.Floor, 1, id)));
 
-        manager.TryAdd(
+        _ = manager.TryAdd(
                 ResourcePack.Entity.GrassEntity.ID,
                 factory
             );
 
-        this._Provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((e) =>
+        _Provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((e) =>
         {
             if (e.Order == LifeCycleOrder.After && e.Cycle == LifeCycle.ConnectToServer)
             {
                 // process
-                var connecter = this._Provider.GetService<ISocketConnecter>();
+                ISocketConnecter connecter = _Provider.GetService<ISocketConnecter>();
 
-                connecter.ConnectHandler!.Packetizer.OperateFormatterList(
+                connecter.ConnectHandler!.Packetizer.EnterSync(
                     (list) =>
                     {
                         list.Add(new LoginPacketFormatter());
@@ -85,24 +80,24 @@ public class CorePlugin : PluginInformation, IPlugin
                     {
                         var pack = (BlockInfoPacket)packet;
 
-                        for (var index = 0; index != pack.Entities.Length; index++)
+                        for (int index = 0; index != pack.Entities.Length; index++)
                         {
-                            var entity = pack.Entities[index];
-                            var data = pack.EntityData[index];
+                            Core.Utilities.Guuid entity = pack.Entities[index];
+                            byte[] data = pack.EntityData[index];
 
-                            var got = manager.Create(entity, data);
+                            IGodotEntity got = manager.Create(entity, data);
 
-                            var tile = got.Render(pack.Position, ((Main)node).Map);
+                            Node? tile = got.Render(pack.Position, ((Main)node).Map);
 
                             node.AddChild(tile);
                         }
                     });
 
-                Task.Run(() =>
+                _ = Task.Run(() =>
                 {
-                    for (var x = -32; x != 32; x++)
+                    for (int x = -32; x != 32; x++)
                     {
-                        for (var y = -32; y != 32; y++)
+                        for (int y = -32; y != 32; y++)
                         {
                             connecter.ConnectHandler!.WritePacket(QueryBlockPacketFormatter.PacketTypeId,
                                 new QueryBlockPacket() { QueryPosition = new Core.Map.WorldPosition(x, y, 0, 0) });
@@ -112,9 +107,5 @@ public class CorePlugin : PluginInformation, IPlugin
             }
         });
     }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-    }
+    public void Deactivate() => throw new NotImplementedException();
 }

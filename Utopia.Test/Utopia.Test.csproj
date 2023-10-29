@@ -1,13 +1,12 @@
 <Project Sdk="Kawayi.Utopia.Sdk">
 
-  <PropertyGroup>
+	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+
+	<PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
-      <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
-
   </PropertyGroup>
 
   <ItemGroup>

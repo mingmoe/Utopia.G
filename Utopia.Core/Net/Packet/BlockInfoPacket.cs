@@ -1,3 +1,7 @@
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using CommunityToolkit.Diagnostics;
 using MessagePack;
 using Utopia.Core.Map;
@@ -29,10 +33,7 @@ public class BlockInfoPacketFormatter : IPacketFormatter
 
     public Guuid Id => PacketTypeId;
 
-    public object GetValue(byte[] packet)
-    {
-        return MessagePackSerializer.Deserialize<BlockInfoPacket>(packet);
-    }
+    public object GetValue(byte[] packet) => MessagePackSerializer.Deserialize<BlockInfoPacket>(packet);
 
     public byte[] ToPacket(object value)
     {

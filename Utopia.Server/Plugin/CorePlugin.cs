@@ -1,20 +1,15 @@
-#region copyright
-// This file(may named CorePlugin.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Autofac;
+using NLog;
+using Utopia.Core;
 using Utopia.Core.Collections;
+using Utopia.Core.Events;
 using Utopia.Core.Net.Packet;
+using Utopia.Core.Plugin;
+using Utopia.Core.Transition;
 using Utopia.Core.Utilities;
 using Utopia.ResourcePack;
 using Utopia.Server.Entity;
@@ -28,47 +23,91 @@ namespace Utopia.Server.Plugin;
 
 public class CorePlugin : PluginInformation, IPlugin
 {
-    private Core.IServiceProvider _Provider { get; init; }
 
-    private ILifetimeScope _container;
+    private readonly object _lock = new();
+
+    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+    private readonly Core.IServiceProvider _serviceProvider;
+
+    private readonly TranslateManager _translateManager;
+
+    private readonly EventManager<LifeCycleEvent<PluginLifeCycle>> _lifecycleEvent = new();
+
+    private PluginLifeCycle _lifeCycle = PluginLifeCycle.Unactivated;
+
+    public PluginLifeCycle CurrentCycle
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _lifeCycle;
+            }
+        }
+    }
+    public IEventManager<LifeCycleEvent<PluginLifeCycle>> LifecycleEvent => _lifecycleEvent;
+
+    private readonly ILifetimeScope _container;
 
     public CorePlugin(Core.IServiceProvider provider)
     {
+        // set up servicd provider and other managers
         ArgumentNullException.ThrowIfNull(provider);
-        this._Provider = provider;
-        var container = provider.GetService<IContainer>();
+        _serviceProvider = provider;
+        _translateManager = provider.GetService<TranslateManager>();
+        IContainer container = provider.GetService<IContainer>();
 
-        var scope = container.BeginLifetimeScope((builder) =>
+        // build container
+        System.Reflection.MethodInfo[] methods = GetType().GetMethods(
+            System.Reflection.BindingFlags.Public
+            | System.Reflection.BindingFlags.Static);
+
+        ILifetimeScope scope = container.BeginLifetimeScope((builder) =>
         {
-            builder.RegisterType<Generator>();
-            builder.RegisterType<WorldFactory>();
-            builder.RegisterType<GrassEntity>();
+            foreach (System.Reflection.MethodInfo method in methods)
+            {
+                if (method.GetCustomAttributes(typeof(ContainerBuilderAttribute), true).Length != 0)
+                {
+                    _ = method.Invoke(this, new object[] { builder });
+                }
+            }
         });
-        this._container = scope;
+
+        _container = scope;
     }
 
-    public void Active()
+    [ContainerBuilder]
+    public static void SetupContainer(ContainerBuilder builder)
     {
-        this._Provider.GetService<SafeDictionary<Guuid, IWorldFactory>>().TryAdd(
-                IDs.WorldType,
-                this._container.Resolve<WorldFactory>());
+        _ = builder.RegisterType<Generator>();
+        _ = builder.RegisterType<WorldFactory>();
+        _ = builder.RegisterType<GrassEntity>();
+    }
 
-        this._Provider.TryRegisterService<IInternetListener>(
+    [LifecycleHandler(PluginLifeCycle.Activated)]
+    public void ActivateEventHandler()
+    {
+        _ = _serviceProvider.GetService<SafeDictionary<Guuid, IWorldFactory>>().TryAdd(
+                   IDs.WorldType,
+                   _container.Resolve<WorldFactory>());
+
+        _ = _serviceProvider.TryRegisterService<IInternetListener>(
             new InternetListener());
 
         var factory = new EmptyEntityFactory();
-        factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID, this._container.Resolve<GrassEntity>());
+        _ = factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID, _container.Resolve<GrassEntity>());
 
-        this._Provider.GetService<IEntityManager>().TryAdd(ResourcePack.Entity.GrassEntity.ID,
+        _ = _serviceProvider.GetService<IEntityManager>().TryAdd(ResourcePack.Entity.GrassEntity.ID,
             factory);
 
         // process query_map packet
-        this._Provider.GetService<InternetMain>().ClientCreatedEvent.Register(
+        _serviceProvider.GetService<InternetMain>().ClientCreatedEvent.Register(
                 (e) =>
                 {
-                    var handler = e.Result!;
+                    Core.Net.IConnectHandler handler = e.Result!;
 
-                    handler.Packetizer.OperateFormatterList((list) =>
+                    handler.Packetizer.EnterSync((list) =>
                     {
                         list.Add(new QueryBlockPacketFormatter());
                         list.Add(new LoginPacketFormatter());
@@ -80,12 +119,12 @@ public class CorePlugin : PluginInformation, IPlugin
                         {
                             var query = (QueryBlockPacket)packet;
 
-                            Task.Run(() =>
+                            _ = Task.Run(() =>
                             {
-                                if (this._Provider.TryGetBlock(query.QueryPosition, out var block))
+                                if (_serviceProvider.TryGetBlock(query.QueryPosition, out IBlock? block))
                                 {
                                     var packet = new BlockInfoPacket();
-                                    var entities = block!.GetAllEntities();
+                                    IReadOnlyCollection<IEntity> entities = block!.GetAllEntities();
                                     packet.Collidable = block.Collidable;
                                     packet.Accessible = block.Accessable;
                                     packet.Position = query.QueryPosition;
@@ -104,9 +143,64 @@ public class CorePlugin : PluginInformation, IPlugin
 
     }
 
-    public void Dispose()
+    public ITranslatedString GetTranslation(TranslateKey key, object? data = null)
     {
-        this._container.Dispose();
-        GC.SuppressFinalize(this);
+        TranslateIdentifence? id = null;
+
+        _serviceProvider.GetEventBusForService<TranslateIdentifence>().Register((e) =>
+        {
+            id = e.Target;
+        });
+
+        id = _serviceProvider.GetService<TranslateIdentifence>();
+
+        return new ICUTranslatedString(key, _translateManager, id.Value, data ?? new object());
+    }
+
+    private void _SwitchLifecycle(PluginLifeCycle cycle)
+    {
+        lock (_lock)
+        {
+            _lifeCycle = cycle;
+        }
+    }
+
+    private void _CallLifecycleHandlers(PluginLifeCycle cycle)
+    {
+        System.Reflection.MethodInfo[] methods = GetType().GetMethods(
+                System.Reflection.BindingFlags.Public
+                | System.Reflection.BindingFlags.Static);
+
+        foreach (System.Reflection.MethodInfo method in methods)
+        {
+            object[] attributes = method.GetCustomAttributes(typeof(LifecycleHandlerAttribute), true);
+            if (attributes.Length != 0)
+            {
+                if (!attributes.Any((attr) => ((LifecycleHandlerAttribute)attr).Lifecycle == cycle))
+                {
+                    return;
+                }
+
+                _ = method.Invoke(this, Array.Empty<object>());
+            }
+        }
+    }
+
+    public void Activate()
+    {
+        void @switch() => _SwitchLifecycle(PluginLifeCycle.Activated);
+
+        void lifecycleCode() => _CallLifecycleHandlers(PluginLifeCycle.Activated);
+
+        LifeCycleEvent<PluginLifeCycle>.EnterCycle(PluginLifeCycle.Activated, lifecycleCode, _logger, _lifecycleEvent, @switch);
+    }
+
+    public void Deactivate()
+    {
+        void @switch() => _SwitchLifecycle(PluginLifeCycle.Deactivated);
+
+        void lifecycleCode() => _CallLifecycleHandlers(PluginLifeCycle.Deactivated);
+
+        LifeCycleEvent<PluginLifeCycle>.EnterCycle(PluginLifeCycle.Deactivated, lifecycleCode, _logger, _lifecycleEvent, @switch);
     }
 }

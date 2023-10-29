@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named Packetizer.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Collections;
 using Utopia.Core.Utilities;
@@ -20,10 +10,8 @@ namespace Utopia.Core.Net;
 /// <summary>
 /// 分包器,要求是线程安全的.
 /// </summary>
-public interface IPacketizer
+public interface IPacketizer : ISynchronizedOperation<IList<IPacketFormatter>>
 {
-    public void OperateFormatterList(Action<IList<IPacketFormatter>> action);
-
     public bool TryGetFormatter(Guuid id, out IPacketFormatter? formatter);
 
     /// <summary>
@@ -40,38 +28,22 @@ public interface IPacketizer
 /// <summary>
 /// 分包器,是线程安全的.
 /// </summary>
-public class Packetizer : IPacketizer
+public class Packetizer : SafeList<IPacketFormatter>,IPacketizer
 {
-    private readonly object _locker = new();
-
-    private readonly SafeList<IPacketFormatter> _formatters = new();
-
-    public void OperateFormatterList(Action<IList<IPacketFormatter>> action)
-    {
-        lock (this._locker)
-        {
-            this._formatters.EnterList(action);
-        }
-    }
-
     /// <summary>
     /// without locking
     /// </summary>
     private bool _TryGetFormatter(Guuid id, out IPacketFormatter? formatter)
     {
-        this._formatters.EnterList(tryGetFormatter);
-
         IPacketFormatter? result = null;
-        void tryGetFormatter(IList<IPacketFormatter> list)
+        foreach (IPacketFormatter f in this)
         {
-            foreach (var f in list)
+            if (f.Id.Equals(id))
             {
-                if (f.Id.Equals(id))
-                {
-                    result = f;
-                }
+                result = f;
             }
         }
+    
 
         formatter = result;
 
@@ -80,35 +52,32 @@ public class Packetizer : IPacketizer
 
     public bool TryGetFormatter(Guuid id, out IPacketFormatter? formatter)
     {
-        lock (this._locker)
+        @lock.EnterReadLock();
+        try
         {
-            return this._TryGetFormatter(id, out formatter);
+            return _TryGetFormatter(id, out formatter);
+        }
+        finally
+        {
+            @lock.ExitReadLock();
         }
     }
 
     public object ConvertPacket(Guuid packetTypeId, byte[] data)
     {
-        lock (this._locker)
-        {
-            if (this._TryGetFormatter(packetTypeId, out IPacketFormatter? formatter))
-            {
-                return formatter!.GetValue(data);
-            }
-            throw new InvalidOperationException("unknown packet type id");
-        }
+        return TryGetFormatter(packetTypeId, out IPacketFormatter? formatter)
+            ? formatter!.GetValue(data)
+            : throw new InvalidOperationException("unknown packet type id");
     }
 
     public byte[] WritePacket(Guuid packetTypeId, object obj)
     {
-        lock (this._locker)
+        if (TryGetFormatter(packetTypeId, out IPacketFormatter? formatter))
         {
-            if (this._TryGetFormatter(packetTypeId, out IPacketFormatter? formatter))
-            {
-                var data = formatter!.ToPacket(obj);
+            byte[] data = formatter!.ToPacket(obj);
 
-                return data;
-            }
-            throw new InvalidOperationException("unknown packet type id");
+            return data;
         }
+        throw new InvalidOperationException("unknown packet type id");
     }
 }

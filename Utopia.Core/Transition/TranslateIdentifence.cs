@@ -1,25 +1,15 @@
-#region copyright
-// This file(may named TranslateIdentifence.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using System.Globalization;
 
-namespace Utopia.Core.Translate;
+namespace Utopia.Core.Transition;
 
 /// <summary>
 /// 翻译唯一标识符号，用于标识一个翻译。
 /// </summary>
-public class TranslateIdentifence
+public readonly struct TranslateIdentifence
 {
     /// <summary>
     /// ISO 639-1所指定的两位字母语言编码。
@@ -33,8 +23,8 @@ public class TranslateIdentifence
 
     public TranslateIdentifence()
     {
-        this.Language = CultureInfo.CurrentCulture.TwoLetterISOLanguageName.ToLower();
-        this.Location = RegionInfo.CurrentRegion.TwoLetterISORegionName.ToLower();
+        Language = CultureInfo.CurrentCulture.TwoLetterISOLanguageName.ToLower();
+        Location = RegionInfo.CurrentRegion.TwoLetterISORegionName.ToLower();
     }
 
     /// <summary>
@@ -42,14 +32,9 @@ public class TranslateIdentifence
     /// [separator] can be '-' or '_' or ' '(SPACE).
     /// [LANGUAGE] and [LOCATION] obey the ISO 639-1 and ISO 3166-1 standard(Two letter version).
     /// </summary>
-    public static TranslateIdentifence Parse(string id)
-    {
-        if(!TryParse(id, out TranslateIdentifence? identifence))
-        {
-            throw new ArgumentException("the format of TranslateIdentifence is invalid");
-        }
-        return identifence!;
-    }
+    public static TranslateIdentifence Parse(string id) => !TryParse(id, out TranslateIdentifence? identifence)
+            ? throw new ArgumentException("the format of TranslateIdentifence is invalid")
+            : identifence!.Value;
 
     /// <summary>
     /// see <see cref="Parse(string)"/>
@@ -58,7 +43,7 @@ public class TranslateIdentifence
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        var parts = id.Split('_', '-', ' ');
+        string[] parts = id.Split('_', '-', ' ');
 
         if (parts.Length != 2)
         {
@@ -90,19 +75,13 @@ public class TranslateIdentifence
             throw new ArgumentException("the language or location is not all letter");
         }
 
-        this.Language = language.ToLower();
-        this.Location = location.ToLower();
+        Language = language.ToLower();
+        Location = location.ToLower();
     }
 
-    public override string ToString()
-    {
-        return this.Language + "_" + this.Location;
-    }
+    public override string ToString() => Language + "_" + Location;
 
-    public override int GetHashCode()
-    {
-        return this.ToString().GetHashCode();
-    }
+    public override int GetHashCode() => ToString().GetHashCode();
 
     public override bool Equals(object? obj)
     {
@@ -110,12 +89,21 @@ public class TranslateIdentifence
         {
             return false;
         }
-        if (obj.GetType().IsAssignableFrom(this.GetType()))
+        if (obj.GetType().IsAssignableFrom(GetType()))
         {
             var o = (TranslateIdentifence)obj;
-            return o.Language == this.Language && o.Location == this.Location;
+            return o.Language == Language && o.Location == Location;
         }
         return false;
     }
 
+    public static bool operator ==(TranslateIdentifence left, TranslateIdentifence right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(TranslateIdentifence left, TranslateIdentifence right)
+    {
+        return !(left == right);
+    }
 }

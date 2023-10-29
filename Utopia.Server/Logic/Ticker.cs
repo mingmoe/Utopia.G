@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named Ticker.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using System.Diagnostics;
 
@@ -42,31 +32,34 @@ public interface ITicker
 
     long MillisecondFromLastTick { get; }
 
-    void WaitToNextTick()
-    {
-        while (this.MillisecondFromLastTick < MillisecondPerTick)
-        {
-            Thread.Yield();
-        }
-    }
+    void WaitToNextTick();
 }
 
 internal class Ticker : ITicker
 {
     private readonly Stopwatch _stopwatch = new();
 
+    private readonly SpinWait _spin = new();
+
     public ulong TickCount { get; private set; }
 
-    public long MillisecondFromLastTick => this._stopwatch.ElapsedMilliseconds;
+    public long MillisecondFromLastTick => _stopwatch.ElapsedMilliseconds;
 
-    public void Start()
-    {
-        this._stopwatch.Start();
-    }
+    public void Start() => _stopwatch.Start();
 
     public void Tick()
     {
-        this.TickCount++;
-        this._stopwatch.Restart();
+        TickCount++;
+        _stopwatch.Restart();
     }
+
+    public void WaitToNextTick()
+    {
+        while (MillisecondFromLastTick < ITicker.MillisecondPerTick)
+        {
+            _spin.SpinOnce();
+        }
+        _spin.Reset();
+    }
+
 }

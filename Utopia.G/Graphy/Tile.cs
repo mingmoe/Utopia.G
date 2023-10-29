@@ -1,19 +1,9 @@
-#region copyright
-// This file(may named Tile.cs) is a part of the project: Utopia.G.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.G.
-//
-// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
-using Godot;
 using System;
+using Godot;
 using Utopia.Core.Collections;
 using Utopia.Core.Utilities;
 
@@ -24,7 +14,7 @@ namespace Utopia.G.Graphy;
 /// </summary>
 public static class TileSource
 {
-    private const int _defaultSingleTileId = 1;
+    private const int DefaultSingleTileId = 1;
 
     /// <summary>
     /// 从单个纹理创建贴图
@@ -34,12 +24,12 @@ public static class TileSource
     public static int CreateSingleTile(this TileSetAtlasSource self, Texture2D texture2D)
     {
         ArgumentNullException.ThrowIfNull(texture2D);
-        var size = texture2D.GetSize();
+        Vector2 size = texture2D.GetSize();
         self.Texture = texture2D;
         self.TextureRegionSize = new((int)size.X, (int)size.Y);
         self.CreateTile(new Vector2I(0, 0), new Vector2I(1, 1));
-        self.CreateAlternativeTile(new Vector2I(0, 0), _defaultSingleTileId);
-        return _defaultSingleTileId;
+        _ = self.CreateAlternativeTile(new Vector2I(0, 0), DefaultSingleTileId);
+        return DefaultSingleTileId;
     }
 }
 
@@ -109,27 +99,21 @@ public static class TileMapHelper
         }
     }
 
-    public static void InitlizeMap(in TileMap map)
-    {
-        map.Position = new Vector2I(0, 0);
-    }
+    public static void InitlizeMap(in TileMap map) => map.Position = new Vector2I(0, 0);
 
     public static Vector2 GetCameraPosition(in TileMap map, in Vector2I flatPosition)
     {
-        var local = map.MapToLocal(flatPosition);
-        var global = map.ToGlobal(local);
+        Vector2 local = map.MapToLocal(flatPosition);
+        Vector2 global = map.ToGlobal(local);
 
         return global;
     }
 
-    public static void SetCell(this TileMap map, Vector2I position, Tile tile)
-    {
-        map.SetCell(tile.LayerIndex,
+    public static void SetCell(this TileMap map, Vector2I position, Tile tile) => map.SetCell(tile.LayerIndex,
             position,
             tile.SourceId,
             null,
             tile.TileId);
-    }
 }
 
 /// <summary>
@@ -145,9 +129,9 @@ public readonly struct Tile
 
     public Tile(int layer, int sourceId, int tileId)
     {
-        this.LayerIndex = layer;
-        this.SourceId = sourceId;
-        this.TileId = tileId;
+        LayerIndex = layer;
+        SourceId = sourceId;
+        TileId = tileId;
     }
 }
 

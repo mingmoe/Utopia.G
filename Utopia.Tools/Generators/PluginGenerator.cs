@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Utopia.Tools.Generators;
 
@@ -11,39 +11,14 @@ namespace Utopia.Tools.Generators;
 /// </summary>
 public class PluginGenerator : IGenerator
 {
-    public string SubcommandName => "plugin";
+    public string SubcommandName => "server-plugin";
 
     public void Execute(GeneratorOption option)
     {
-        CsBuilder builder = new()
-        {
-            Namespace = option.TargetNamespace
-        };
-        builder.Usings.Add("Utopia.Server");
-        builder.Usings.Add("Utopia.Core");
-        builder.Usings.Add("Autofac");
+        var source = GeneratorTemplate.PluginClassTemplate.Replace("$TARGET_NAMESPACE$", option.TargetNamespace);
+       
+        string output = option.TargetProject.GetGeneratedCsFilePath("Plugin");
 
-        builder.AddClass("Plugin",
-             isPublic: true, isStatic: false, isPartial: true, "IPlugin", "PluginInformation");
-
-        builder.AddField("private", "Core.IServiceProvider","_provider",isReadonly: true);
-        builder.AddField("private", "ILifetimeScope", "_container", isReadonly: true);
-
-        builder.AddLine("public Plugin(Core.IServiceProvider provider)");
-        builder.BeginCodeBlock();
-        builder.AddLine("ArgumentNullException.ThrowIfNull(provider);");
-        builder.AddLine("this._provider = provider;");
-        builder.AddLine("var container = provider.GetService<IContainer>();");
-        builder.AddLine("var scope = container.BeginLifetimeScope((builder) =>");
-        builder.BeginCodeBlock();
-        builder.AddLine(");");
-        builder.AddLine("this._container = scope;");
-        builder.CloseCodeBlock();
-        builder.CloseCodeBlock();
-        builder.CloseCodeBlock();
-
-        var output = option.TargetProject.GetGeneratedCsFilePath("plugin");
-
-        File.WriteAllText(output, builder.Generate(), Encoding.UTF8);
+        File.WriteAllText(output, source, Encoding.UTF8);
     }
 }

@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named Position.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using MessagePack;
 
@@ -29,8 +19,8 @@ public readonly struct FlatPosition
 
     public FlatPosition(int x, int y)
     {
-        this.X = x;
-        this.Y = y;
+        X = x;
+        Y = y;
     }
 }
 
@@ -49,15 +39,12 @@ public readonly struct Position
 
     public Position(int x, int y, int z)
     {
-        this.X = x;
-        this.Y = y;
-        this.Z = z;
+        X = x;
+        Y = y;
+        Z = z;
     }
 
-    public FlatPosition ToFlat()
-    {
-        return new FlatPosition(this.X, this.Y);
-    }
+    public FlatPosition ToFlat() => new(X, Y);
 }
 
 /// <summary>
@@ -80,21 +67,15 @@ public readonly struct WorldPosition
 
     public WorldPosition(int x, int y, int z, long id)
     {
-        this.X = x;
-        this.Y = y;
-        this.Z = z;
-        this.Id = id;
+        X = x;
+        Y = y;
+        Z = z;
+        Id = id;
     }
 
-    public FlatPosition ToFlat()
-    {
-        return new FlatPosition(this.X, this.Y);
-    }
+    public FlatPosition ToFlat() => new(X, Y);
 
-    public Position ToPos()
-    {
-        return new Position(this.X, this.Y, this.Z);
-    }
+    public Position ToPos() => new(X, Y, Z);
 }
 
 [MessagePackObject]
@@ -109,13 +90,10 @@ public readonly struct FlatPositionWithId
 
     public FlatPositionWithId(int x, int y, long id)
     {
-        this.X = x;
-        this.Y = y;
-        this.Id = id;
+        X = x;
+        Y = y;
+        Id = id;
     }
 
-    public FlatPosition ToFlat()
-    {
-        return new FlatPosition(this.X, this.Y);
-    }
+    public FlatPosition ToFlat() => new(X, Y);
 }

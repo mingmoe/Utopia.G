@@ -1,130 +1,60 @@
-#region copyright
-// This file(may named SafeList.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
+
+using System.Collections;
 
 namespace Utopia.Core.Collections;
 
 /// <summary>
 /// 一个线程安全的list
 /// </summary>
-public interface ISafeList<T>
+public interface ISafeList<T> : IRWSynchronizable,IList<T>, ISynchronizedOperation<IList<T>>, ISynchronizedOperation<IReadOnlyList<T>>
 {
-
-    int Count { get; }
-
-    public T Get(int index);
-
-    public void Remove(T item);
-
-    public void Insert(int index, T item);
-
-    public void RemoveAt(int index);
-
-    public bool Contains(T item);
-
-    public void Add(T item);
-
-    /// <summary>
-    /// invoke the action with thread safe list
-    /// </summary>
-    public void EnterList(Action<IList<T>> action);
-
-    public T[] ToArray();
-
-    public void Clear();
 }
 
-public class SafeList<T> : ISafeList<T>
+/// <summary>
+/// There are some ways to access this object in a thread-safe way.
+/// <br/>
+/// First:
+/// call list.<see cref="ISynchronizedOperation{T}.EnterSync(Action{T})"/>.
+/// <br/>
+/// Second:
+/// Enter the <see cref="IRWSynchronizable.@lock"/> lock.
+/// <br/>
+/// That's all. Good luck.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public class SafeList<T> : List<T>, ISafeList<T>
 {
-    protected readonly List<T> _list = new();
+    protected ReaderWriterLockSlim _rwLock = new();
 
-    protected SpinLock _lock = new();
+    public ReaderWriterLockSlim @lock => _rwLock;
 
-    protected void _Invoke(Action<IList<T>> action)
+    public void EnterSync(Action<IList<T>> action)
     {
-        bool locked = false;
+        @lock.EnterWriteLock();
         try
         {
-            this._lock.Enter(ref locked);
-            action.Invoke(this._list);
+            action.Invoke(this);
         }
         finally
         {
-            if (locked)
-            {
-                this._lock.Exit();
-            }
+            @lock.ExitWriteLock();
         }
     }
 
-    public int Count
+    public void EnterSync(Action<IReadOnlyList<T>> action)
     {
-        get
+        @lock.EnterReadLock();
+        try
         {
-            int result = 0;
-            this._Invoke((l) => { result = l.Count; });
-            return result;
+            action.Invoke(this);
         }
-    }
-
-    public void Add(T item)
-    {
-        this._Invoke((l) => { l.Add(item); });
-    }
-
-    public bool Contains(T item)
-    {
-        bool result = false;
-        this._Invoke((l) => { result = l.Contains(item); });
-        return result;
-    }
-
-    public T Get(int index)
-    {
-        T? result = default;
-        this._Invoke((l) => { result = l[index]; });
-        return result ?? throw new InvalidDataException("this should be not null");
-    }
-
-    public void Insert(int index, T item)
-    {
-        this._Invoke((l) => { l.Insert(index, item); });
-    }
-
-    public void Remove(T item)
-    {
-        this._Invoke((l) => { l.Remove(item); });
-    }
-
-    public void RemoveAt(int index)
-    {
-        this._Invoke((l) => { l.RemoveAt(index); });
-    }
-    public void EnterList(Action<IList<T>> action)
-    {
-        this._Invoke(action);
-    }
-
-    public T[] ToArray()
-    {
-        T[] result = Array.Empty<T>();
-        this._Invoke((l) => { result = l.ToArray(); });
-        return result;
-    }
-
-    public void Clear()
-    {
-        this._Invoke((l) => { l.Clear(); });
+        finally
+        {
+            @lock.ExitReadLock();
+        }
     }
 }
 

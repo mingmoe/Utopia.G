@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named FileSystem.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 namespace Utopia.Core.Utilities.IO;
 
@@ -19,19 +9,19 @@ namespace Utopia.Core.Utilities.IO;
 /// </summary>
 public abstract class FileSystem : IFileSystem
 {
-    public abstract string Root { get; }
+    public abstract string RootDirectory { get; }
 
-    public string Asserts => Path.Join(this.Root, "Asserts");
+    public string AssetsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultAssetsDirectoryName);
 
-    public string Worlds => Path.Join(this.Root, "Worlds");
+    public string WorldsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultWorldsDirectoryName);
 
-    public string Characters => Path.Join(this.Root, "Characters");
+    public string CharactersDirectory => Path.Join(RootDirectory, IFileSystem.DefaultCharactersDirectoryName);
 
-    public string Plugins => Path.Join(this.Root, "Plugins");
+    public string PluginsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultPluginsDirectoryName);
 
-    public string Configurations => Path.Join(this.Root, "Configurations");
+    public string ConfigurationsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultConfigurationsDirectoryName);
 
-    public string Utilties => Path.Join(this.Root, "Utilties");
+    public string UtiltiesDirectory => Path.Join(RootDirectory, IFileSystem.DefaultUtiltiesDirectoryName);
 
-    public abstract string? Server { get; }
+    public abstract string? ServerDirectory { get; }
 }

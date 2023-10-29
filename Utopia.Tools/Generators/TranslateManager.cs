@@ -1,8 +1,9 @@
-using Esprima.Ast;
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using System.Text;
 using Tomlyn;
-using Tomlyn.Model;
-using Utopia.Core.Translate;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators;
@@ -15,15 +16,25 @@ public enum TranslateItemType
 }
 
 /// <summary>
+/// Only declare a existence of a transition item,no any translated content.
+/// </summary>
+public class TranslationDeclare
+{
+    public Guuid Provider { get; set; } = Guuid.Empty;
+
+    public string Comment { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// This class will manage the translate files of the game/plugin.
 /// Must call <see cref="Dispose"/> to save the translation files.
 /// </summary>
 public sealed class TranslateManager : IDisposable
 {
 
-    private readonly IFileSystem _fileSystem;
+    private readonly IPluginDevFileSystem _fileSystem;
 
-    private readonly Dictionary<TranslateItemType, Dictionary<Guuid, TomlTranslateHumanItem>?> _translates = new();
+    private readonly Dictionary<TranslateItemType, Dictionary<Guuid, TranslationDeclare>?> _translates = new();
 
     private readonly TranslateItemType[] _keys;
 
@@ -32,32 +43,32 @@ public sealed class TranslateManager : IDisposable
     /// </summary>
     private void _Read()
     {
-        Dictionary<Guuid, TomlTranslateHumanItem> read(TranslateItemType type)
+        Dictionary<Guuid, TranslationDeclare> read(TranslateItemType type)
         {
-            var path = this._fileSystem.GetTranslatedTomlFilePath(type);
-            var option = Guuid.AddTomlOption();
+            string path = _fileSystem.GetTranslatedTomlFilePath(type);
+            TomlModelOptions option = Guuid.AddTomlOption();
 
             _EnsureFile(path);
 
-            return Toml.ToModel<Dictionary<Guuid, TomlTranslateHumanItem>>(
+            return Toml.ToModel<Dictionary<Guuid, TranslationDeclare>>(
                 File.ReadAllText(path), options: option);
         }
 
-        foreach(var key in this._keys)
+        foreach (TranslateItemType key in _keys)
         {
-            if (this._translates[key] == null)
+            if (_translates[key] == null)
             {
-                this._translates[key] = read(key);
+                _translates[key] = read(key);
             }
         }
     }
 
     private void _Write()
     {
-        void write(TranslateItemType type, Dictionary<Guuid, TomlTranslateHumanItem> model)
+        void write(TranslateItemType type, Dictionary<Guuid, TranslationDeclare> model)
         {
-            var path = this._fileSystem.GetTranslatedTomlFilePath(type);
-            var option = Guuid.AddTomlOption();
+            string path = _fileSystem.GetTranslatedTomlFilePath(type);
+            TomlModelOptions option = Guuid.AddTomlOption();
 
             if (File.Exists(path))
             {
@@ -66,14 +77,14 @@ public sealed class TranslateManager : IDisposable
             _EnsureFile(path);
 
             File.WriteAllText(path, Toml.FromModel(
-                model, options: option),Encoding.UTF8);
+                model, options: option), Encoding.UTF8);
         }
 
-        foreach (var key in this._keys)
+        foreach (TranslateItemType key in _keys)
         {
-            if (this._translates[key] != null)
+            if (_translates[key] != null)
             {
-                write(key, this._translates[key]!);
+                write(key, _translates[key]!);
             }
         }
     }
@@ -81,33 +92,27 @@ public sealed class TranslateManager : IDisposable
     /// <summary>
     /// Read translation files
     /// </summary>
-    public void Load()
-    {
-        this._Read();
-    }
+    public void Load() => _Read();
 
     /// <summary>
     /// Write translation files. This was called automatically when call <see cref="Dispose"/>
     /// </summary>
-    public void Save()
-    {
-        this._Write();
-    }
+    public void Save() => _Write();
 
-    public TranslateManager(IFileSystem fileSystem)
+    public TranslateManager(IPluginDevFileSystem fileSystem)
     {
-        this._fileSystem = fileSystem;
-        this._keys = Enum.GetValues<TranslateItemType>();
+        _fileSystem = fileSystem;
+        _keys = Enum.GetValues<TranslateItemType>();
 
-        foreach (var item in this._keys)
+        foreach (TranslateItemType item in _keys)
         {
-            this._translates.Add(item, null!);
+            _translates.Add(item, null!);
         }
     }
 
     private static void _EnsureFile(string path)
     {
-        if(!File.Exists(path))
+        if (!File.Exists(path))
         {
             File.Create(path).Close();
         }
@@ -117,58 +122,57 @@ public sealed class TranslateManager : IDisposable
     /// Ensure the translate item exists in the toml table.
     /// Otherwise create it.
     /// </summary>
-    private static void _EnsureTranslateKey(IDictionary<Guuid, TomlTranslateHumanItem> model,Guuid id,Guuid provider,string comment)
+    private static void _EnsureTranslateKey(IDictionary<Guuid, TranslationDeclare> model, Guuid id, Guuid provider, string comment)
     {
-        if(model.ContainsKey(id))
+        if (model.ContainsKey(id))
         {
             return;
         }
 
-        model.Add(id, new TomlTranslateHumanItem
+        model.Add(id, new TranslationDeclare
         {
             Provider = provider,
-            Comment = comment,
-            Translated = string.Empty
+            Comment = comment
         });
     }
 
-    public Action<Guuid,string> GetEnsurer(TranslateItemType type)
+    public Action<Guuid, string> GetEnsurer(TranslateItemType type)
     {
-        this._Read();
+        _Read();
 
         return (Guuid id, string comment) =>
         {
-            this.EnsureTranslate(type, id, comment);
+            EnsureTranslate(type, id, comment);
         };
     }
 
     public void EnsurePluginInformationTrnaslate()
     {
-        var ensurer = this.GetEnsurer(TranslateItemType.PluginInformation);
+        Action<Guuid, string> ensurer = GetEnsurer(TranslateItemType.PluginInformation);
 
-        var id = this._fileSystem.ReadPluginInfo().Id;
+        Guuid id = _fileSystem.ReadPluginInfo().Id;
 
         ensurer.Invoke(GuuidManager.GetPluginNameTranslateId(id), "the translation of the name");
         ensurer.Invoke(GuuidManager.GetPluginDescriptionTranslateId(id), "the translation of the description");
     }
 
-    public void EnsureTranslate(TranslateItemType type,Guuid transletKeyid,string comment)
+    public void EnsureTranslate(TranslateItemType type, Guuid transletKeyid, string comment)
     {
         ArgumentNullException.ThrowIfNull(transletKeyid);
         ArgumentNullException.ThrowIfNull(comment);
 
-        this._Read();
+        _Read();
 
-        var pluginInfo = this._fileSystem.ReadPluginInfo();
-        var id = pluginInfo.Id;
-        var provider = GuuidManager.GetTranslateProviderGuuidOf(id);
+        PluginInfo pluginInfo = _fileSystem.ReadPluginInfo();
+        Guuid id = pluginInfo.Id;
+        Guuid provider = GuuidManager.GetTranslateProviderGuuidOf(id);
 
-        _EnsureTranslateKey(this._translates[type]!, transletKeyid, provider, comment);
-     }
+        _EnsureTranslateKey(_translates[type]!, transletKeyid, provider, comment);
+    }
 
     public void Dispose()
     {
-        this.Save();
+        Save();
         GC.SuppressFinalize(this);
     }
 }

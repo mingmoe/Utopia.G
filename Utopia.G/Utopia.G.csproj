@@ -1,6 +1,8 @@
 <Project Sdk="Godot.NET.Sdk/4.1.1">
 
-    <PropertyGroup>
+	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+
+	<PropertyGroup>
         <UseNetSdk>false</UseNetSdk>
     </PropertyGroup>
     <!--Do not use <Sdk/> element, or the <UseNetSdk> won't work-->
@@ -10,7 +12,6 @@
     <TargetFramework>net7.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Nullable>enable</Nullable>
-	  <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="src\**" />

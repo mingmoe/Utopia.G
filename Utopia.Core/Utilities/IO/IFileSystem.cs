@@ -1,21 +1,13 @@
-#region copyright
-// This file(may named IFileSystem.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
+
+using Utopia.Core.Plugin;
 
 namespace Utopia.Core.Utilities.IO;
 
 /// <summary>
-/// 文件系统接口
+/// The file system
 /// </summary>
 public interface IFileSystem
 {
@@ -24,69 +16,83 @@ public interface IFileSystem
     /// </summary>
     public const string PgSqlPath = "pgsql";
 
+    public const string DefaultAssetsDirectoryName = "Assets";
+
+    public const string DefaultWorldsDirectoryName = "Worlds";
+
+    public const string DefaultCharactersDirectoryName = "Characters";
+
+    public const string DefaultPluginsDirectoryName = "Plugins";
+
+    public const string DefaultConfigurationsDirectoryName = "Configurations";
+
+    public const string DefaultServerDirectoryName = "Server";
+
+    public const string DefaultUtiltiesDirectoryName = "Utilities";
+
     /// <summary>
-    /// 游戏的根目录
+    /// 游戏/server所在位置的根目录
     /// </summary>
-    string Root { get; }
+    string RootDirectory { get; }
 
     /// <summary>
     /// 游戏的资产目录
     /// </summary>
-    string Asserts { get; }
+    string AssetsDirectory { get; }
 
     /// <summary>
     /// 游戏的世界目录
     /// </summary>
-    string Worlds { get; }
+    string WorldsDirectory { get; }
 
     /// <summary>
     /// 游戏的角色目录
     /// </summary>
-    string Characters { get; }
+    string CharactersDirectory { get; }
 
     /// <summary>
     /// 游戏的插件目录
     /// </summary>
-    string Plugins { get; }
+    string PluginsDirectory { get; }
 
     /// <summary>
     /// 游戏的配置文件目录
     /// </summary>
-    string Configurations { get; }
+    string ConfigurationsDirectory { get; }
 
     /// <summary>
-    /// 对于游戏的客户端，这是服务器的Root文件夹。
+    /// 对于游戏的客户端，这是服务器的<see cref="RootDirectory"/>。
     /// 对于服务器，返回null。
     /// </summary>
-    string? Server { get; }
+    string? ServerDirectory { get; }
 
     /// <summary>
     /// 游戏的工具目录。用于存放一些其他东西。
     /// </summary>
-    string Utilties { get; }
+    string UtiltiesDirectory { get; }
 
     /// <summary>
     /// 对于不存在的目录，则创建一个
     /// </summary>
     void CreateIfNotExist()
     {
-        Directory.CreateDirectory(this.Root);
-        Directory.CreateDirectory(this.Asserts);
-        Directory.CreateDirectory(this.Worlds);
-        Directory.CreateDirectory(this.Characters);
-        Directory.CreateDirectory(this.Plugins);
-        Directory.CreateDirectory(this.Configurations);
-        Directory.CreateDirectory(this.Utilties);
-        if (this.Server != null)
+        _ = Directory.CreateDirectory(RootDirectory);
+        _ = Directory.CreateDirectory(AssetsDirectory);
+        _ = Directory.CreateDirectory(WorldsDirectory);
+        _ = Directory.CreateDirectory(CharactersDirectory);
+        _ = Directory.CreateDirectory(PluginsDirectory);
+        _ = Directory.CreateDirectory(ConfigurationsDirectory);
+        _ = Directory.CreateDirectory(UtiltiesDirectory);
+        if (ServerDirectory != null)
         {
-            Directory.CreateDirectory(this.Server);
+            _ = Directory.CreateDirectory(ServerDirectory);
         }
     }
 
-    string GetConfigurationOfPlugin(IPluginInformation plugin)
+    string GetConfigurationDirectoryOfPlugin(IPluginInformation plugin)
     {
-
-        var path = Path.Join(this.Configurations, plugin.Id.ToString());
+        string path = Path.Join(ConfigurationsDirectory, plugin.Id.ToCsIdentifier());
+        _ = Directory.CreateDirectory(path);
         return path;
     }
 }

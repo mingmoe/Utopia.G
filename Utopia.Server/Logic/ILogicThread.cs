@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named ILogicThread.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using CommunityToolkit.Diagnostics;
 using Utopia.Core.Collections;
@@ -20,9 +10,8 @@ namespace Utopia.Server.Logic;
 /// <summary>
 /// 逻辑线程，按照tick进行更新操作。
 /// </summary>
-public interface ILogicThread
+public interface ILogicThread : ISafeList<IUpdatable>
 {
-
     /// <summary>
     /// 逻辑线程更新器
     /// </summary>
@@ -33,103 +22,56 @@ public interface ILogicThread
     /// </summary>
     long Ticks { get; }
 
-    /// <summary>
-    /// 运行逻辑线程，应该在单独线程上调用，将堵塞
-    /// </summary>
-    void Run();
-
-    /// <summary>
-    /// 停止逻辑线程，并且不应该再次启动。即逻辑线程是一次性的
-    /// </summary>
-    void Stop();
-
-    /// <summary>
-    /// 添加要进行更新的操作
-    /// </summary>
-    void AddUpdatable(IUpdatable updatable);
-
-    /// <summary>
-    /// Remove the updatable object which has been added.
-    /// </summary>
-    /// <param name="updatable"></param>
-    void RemoveUpdatable(IUpdatable updatable);
+    CancellationTokenSource StopTokenSource { get; }
 }
 
-public class SimplyLogicThread : ILogicThread
+public class StandardLogicThread : SafeList<IUpdatable>,ILogicThread
 {
-    public SimplyLogicThread(ITicker ticker, IUpdater updater)
+    public StandardLogicThread(ITicker ticker, IUpdater updater)
     {
-        this._ticker = ticker;
-        this.Updater = updater;
+        _ticker = ticker;
+        Updater = updater;
     }
 
-    public SimplyLogicThread() : this(new Ticker(), new SimplyUpdater()) { }
+    public StandardLogicThread() : this(new Ticker(), new SimplyUpdater()) { }
 
     private readonly ITicker _ticker;
-    private readonly SafeList<IUpdatable> _updatables = new();
-    private readonly object _lock = new();
-    volatile bool _isRunning = true;
-    volatile bool _started = false;
 
     public IUpdater Updater { get; }
 
-    public long Ticks => this._ticker.MillisecondFromLastTick;
+    public long Ticks => _ticker.MillisecondFromLastTick;
+
+    public CancellationTokenSource StopTokenSource { get; } = new();
 
     public void Run()
     {
-        lock (this._lock)
-        {
-            if (this._started)
-            {
-                throw new InvalidOperationException("The thread has started");
-            }
-            this._started = true;
-        }
+        CancellationToken token = StopTokenSource.Token;
 
-        this._ticker.Start();
+        _ticker.Start();
 
         while (true)
         {
-            while (this._isRunning)
+            while (!token.IsCancellationRequested)
             {
                 IUpdatable[] todos;
-                lock (this._lock)
+
+                _rwLock.EnterReadLock();
+                try
                 {
-                    todos = this._updatables.ToArray();
+                    todos = ToArray();
+                }
+                finally
+                {
+                    _rwLock.ExitReadLock();
                 }
 
-                foreach (var task in todos)
+                foreach (IUpdatable task in todos)
                 {
-                    task.Update(this.Updater);
+                    task.Update(Updater);
                 }
             }
-            this._ticker.WaitToNextTick();
-            this._ticker.Tick();
-        }
-    }
-
-    public void Stop()
-    {
-        this._isRunning = false;
-    }
-
-    public void AddUpdatable(IUpdatable updatable)
-    {
-        Guard.IsNotNull(updatable);
-
-        lock (this._lock)
-        {
-            this._updatables.Add(updatable);
-        }
-    }
-
-    public void RemoveUpdatable(IUpdatable updatable)
-    {
-        Guard.IsNotNull(updatable);
-
-        lock (this._lock)
-        {
-            this._updatables.Remove(updatable);
+            _ticker.WaitToNextTick();
+            _ticker.Tick();
         }
     }
 }

@@ -1,38 +1,28 @@
-#region copyright
-// This file(may named Utility.cs) is a part of the project: Utopia.Benchmark.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Benchmark.
-//
-// Utopia.Benchmark is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Benchmark. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 namespace Utopia.Benchmark;
 public static class Utility
 {
-    private readonly static Random _random = new();
+    private static readonly Random s_random = new();
 
-    private static readonly SpinLock _lock = new();
+    private static readonly SpinLock s_lock = new();
 
     public static int RandomInt(int min = int.MinValue, int max = int.MaxValue)
     {
         bool entered = false;
         try
         {
-            _lock.Enter(ref entered);
+            s_lock.Enter(ref entered);
 
-            return _random.Next(min, max);
+            return s_random.Next(min, max);
         }
         finally
         {
             if (entered)
             {
-                _lock.Exit();
+                s_lock.Exit();
             }
         }
     }
@@ -46,9 +36,9 @@ public static class Utility
 
     public static string[] RandomStringArray(int length)
     {
-        var result = new string[length];
+        string[] result = new string[length];
 
-        for (var index = 0; length != index; index++)
+        for (int index = 0; length != index; index++)
         {
             result[index] = RandomString(64);
         }

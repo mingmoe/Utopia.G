@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named Event.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Exceptions;
 
@@ -21,14 +11,8 @@ public class Event : IEvent
     private volatile bool _canceled = false;
     public bool Cancel
     {
-        get
-        {
-            return this._canceled;
-        }
-        protected set
-        {
-            this._canceled = value;
-        }
+        get => _canceled;
+        protected set => _canceled = value;
     }
 
     /// <summary>
@@ -40,62 +24,39 @@ public class Event : IEvent
     /// <param name="e"></param>
     /// <returns></returns>
     /// <exception cref="EventAssertionException"></exception>
-    public static UT GetResult<T, UT>(T e) where T : IEventWithResult<UT>
-    {
-        if (e.Result == null)
-        {
-            throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
-        }
-
-        return e.Result;
-    }
+    public static UT GetResult<T, UT>(T e) where T : IEventWithResult<UT> => e.Result == null ? throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull) : e.Result;
 }
 
 public class CancelableEvent : Event, IEvent, ICancelable
 {
-    public void SetCancel(bool isCancel)
-    {
-        this.Cancel = isCancel;
-    }
+    public void SetCancel(bool isCancel) => Cancel = isCancel;
 }
 
 public class EventWithParam<ParamT> : Event, IEventWithParam<ParamT>
 {
     public ParamT? Parameter { get; set; }
 
-    public EventWithParam(ParamT? parameter) : base()
-    {
-        this.Parameter = parameter;
-    }
+    public EventWithParam(ParamT? parameter) : base() => Parameter = parameter;
 }
 public class CancelableEventWithParam<ParamT> : CancelableEvent, IEventWithParam<ParamT>
 {
     public ParamT? Parameter { get; set; }
 
-    public CancelableEventWithParam(ParamT? parameter) : base()
-    {
-        this.Parameter = parameter;
-    }
+    public CancelableEventWithParam(ParamT? parameter) : base() => Parameter = parameter;
 }
 
 public class EventWithResult<ResultT> : Event, IEventWithResult<ResultT>
 {
     public ResultT? Result { get; set; }
 
-    public EventWithResult(ResultT? result) : base()
-    {
-        this.Result = result;
-    }
+    public EventWithResult(ResultT? result) : base() => Result = result;
 }
 
 public class CancelableEventWithResult<ResultT> : CancelableEvent, IEventWithResult<ResultT>
 {
     public ResultT? Result { get; set; }
 
-    public CancelableEventWithResult(ResultT? result) : base()
-    {
-        this.Result = result;
-    }
+    public CancelableEventWithResult(ResultT? result) : base() => Result = result;
 }
 
 /// <summary>
@@ -111,10 +72,7 @@ IEventWithParamAndResult<ParameterT, RustleT>
     /// <param name="param">事件参数</param>
     /// <param name="initResult">事件初始结果</param>
     /// <param name="cancelAble">事件能否被取消</param>
-    public ComplexEvent(ParameterT? param, RustleT? initResult) : base(param)
-    {
-        this.Result = initResult;
-    }
+    public ComplexEvent(ParameterT? param, RustleT? initResult) : base(param) => Result = initResult;
 
     /// <summary>
     /// 事件返回值
@@ -135,10 +93,7 @@ IEventWithParamAndResult<ParameterT, RustleT>
     /// <param name="param">事件参数</param>
     /// <param name="initResult">事件初始结果</param>
     /// <param name="cancelAble">事件能否被取消</param>
-    public CancelableComplexEvent(ParameterT? param, RustleT? initResult) : base(param)
-    {
-        this.Result = initResult;
-    }
+    public CancelableComplexEvent(ParameterT? param, RustleT? initResult) : base(param) => Result = initResult;
 
     /// <summary>
     /// 事件返回值

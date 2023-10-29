@@ -1,26 +1,17 @@
-#region copyright
-// This file(may named Client.cs) is a part of the project: Utopia.G.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.G.
-//
-// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
-using Autofac;
-using Godot;
 using System;
 using System.IO;
 using System.Net.NetworkInformation;
 using System.Threading;
+using Autofac;
+using Godot;
 using Utopia.Core;
 using Utopia.Core.Events;
-using Utopia.Core.Translate;
+using Utopia.Core.Plugin;
+using Utopia.Core.Transition;
 using Utopia.Core.Utilities.IO;
 using Utopia.G.Game.Entity;
 using Utopia.G.Graphy;
@@ -30,7 +21,7 @@ namespace Utopia.G.Game;
 
 public static class Client
 {
-    private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
+    private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
     /// <summary>
     /// 创建本地服务器
@@ -45,9 +36,9 @@ public static class Client
         do
         {
             var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
-            var tcpConnInfoArray = ipGlobalProperties.GetActiveTcpConnections();
+            TcpConnectionInformation[] tcpConnInfoArray = ipGlobalProperties.GetActiveTcpConnections();
 
-            foreach (var tcpi in tcpConnInfoArray)
+            foreach (TcpConnectionInformation tcpi in tcpConnInfoArray)
             {
                 if (tcpi.LocalEndPoint.Port == option.Port)
                 {
@@ -65,8 +56,8 @@ public static class Client
         }
         while (!portAvailable);
 
-        var port = option.Port;
-        var locker = new object();
+        int port = option.Port;
+        object locker = new();
 
         Thread thread = new(() =>
         {
@@ -100,7 +91,7 @@ public static class Client
         register<Node>(root);
         register<TileManager>(new TileManager());
         // end
-        provider.TryRegisterService(builder);
+        _ = provider.TryRegisterService(builder);
 
         // init filesystem
         provider.GetService<IFileSystem>().CreateIfNotExist();
@@ -109,19 +100,19 @@ public static class Client
 
         void register<T>(object instance) where T : notnull
         {
-            provider.TryRegisterService<T>((T)instance);
-            builder.RegisterInstance(instance).As<T>().ExternallyOwned();
+            _ = provider.TryRegisterService<T>((T)instance);
+            _ = builder.RegisterInstance(instance).As<T>().ExternallyOwned();
         }
     }
 
     public static void Start(Uri server, Core.IServiceProvider provider)
     {
-        var bus = provider.GetService<IEventBus>();
+        IEventBus bus = provider.GetService<IEventBus>();
 
         try
         {
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.InitializedSystem, () => { },
-                _logger, bus, provider);
+                s_logger, bus, provider);
 
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadPlugin, () =>
             {
@@ -129,32 +120,32 @@ public static class Client
                     provider.GetService<ContainerBuilder>(),
                     typeof(Plugin.CorePlugin));
                 provider.GetService<IPluginLoader<IPlugin>>().LoadFromDirectory(
-                    provider.GetService<IFileSystem>().Plugins,
+                    provider.GetService<IFileSystem>().PluginsDirectory,
                     provider.GetService<ContainerBuilder>(),
-                    _logger
+                    s_logger
                     );
-                var container = provider.GetService<ContainerBuilder>().Build();
+                IContainer container = provider.GetService<ContainerBuilder>().Build();
                 provider.RemoveService<ContainerBuilder>();
-                provider.TryRegisterService(container);
+                _ = provider.TryRegisterService(container);
                 provider.GetService<IPluginLoader<IPlugin>>().Active(container);
             },
-                _logger, bus, provider);
+                s_logger, bus, provider);
 
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.ConnectToServer, () =>
             {
-                var connect = provider.GetService<Net.ISocketConnecter>();
+                Net.ISocketConnecter connect = provider.GetService<Net.ISocketConnecter>();
 
-                var socket = connect.Connect(server);
+                Core.Net.IConnectHandler socket = connect.Connect(server);
             },
-                _logger, bus, provider);
+                s_logger, bus, provider);
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "the client initlize failed");
+            s_logger.Error(ex, "the client initlize failed");
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Crash, () => { },
-                _logger, bus, provider);
+                s_logger, bus, provider);
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Stop, () => { },
-                _logger, bus, provider);
+                s_logger, bus, provider);
         }
     }
 }

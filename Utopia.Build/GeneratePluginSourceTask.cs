@@ -1,9 +1,10 @@
-using Microsoft.Build.Framework;
-using System;
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using System.Collections.Generic;
 using System.IO;
-using System.Security.AccessControl;
-using System.Text;
+using Microsoft.Build.Framework;
 
 namespace Utopia.Build
 {
@@ -15,10 +16,10 @@ namespace Utopia.Build
         public bool AccessPluginFromParent { get; set; } = false;
 
         [Required]
-        public string ProjectDir { get;set; }
+        public string ProjectDir { get; set; }
 
         [Required]
-        public string Namespace { get;set; }
+        public string Namespace { get; set; }
 
         [Required]
         public string Generate { get; set; }
@@ -28,13 +29,13 @@ namespace Utopia.Build
 
         public override bool Execute()
         {
-            var projectDir = this.ProjectDir;
-            var targetNamespace = this.Namespace;
+            string projectDir = ProjectDir;
+            string targetNamespace = Namespace;
 
-            var version = this.AccessVersionFromParent ? Path.Combine(projectDir, "../version.txt") :
-                Path.Combine(projectDir,"version.txt");
+            string version = AccessVersionFromParent ? Path.Combine(projectDir, "../version.txt") :
+                Path.Combine(projectDir, "version.txt");
 
-            var info = this.AccessPluginFromParent ? Path.Combine(projectDir, "../utopia.toml") :
+            string info = AccessPluginFromParent ? Path.Combine(projectDir, "../utopia.toml") :
                 Path.Combine(projectDir, "utopia.toml");
 
             var arguments = new List<string>
@@ -48,10 +49,10 @@ namespace Utopia.Build
                 projectDir,
                 "--namespace",
                 targetNamespace,
-                this.Generate
+                Generate
             };
 
-            this.Arguments = arguments.ToArray();
+            Arguments = arguments.ToArray();
 
             return true;
         }

@@ -1,26 +1,17 @@
-#region copyright
-// This file(may named Launcher.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
+using System.Globalization;
 using Autofac;
 using CommunityToolkit.Diagnostics;
 using Npgsql;
-using System.Globalization;
 using Utopia.Core;
 using Utopia.Core.Collections;
 using Utopia.Core.Events;
 using Utopia.Core.Logging;
-using Utopia.Core.Translate;
+using Utopia.Core.Plugin;
+using Utopia.Core.Transition;
 using Utopia.Core.Utilities;
 using Utopia.Core.Utilities.IO;
 using Utopia.Server.Entity;
@@ -35,12 +26,12 @@ namespace Utopia.Server;
 /// </summary>
 public static class Launcher
 {
-    private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
+    private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
     public static void WaitForStart(object locker)
     {
         ArgumentNullException.ThrowIfNull(locker);
-        Thread.Yield();
+        _ = Thread.Yield();
         Thread.Sleep(100);
         lock (locker)
         {
@@ -96,7 +87,7 @@ public static class Launcher
         int i = 0;
         while (i != args.Length)
         {
-            var arg = args[i++];
+            string arg = args[i++];
 
             if (arg == "--port")
             {
@@ -121,9 +112,9 @@ public static class Launcher
                     throw new ArgumentException("--port argument need one number");
                 }
                 var dataSourceBuilder = new NpgsqlDataSourceBuilder(args[i++]);
-                dataSourceBuilder.UseLoggerFactory(new
+                _ = dataSourceBuilder.UseLoggerFactory(new
                     NLog.Extensions.Logging.NLogLoggerFactory());
-                var dataSource = dataSourceBuilder.Build();
+                NpgsqlDataSource dataSource = dataSourceBuilder.Build();
                 option.DatabaseSource = dataSource;
             }
             else
@@ -148,51 +139,51 @@ public static class Launcher
 
             Thread.CurrentThread.Name = "Server Initialization Thread";
 
-            var provider = _InitSystem(option);
+            ServiceProvider provider = _InitSystem(option);
 
-            var bus = provider.GetService<IEventBus>();
+            IEventBus bus = provider.GetService<IEventBus>();
 
             try
             {
-                provider.TryRegisterService(LifeCycle.InitializedSystem);
+                _ = provider.TryRegisterService(LifeCycle.InitializedSystem);
                 LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.InitializedSystem, () =>
                 {
                     // do nothing
-                }, _logger, bus, provider);
+                }, s_logger, bus, provider);
 
                 // 加载插件
                 LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadPlugin, () =>
                 {
                     provider.GetService<IPluginLoader<IPlugin>>().Register(
                             provider.GetService<ContainerBuilder>(),
-                            typeof(Plugin.CorePlugin)
+                            typeof(Plugin.Plugin)
                         );
                     provider.GetService<IPluginLoader<IPlugin>>().LoadFromDirectory(
-                        provider.GetService<IFileSystem>().Plugins,
+                        provider.GetService<IFileSystem>().PluginsDirectory,
                         provider.GetService<ContainerBuilder>(),
-                        _logger
+                        s_logger
                     );
-                    var container = provider.GetService<ContainerBuilder>().Build();
+                    IContainer container = provider.GetService<ContainerBuilder>().Build();
                     provider.RemoveService<ContainerBuilder>();
-                    provider.TryRegisterService(container);
+                    _ = provider.TryRegisterService(container);
                     provider.GetService<IPluginLoader<IPlugin>>().Active(container);
 
-                }, _logger, bus, provider);
+                }, s_logger, bus, provider);
 
                 // 创建世界
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadSaveings, () => { _LoadSave(provider); }, _logger, bus, provider);
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadSaveings, () => { _LoadSave(provider); }, s_logger, bus, provider);
 
                 // 设置逻辑线程
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.StartLogicThread, () => { _StartLogicThread(provider); }, _logger, bus, provider);
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.StartLogicThread, () => { _StartLogicThread(provider); }, s_logger, bus, provider);
 
                 // 设置网络线程
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.StartNetThread, () => { _StartNetworkThread(provider, option.Port); }, _logger, bus, provider);
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.StartNetThread, () => { _StartNetworkThread(provider, option.Port); }, s_logger, bus, provider);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "the server initlize failed");
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Crash, () => { }, _logger, bus, provider);
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Stop, () => { }, _logger, bus, provider);
+                s_logger.Error(ex, "the server initlize failed");
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Crash, () => { }, s_logger, bus, provider);
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Stop, () => { }, s_logger, bus, provider);
             }
         }
     }
@@ -200,7 +191,7 @@ public static class Launcher
     /// <summary>
     /// 初始化系统
     /// </summary>
-    static ServiceProvider _InitSystem(LauncherOption option)
+    private static ServiceProvider _InitSystem(LauncherOption option)
     {
         Guard.IsNotNull(option);
         // 初始化日志系统
@@ -219,10 +210,10 @@ public static class Launcher
         register<IPluginLoader<IPlugin>>(new PluginLoader<IPlugin>());
         register<ITranslateManager>(new TranslateManager());
         register<TranslateIdentifence>(option.GlobalLanguage);
-        register<ILogicThread>(new SimplyLogicThread());
+        register<ILogicThread>(new StandardLogicThread());
         register<IEventBus>(new EventBus());
         register<IEntityManager>(new EntityManager());
-        register<InternetMain>(new InternetMain(provider));
+        register<IInternetMain>(new InternetMain(provider));
         // init filesystem
         provider.GetService<IFileSystem>().CreateIfNotExist();
 
@@ -230,7 +221,7 @@ public static class Launcher
         register<SafeDictionary<long, IWorld>>(new SafeDictionary<long, Map.IWorld>());
         register<SafeDictionary<Guuid, IWorldFactory>>(new SafeDictionary<Guuid, IWorldFactory>());
 
-        provider.TryRegisterService(builder);
+        _ = provider.TryRegisterService(builder);
 
         if (option.DatabaseSource == null)
         {
@@ -242,8 +233,8 @@ public static class Launcher
 
         void register<T>(object instance) where T : notnull
         {
-            provider.TryRegisterService<T>((T)instance);
-            builder.RegisterInstance(instance).As<T>().ExternallyOwned();
+            _ = provider.TryRegisterService<T>((T)instance);
+            _ = builder.RegisterInstance(instance).As<T>().ExternallyOwned();
         }
     }
 
@@ -251,14 +242,14 @@ public static class Launcher
     /// 加载存档
     /// </summary>
     /// <param name="provider"></param>
-    static void _LoadSave(Core.IServiceProvider provider)
+    private static void _LoadSave(Core.IServiceProvider provider)
     {
-        var array = provider.GetService<SafeDictionary<Guuid, IWorldFactory>>().ToArray();
+        KeyValuePair<Guuid, IWorldFactory>[] array = provider.GetService<SafeDictionary<Guuid, IWorldFactory>>().ToArray();
 
         // TODO: Load saves from file
         if (array.Length == 1)
         {
-            provider.GetService<SafeDictionary<long, IWorld>>().TryAdd(0, array[0].Value.GenerateNewWorld());
+            _ = provider.GetService<SafeDictionary<long, IWorld>>().TryAdd(0, array[0].Value.GenerateNewWorld());
         }
     }
 
@@ -266,25 +257,25 @@ public static class Launcher
     /// 启动
     /// </summary>
     /// <param name="provider"></param>
-    static void _StartLogicThread(Utopia.Core.IServiceProvider provider)
+    private static void _StartLogicThread(Core.IServiceProvider provider)
     {
         var logicT = new Thread(() =>
         {
-            var t = provider.GetService<ILogicThread>();
-            var worlds = provider.GetService<SafeDictionary<long, IWorld>>().ToArray();
-            foreach (var world in worlds)
+            ILogicThread t = provider.GetService<ILogicThread>();
+            KeyValuePair<long, IWorld>[] worlds = provider.GetService<SafeDictionary<long, IWorld>>().ToArray();
+            foreach (KeyValuePair<long, IWorld> world in worlds)
             {
-                t.AddUpdatable(world.Value);
+                t.Add(world.Value);
             }
             // 注册关闭事件
             provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((cycle) =>
             {
-                if (cycle.Cycle == LifeCycle.Stop)
+                if (cycle.Cycle == LifeCycle.Stop && cycle.Order == LifeCycleOrder.After)
                 {
-                    t.Stop();
+                    t.StopTokenSource.Cancel();
                 }
             });
-            t.Run();
+            ((StandardLogicThread)t).Run();
         })
         {
             Name = "Server Logic Thread"
@@ -295,22 +286,22 @@ public static class Launcher
     /// <summary>
     /// 启动网络线程
     /// </summary>
-    static void _StartNetworkThread(Core.IServiceProvider provider, int port)
+    private static void _StartNetworkThread(Core.IServiceProvider provider, int port)
     {
-        var netServer = provider.GetService<IInternetListener>();
-        provider.TryRegisterService(netServer);
+        IInternetListener netServer = provider.GetService<IInternetListener>();
+        _ = provider.TryRegisterService(netServer);
         netServer.Listen(port);
-        _logger.Info("listen to {port}", port);
+        s_logger.Info("listen to {port}", port);
 
-        var netThread = provider.GetService<InternetMain>();
+        InternetMain netThread = (InternetMain)provider.GetService<IInternetMain>();
         var thread = new Thread(() =>
         {
             // 注册关闭事件
             provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((cycle) =>
             {
-                if (cycle.Cycle == LifeCycle.Stop)
+                if (cycle.Cycle == LifeCycle.Stop && cycle.Order == LifeCycleOrder.After)
                 {
-                    netThread.Stop();
+                    netThread.StopTokenSource.Cancel();
                 }
             });
             netThread.Run();
@@ -321,8 +312,5 @@ public static class Launcher
         thread.Start();
     }
 
-    static void Main(string[] args)
-    {
-        LaunchWithArguments(args, null);
-    }
+    private static void Main(string[] args) => LaunchWithArguments(args, null);
 }

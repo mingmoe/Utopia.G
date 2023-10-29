@@ -1,19 +1,9 @@
-#region copyright
-// This file(may named GrassEntity.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Map;
-using Utopia.Core.Translate;
+using Utopia.Core.Transition;
 using Utopia.Core.Utilities;
 using Utopia.Server.Map;
 
@@ -34,11 +24,11 @@ public class GrassEntity : IEntity
 
     public WorldPosition WorldPosition { get; set; }
 
-    public GrassEntity(ITranslateManager msg, TranslateIdentifence id)
+    public GrassEntity()
     {
         //        this.Name = new ICUTranslatedString(ResourcePack.Entity.GrassEntity.TranslateKey, msg, id, new object());
-        this.WorldPosition = new WorldPosition(1, 1, 1, 1);
-        this.Name = new TranslatedString("translated");
+        WorldPosition = new WorldPosition(1, 1, 1, 1);
+        Name = new TranslatedString("translated");
     }
 
     public void LogicUpdate()
@@ -46,13 +36,7 @@ public class GrassEntity : IEntity
 
     }
 
-    public byte[] Save()
-    {
-        return Array.Empty<byte>();
-    }
+    public byte[] Save() => Array.Empty<byte>();
 
-    public byte[] ClientOnlyData()
-    {
-        return Array.Empty<byte>();
-    }
+    public byte[] ClientOnlyData() => Array.Empty<byte>();
 }

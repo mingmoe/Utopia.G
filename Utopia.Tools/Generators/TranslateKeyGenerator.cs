@@ -1,19 +1,18 @@
-using NLog;
-using System;
-using System.Collections.Generic;
-using System.IO.IsolatedStorage;
-using System.Linq;
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using System.Text;
-using System.Threading.Tasks;
+using NLog;
 using Tomlyn;
-using Utopia.Core.Translate;
+using Utopia.Core.Transition;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators;
 public class TranslateKeyGenerator : IGenerator
 {
 
-    private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private static readonly Logger s_logger = LogManager.GetCurrentClassLogger();
 
     public const string TranslationClassName = "TranslationKeys";
 
@@ -22,54 +21,54 @@ public class TranslateKeyGenerator : IGenerator
     /// <summary>
     /// Generate translation for file
     /// </summary>
-    private static string _GenerateFor(string source,Dictionary<Guuid,TomlTranslateHumanItem> items
-        ,GeneratorOption option)
+    private static string _GenerateFor(string source, Dictionary<Guuid, TomlTranslateHumanItem> items
+        , GeneratorOption option)
     {
         CsBuilder builder = new(source);
 
-        builder.Usings.Add("Utopia.Core.Translate");
+        builder.Usings.Add("Utopia.Core.Transition");
         builder.Namespace = option.TargetNamespace;
 
-        builder.AddClass(TranslationClassName, isPartial: true, isStatic: true, isPublic: true);
+        builder.EmitClass(TranslationClassName, isPartial: true, isStatic: true, isPublic: true);
 
-        foreach (var item in items)
+        foreach (KeyValuePair<Guuid, TomlTranslateHumanItem> item in items)
         {
-            builder.AddField("public", "TranslateKey", item.Key.ToCsIdentifier(),
-                defaultValue: $"TranslateKey.Create(\"{item.Key}\",\"{item.Value.Comment}\",\"{item.Value.Provider}\")", isReadonly: true,isStatic: true);
+            builder.EmitField("public", "TranslateKey", item.Key.ToCsIdentifier(),
+                defaultValue: $"TranslateKey.Create(\"{item.Key}\",\"{item.Value.Comment}\",\"{item.Value.Provider}\")", isReadonly: true, isStatic: true);
         }
 
         builder.CloseCodeBlock();
- 
+
         return builder.Generate();
-   }
+    }
 
     public void Execute(GeneratorOption option)
     {
         // read all translation files in translate-root directory
-        var files = Directory.GetFiles(option.TargetProject.TranslateDir);
+        string[] files = Directory.GetFiles(option.TargetProject.TranslationDirectory);
 
         // process
-        var tomlOpt = Guuid.AddTomlOption();
-        var fs = option.TargetProject;
+        TomlModelOptions tomlOpt = Guuid.AddTomlOption();
+        IPluginDevFileSystem fs = option.TargetProject;
 
-        foreach(var file in files)
+        foreach (string file in files)
         {
             try
             {
-                var item = Toml.ToModel<Dictionary<Guuid, TomlTranslateHumanItem>>(
+                Dictionary<Guuid, TomlTranslateHumanItem> item = Toml.ToModel<Dictionary<Guuid, TomlTranslateHumanItem>>(
                     File.ReadAllText(file, Encoding.UTF8), options: tomlOpt);
 
-                var output = fs.GetGeneratedCsFilePath(file);
+                string output = fs.GetGeneratedCsFilePath(file);
 
-                Directory.CreateDirectory(Path.GetDirectoryName(output)!);
+                _ = Directory.CreateDirectory(Path.GetDirectoryName(output)!);
 
-                var generated = _GenerateFor(file, item, option);
+                string generated = _GenerateFor(file, item, option);
 
-                File.WriteAllText(output, generated,Encoding.UTF8);
+                File.WriteAllText(output, generated, Encoding.UTF8);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _logger.Error(ex, "get an error when process file {file}",file);
+                s_logger.Error(ex, "get an error when process file {file}", file);
                 throw;
             }
         }

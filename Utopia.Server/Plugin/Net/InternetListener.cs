@@ -1,3 +1,7 @@
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using System.Net;
 using System.Net.Sockets;
 using Utopia.Core.Events;
@@ -15,13 +19,9 @@ public class InternetListener : IInternetListener
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                if (this._port == null)
-                {
-                    throw new InvalidOperationException("the net server is not working now!");
-                }
-                return this._port.Value;
+                return _port == null ? throw new InvalidOperationException("the net server is not working now!") : _port.Value;
             }
         }
     }
@@ -30,9 +30,9 @@ public class InternetListener : IInternetListener
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._socket != null;
+                return _socket != null;
             }
         }
     }
@@ -43,33 +43,33 @@ public class InternetListener : IInternetListener
     public async Task<Socket> Accept()
     {
         Socket socket;
-        lock (this._lock)
+        lock (_lock)
         {
-            if (this._socket == null)
+            if (_socket == null)
             {
                 throw new InvalidOperationException("the server is not working now!");
             }
-            socket = this._socket;
+            socket = _socket;
         }
-        await socket.AcceptAsync();
+        _ = await socket.AcceptAsync();
 
         var e = new ComplexEvent<Socket, Socket>(socket, null);
-        this.AcceptEvent.Fire(e);
-        var newSocket = Event.GetResult<IEventWithResult<Socket>, Socket>(e);
+        AcceptEvent.Fire(e);
+        Socket newSocket = Event.GetResult<IEventWithResult<Socket>, Socket>(e);
 
         return newSocket;
     }
 
     public void Listen(int port)
     {
-        lock (this._lock)
+        lock (_lock)
         {
-            if (this._socket != null)
+            if (_socket != null)
             {
                 throw new InvalidOperationException("the server has started!");
             }
 
-            this._port = port;
+            _port = port;
 
             var listenSocket = new Socket(AddressFamily.InterNetwork,
                                      SocketType.Stream,
@@ -82,29 +82,29 @@ public class InternetListener : IInternetListener
             // start listening
             listenSocket.Listen(port);
 
-            this._socket = listenSocket;
+            _socket = listenSocket;
         }
     }
 
     public void Shutdown()
     {
 
-        lock (this._lock)
+        lock (_lock)
         {
-            if (this._socket == null)
+            if (_socket == null)
             {
                 throw new InvalidOperationException("the server is not working now!");
             }
 
-            this._socket.Close();
-            this._socket.Dispose();
-            this._port = null;
+            _socket.Close();
+            _socket.Dispose();
+            _port = null;
         }
     }
 
     public void Dispose()
     {
-        this.Shutdown();
+        Shutdown();
         GC.SuppressFinalize(this);
     }
 }

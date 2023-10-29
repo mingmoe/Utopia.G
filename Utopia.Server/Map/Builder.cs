@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named Builder.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Map;
 using Utopia.Server.Plugin.Map;
@@ -27,16 +17,16 @@ public class AreaLayerBuilder
 
     public AreaLayerBuilder(WorldPosition layerPosition)
     {
-        this.Blocks = new IBlock[IArea.XSize][];
-        this.Position = layerPosition;
+        Blocks = new IBlock[IArea.XSize][];
+        Position = layerPosition;
 
-        for (int i = 0; i != this.Blocks.Length; i++)
+        for (int i = 0; i != Blocks.Length; i++)
         {
-            this.Blocks[IArea.XSize] = new IBlock[IArea.YSize];
+            Blocks[IArea.XSize] = new IBlock[IArea.YSize];
 
-            for (int j = 0; j != this.Blocks[i].Length; j++)
+            for (int j = 0; j != Blocks[i].Length; j++)
             {
-                this.Blocks[i][j] = new Block(
+                Blocks[i][j] = new Block(
                         new WorldPosition(
                             layerPosition.X + i,
                             layerPosition.Y + j,
@@ -49,50 +39,44 @@ public class AreaLayerBuilder
 
     public AreaLayerBuilder(IAreaLayer layer)
     {
-        this.Position = layer.Position;
+        Position = layer.Position;
 
-        this.Blocks = new IBlock[IArea.XSize][];
+        Blocks = new IBlock[IArea.XSize][];
 
-        for (int i = 0; i != this.Blocks.Length; i++)
+        for (int i = 0; i != Blocks.Length; i++)
         {
-            this.Blocks[IArea.XSize] = new IBlock[IArea.YSize];
+            Blocks[IArea.XSize] = new IBlock[IArea.YSize];
 
-            for (int j = 0; j != this.Blocks[i].Length; j++)
+            for (int j = 0; j != Blocks[i].Length; j++)
             {
-                layer.TryGetBlock(new FlatPosition(i, j), out IBlock? block);
-                this.Blocks[i][j] = block ?? throw new InvalidOperationException();
+                _ = layer.TryGetBlock(new FlatPosition(i, j), out IBlock? block);
+                Blocks[i][j] = block ?? throw new InvalidOperationException();
             }
         }
     }
 
     public void ForEach(Action<IBlock, FlatPosition> action)
     {
-        for (int x = 0; x != this.Blocks.Length; x++)
+        for (int x = 0; x != Blocks.Length; x++)
         {
-            for (int y = 0; y != this.Blocks[x].Length; y++)
+            for (int y = 0; y != Blocks[x].Length; y++)
             {
-                action.Invoke(this.Blocks[x][y], new FlatPosition(x, y));
+                action.Invoke(Blocks[x][y], new FlatPosition(x, y));
             }
         }
     }
 
-    public void Fill(Func<IBlock, FlatPosition, IEntity> entityFactory)
-    {
-        this.ForEach(
+    public void Fill(Func<IBlock, FlatPosition, IEntity> entityFactory) => ForEach(
                 (b, p) =>
                 {
-                    b.TryAddEntity(entityFactory.Invoke(b, p));
+                    _ = b.TryAddEntity(entityFactory.Invoke(b, p));
                 });
-    }
 
-    public IBlock this[int x, int y]
-    {
-        get => this.Blocks[x][y];
-    }
+    public IBlock this[int x, int y] => Blocks[x][y];
 
     public IAreaLayer Get()
     {
-        var layer = new AreaLayer(this.Blocks, this.Position);
+        var layer = new AreaLayer(Blocks, Position);
 
         return layer;
     }

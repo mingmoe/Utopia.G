@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named Main.cs) is a part of the project: Utopia.G.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.G.
-//
-// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Godot;
 using Utopia.Core.Events;
@@ -27,16 +17,16 @@ public partial class Main : Node
     /// 在_Ready中初始化，视为非null。
     /// </summary>
     [GodotNodeBind("TileMap")]
-    TileMap _map = null!;
+    private TileMap _map = null!;
 
     [GodotNodeBind("PlayerSprite")]
-    Sprite2D _player = null!;
+    private Sprite2D _player = null!;
 
     [GodotNodeBind("Camera")]
-    Camera2D _camera = null!;
+    private Camera2D _camera = null!;
 
     [GodotResourceBind("res://empty_default_tileset.tres")]
-    TileSet _set = null!;
+    private TileSet _set = null!;
 
     /// <summary>
     /// 摄像机移动事件.
@@ -54,40 +44,42 @@ public partial class Main : Node
 
     public Game.Player.IPlayer Player { get; private set; } = null!;
 
-    public TileMap Map => this._map;
+    public TileMap Map => _map;
 
-    public Camera2D Camera => this._camera;
+    public Camera2D Camera => _camera;
 
     public override void _Ready()
     {
         GodotBinder.Bind(this, this);
-        TileMapHelper.CreateTileMapLayer(this._map);
-        this._set.TileSize = new Vector2I(32, 32);
+        TileMapHelper.CreateTileMapLayer(_map);
+        _set.TileSize = new Vector2I(32, 32);
 
-        var server = Client.CreateLocalServer();
-        this.Service = Client.Initlize(this);
-        Client.Start(server, this.Service);
+        System.Uri server = Client.CreateLocalServer();
+        Service = Client.Initlize(this);
+        Client.Start(server, Service);
 
         // this.Player = this.Service.GetService<Game.Player.IPlayer>();
 
         // set camera position
         if (false)
-            this.Player.Position.Event.Register(
+        {
+            Player.Position.Event.Register(
                     (@event) =>
                     {
-                        var got = TileMapHelper.GetCameraPosition(this._map,
+                        Vector2 got = TileMapHelper.GetCameraPosition(_map,
                             new Vector2I(@event.New.X,
                             @event.New.Y));
 
                         var cEvent = new ComplexEvent<Vector2, Vector2>(got, got);
 
-                        this.CameraEvent.Fire(cEvent);
+                        CameraEvent.Fire(cEvent);
 
-                        EventAssertionException.ThrowIfResultIsNull(cEvent);
+                        _ = EventAssertionException.ThrowIfResultIsNull(cEvent);
 
-                        this._camera.Position = cEvent.Result;
+                        _camera.Position = cEvent.Result;
                     }
                 );
+        }
     }
 
     public override void _Process(double delta)

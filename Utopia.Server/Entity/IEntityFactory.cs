@@ -1,3 +1,7 @@
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using Utopia.Core.Collections;
 using Utopia.Core.Exceptions;
 using Utopia.Core.Utilities;
@@ -29,12 +33,5 @@ public class EmptyEntityFactory : IEntityFactory
     public ISafeDictionary<Guuid, IEntity> Entities { get; }
         = new SafeDictionary<Guuid, IEntity>();
 
-    public IEntity Create(Guuid guuid, byte[]? data)
-    {
-        if (this.Entities.TryGetValue(guuid, out var entity))
-        {
-            return entity!;
-        }
-        throw new EntityNotFoundException(guuid);
-    }
+    public IEntity? Create(Guuid guuid, byte[]? data) => Entities.TryGetValue(guuid, out IEntity? entity) ? entity : throw new EntityNotFoundException(guuid);
 }

@@ -1,13 +1,29 @@
 <Project Sdk="Kawayi.Utopia.Sdk">
 
+	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+
 	<PropertyGroup>
 	<OutputType>Exe</OutputType>
 	<TargetFramework>net7.0</TargetFramework>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<StartupObject>Utopia.Server.Launcher</StartupObject>
-	  <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
-  </PropertyGroup>
+	</PropertyGroup>
+
+	<Target Name="GenerateSource" BeforeTargets="Build;Rebuild">
+		<GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="false" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace).Plugin" Generate="server-plugin">
+			<Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
+		</GeneratePluginSourceTask>
+		<RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
+		<GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="false" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace).Plugin" Generate="plugin-info">
+			<Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
+		</GeneratePluginSourceTask>
+		<RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
+		<GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="false" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace).Plugin" Generate="translate-key">
+			<Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
+		</GeneratePluginSourceTask>
+		<RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
+	</Target>
 
 	<ItemGroup>
 	<PackageReference Include="Autofac" Version="7.1.0" />
@@ -19,8 +35,8 @@
 	<PackageReference Include="MessageFormat" Version="7.0.0" />
 	<PackageReference Include="MessagePack" Version="2.5.129" />
 	<PackageReference Include="MessagePackAnalyzer" Version="2.5.129">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		<PrivateAssets>all</PrivateAssets>
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	</PackageReference>
 	<PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
 	<PackageReference Include="NeoSmart.AsyncLock" Version="3.2.1" />
@@ -34,17 +50,15 @@
 	<PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
 	<PackageReference Include="Tomlyn" Version="0.16.2" />
 </ItemGroup>
-
-  
-  <ItemGroup>
-	<ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
-	<ProjectReference Include="..\Utopia.FastNoise\Utopia.FastNoise.csproj" />
-	<ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
-  </ItemGroup>
-
-  
-  <ItemGroup>
-	<Folder Include="Net\Packet\" />
-  </ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
+		<ProjectReference Include="..\Utopia.FastNoise\Utopia.FastNoise.csproj" />
+		<ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<Folder Include="Net\Packet\" />
+	</ItemGroup>
 
 </Project>

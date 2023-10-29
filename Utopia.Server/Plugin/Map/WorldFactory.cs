@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named WorldFactory.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Utilities;
 using Utopia.Server.Map;
@@ -29,11 +19,8 @@ public class WorldFactory : IWorldFactory
     public WorldFactory(Generator generator)
     {
         ArgumentNullException.ThrowIfNull(generator, nameof(generator));
-        this._generator = generator;
+        _generator = generator;
     }
 
-    public IWorld GenerateNewWorld()
-    {
-        return new World(0, 4, 4, this._generator);
-    }
+    public IWorld GenerateNewWorld() => new World(0, 4, 4, _generator);
 }

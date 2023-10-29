@@ -1,25 +1,21 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Tomlyn;
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using Utopia.Core.Utilities;
 
-namespace Utopia.Core.Translate;
+namespace Utopia.Core.Transition;
 
 /// <summary>
 /// This class was used for code generated and human edit.
 /// </summary>
 public sealed class TomlTranslateHumanItem
 {
-    public Guuid Provider { get; set; }
+    public Guuid Provider { get; set; } = Guuid.Empty;
 
-    public string Comment { get; set; }
+    public string Comment { get; set; } = string.Empty;
 
-    public string Translated { get; set; }
+    public string Translated { get; set; } = string.Empty;
 }
 
 public sealed class TomlTranslateProject
@@ -29,35 +25,27 @@ public sealed class TomlTranslateProject
     public Dictionary<Guuid, string> Items { get; set; } = new();
 }
 
-class TomlTranslateProvider : ITranslateProvider
+internal class TomlTranslateProvider : ITranslateProvider
 {
     private TomlTranslateProject _Project { get; init; }
 
     public TomlTranslateProvider(TomlTranslateProject project)
     {
         ArgumentNullException.ThrowIfNull(project);
-        this._Project = project;
+        _Project = project;
     }
 
-    public bool Contain(TranslateIdentifence language, Guuid id)
-    {
-        if (!this._Project.Identifence.Equals(language))
-        {
-            return false;
-        }
-
-        return this._Project.Items.ContainsKey(id);
-    }
+    public bool Contain(TranslateIdentifence language, Guuid id) => _Project.Identifence.Equals(language) && _Project.Items.ContainsKey(id);
 
     public bool TryGetItem(TranslateIdentifence language, Guuid id, out string? result)
     {
-        if (!this._Project.Identifence.Equals(language))
+        if (!_Project.Identifence.Equals(language))
         {
             result = null;
             return false;
         }
 
-        if (this._Project.Items.TryGetValue(id, out result))
+        if (_Project.Items.TryGetValue(id, out result))
         {
             result = null;
             return true;

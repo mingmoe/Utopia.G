@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named Generator.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Map;
 using Utopia.Server.Entity;
@@ -20,20 +10,11 @@ namespace Utopia.Server.Plugin.Map;
 
 public class ClimateGenerator : IClimateGenerator
 {
-    public IElevation GetElevation(Position position)
-    {
-        return new EmptyElevation();
-    }
+    public IElevation GetElevation(Position position) => new EmptyElevation();
 
-    public IPrecipitation GetPrecipitation(Position position)
-    {
-        return new EmptyPrecipiation();
-    }
+    public IPrecipitation GetPrecipitation(Position position) => new EmptyPrecipiation();
 
-    public ITemperature GetTemperature(Position position)
-    {
-        return new EmptyTemperature();
-    }
+    public ITemperature GetTemperature(Position position) => new EmptyTemperature();
 }
 
 public class Generator : IWorldGenerator
@@ -44,7 +25,7 @@ public class Generator : IWorldGenerator
     public Generator(IEntityManager entityManager)
     {
         ArgumentNullException.ThrowIfNull(entityManager);
-        this._entityManager = entityManager;
+        _entityManager = entityManager;
     }
 
     public void Generate(IAreaLayer area)
@@ -61,7 +42,7 @@ public class Generator : IWorldGenerator
             areaLayer.Fill(
                 (b, i) =>
                 {
-                    return this._entityManager.Create(ResourcePack.Entity.GrassEntity.ID, null);
+                    return _entityManager.Create(ResourcePack.Entity.GrassEntity.ID, null);
                 }
             );
         }
@@ -76,7 +57,7 @@ public class Generator : IWorldGenerator
             areaLayer.Fill(
                 (b, i) =>
                 {
-                    return this._entityManager.Create(ResourcePack.Entity.GrassEntity.ID, null);
+                    return _entityManager.Create(ResourcePack.Entity.GrassEntity.ID, null);
                 }
             );
         }

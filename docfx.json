@@ -7,17 +7,10 @@
                     "src": "./"
                 }
             ],
-            "dest": "docfx/api",
-            "properties": {
-                "TargetFramework": "net6.0"
-            }
+            "dest": "docfx/api"
         }
     ],
     "build": {
-        "sitemap": {
-            "baseUrl": "https://docs.utopia.mingmoe.moe/",
-            "changefreq": "daily"
-        },
         "content": [
             {
                 "files": "**/*.md",

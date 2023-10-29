@@ -1,5 +1,7 @@
 <Project Sdk="Kawayi.Utopia.Sdk">
 
+	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>

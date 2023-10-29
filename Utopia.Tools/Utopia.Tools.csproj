@@ -1,22 +1,21 @@
 <Project Sdk="Kawayi.Utopia.Sdk">
 
-  <PropertyGroup>
+	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+
+	<PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
       
       <IsPackable>true</IsPackable>
-      <Authors>MingMoe</Authors>
       <Description>The command line tool for the Project Utopia.</Description>
-      <Copyright>Copyright ©MingMoe 2023</Copyright>
-
       <PackAsTool>True</PackAsTool>
-
-      <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
-      <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
-      
   </PropertyGroup>
+  
+  <ItemGroup>
+    <None Include="Generators\GeneratorTemplate.cs" />
+  </ItemGroup>
 
     <ItemGroup>
     <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
@@ -47,6 +46,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Generators\GeneratorTemplate.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
   </ItemGroup>
 
 </Project>

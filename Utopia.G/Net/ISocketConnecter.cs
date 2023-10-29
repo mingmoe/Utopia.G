@@ -1,20 +1,11 @@
-#region copyright
-// This file(may named ISocketConnecter.cs) is a part of the project: Utopia.G.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.G.
-//
-// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using System;
 using System.Net.Sockets;
 using Utopia.Core.Events;
+using Utopia.Core.Net;
 
 namespace Utopia.G.Net;
 
@@ -35,10 +26,7 @@ public interface ISocketConnecter
     /// 链接到服务器
     /// </summary>
     /// <param name="url">服务器URL</param>
-    IConnectHandler Connect(Uri url)
-    {
-        return this.Connect(url.Host, url.Port);
-    }
+    IConnectHandler Connect(Uri url) => Connect(url.Host, url.Port);
 
     IConnectHandler? ConnectHandler { get; }
 

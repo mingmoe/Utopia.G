@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named FastNoise2.cs) is a part of the project: Utopia.FastNoise.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.FastNoise.
-//
-// Utopia.FastNoise is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.FastNoise is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.FastNoise. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using System.Runtime.InteropServices;
 
@@ -22,74 +12,62 @@ public class FastNoise
     {
         public OutputMinMax(float minValue = float.PositiveInfinity, float maxValue = float.NegativeInfinity)
         {
-            this.min = minValue;
-            this.max = maxValue;
+            min = minValue;
+            max = maxValue;
         }
 
         public OutputMinMax(float[] nativeOutputMinMax)
         {
-            this.min = nativeOutputMinMax[0];
-            this.max = nativeOutputMinMax[1];
+            min = nativeOutputMinMax[0];
+            max = nativeOutputMinMax[1];
         }
 
         public void Merge(OutputMinMax other)
         {
-            this.min = Math.Min(this.min, other.min);
-            this.max = Math.Max(this.max, other.max);
+            min = Math.Min(min, other.min);
+            max = Math.Max(max, other.max);
         }
 
-#pragma warning disable IDE1006 // Naming Styles
         public float min;
-#pragma warning restore IDE1006 // Naming Styles
-#pragma warning disable IDE1006 // Naming Styles
         public float max;
-#pragma warning restore IDE1006 // Naming Styles
     }
 
     public FastNoise(string metadataName)
     {
-        if (!metadataNameLookup.TryGetValue(FormatLookup(metadataName), out this.mMetadataId))
+        if (!metadataNameLookup.TryGetValue(FormatLookup(metadataName), out mMetadataId))
         {
             throw new ArgumentException("Failed to find metadata name: " + metadataName);
         }
 
-        this.mNodeHandle = fnNewFromMetadata(this.mMetadataId);
+        mNodeHandle = fnNewFromMetadata(mMetadataId);
     }
 
     private FastNoise(IntPtr nodeHandle)
     {
-        this.mNodeHandle = nodeHandle;
-        this.mMetadataId = fnGetMetadataID(nodeHandle);
+        mNodeHandle = nodeHandle;
+        mMetadataId = fnGetMetadataID(nodeHandle);
     }
 
     ~FastNoise()
     {
-        fnDeleteNodeRef(this.mNodeHandle);
+        fnDeleteNodeRef(mNodeHandle);
     }
 
     public static FastNoise? FromEncodedNodeTree(string encodedNodeTree)
     {
         IntPtr nodeHandle = fnNewFromEncodedNodeTree(encodedNodeTree);
 
-        if (nodeHandle == IntPtr.Zero)
-        {
-            return null;
-        }
-
-        return new FastNoise(nodeHandle);
+        return nodeHandle == IntPtr.Zero ? null : new FastNoise(nodeHandle);
     }
 
-    public uint GetSIMDLevel()
-    {
-        return fnGetSIMDLevel(this.mNodeHandle);
-    }
+    public uint GetSIMDLevel() => fnGetSIMDLevel(mNodeHandle);
 
     public void Set(string memberName, float value)
     {
 #pragma warning disable IDE0018 // Inline variable declaration
         Metadata.Member member;
 #pragma warning restore IDE0018 // Inline variable declaration
-        if (!nodeMetadata[this.mMetadataId].members.TryGetValue(FormatLookup(memberName), out member))
+        if (!nodeMetadata[mMetadataId].members.TryGetValue(FormatLookup(memberName), out member))
         {
             throw new ArgumentException("Failed to find member name: " + memberName);
         }
@@ -97,14 +75,14 @@ public class FastNoise
         switch (member.type)
         {
             case Metadata.Member.Type.Float:
-                if (!fnSetVariableFloat(this.mNodeHandle, member.index, value))
+                if (!fnSetVariableFloat(mNodeHandle, member.index, value))
                 {
                     throw new ExternalException("Failed to set float value");
                 }
                 break;
 
             case Metadata.Member.Type.Hybrid:
-                if (!fnSetHybridFloat(this.mNodeHandle, member.index, value))
+                if (!fnSetHybridFloat(mNodeHandle, member.index, value))
                 {
                     throw new ExternalException("Failed to set float value");
                 }
@@ -120,7 +98,7 @@ public class FastNoise
 #pragma warning disable IDE0018 // Inline variable declaration
         Metadata.Member member;
 #pragma warning restore IDE0018 // Inline variable declaration
-        if (!nodeMetadata[this.mMetadataId].members.TryGetValue(FormatLookup(memberName), out member))
+        if (!nodeMetadata[mMetadataId].members.TryGetValue(FormatLookup(memberName), out member))
         {
             throw new ArgumentException("Failed to find member name: " + memberName);
         }
@@ -130,7 +108,7 @@ public class FastNoise
             throw new ArgumentException(memberName + " cannot be set to an int value");
         }
 
-        if (!fnSetVariableIntEnum(this.mNodeHandle, member.index, value))
+        if (!fnSetVariableIntEnum(mNodeHandle, member.index, value))
         {
             throw new ExternalException("Failed to set int value");
         }
@@ -141,7 +119,7 @@ public class FastNoise
 #pragma warning disable IDE0018 // Inline variable declaration
         Metadata.Member member;
 #pragma warning restore IDE0018 // Inline variable declaration
-        if (!nodeMetadata[this.mMetadataId].members.TryGetValue(FormatLookup(memberName), out member))
+        if (!nodeMetadata[mMetadataId].members.TryGetValue(FormatLookup(memberName), out member))
         {
             throw new ArgumentException("Failed to find member name: " + memberName);
         }
@@ -159,7 +137,7 @@ public class FastNoise
             throw new ArgumentException("Failed to find enum value: " + enumValue);
         }
 
-        if (!fnSetVariableIntEnum(this.mNodeHandle, member.index, enumIdx))
+        if (!fnSetVariableIntEnum(mNodeHandle, member.index, enumIdx))
         {
             throw new ExternalException("Failed to set enum value");
         }
@@ -170,7 +148,7 @@ public class FastNoise
 #pragma warning disable IDE0018 // Inline variable declaration
         Metadata.Member member;
 #pragma warning restore IDE0018 // Inline variable declaration
-        if (!nodeMetadata[this.mMetadataId].members.TryGetValue(FormatLookup(memberName), out member))
+        if (!nodeMetadata[mMetadataId].members.TryGetValue(FormatLookup(memberName), out member))
         {
             throw new ArgumentException("Failed to find member name: " + memberName);
         }
@@ -178,14 +156,14 @@ public class FastNoise
         switch (member.type)
         {
             case Metadata.Member.Type.NodeLookup:
-                if (!fnSetNodeLookup(this.mNodeHandle, member.index, nodeLookup.mNodeHandle))
+                if (!fnSetNodeLookup(mNodeHandle, member.index, nodeLookup.mNodeHandle))
                 {
                     throw new ExternalException("Failed to set node lookup");
                 }
                 break;
 
             case Metadata.Member.Type.Hybrid:
-                if (!fnSetHybridNodeLookup(this.mNodeHandle, member.index, nodeLookup.mNodeHandle))
+                if (!fnSetHybridNodeLookup(mNodeHandle, member.index, nodeLookup.mNodeHandle))
                 {
                     throw new ExternalException("Failed to set node lookup");
                 }
@@ -202,9 +180,7 @@ public class FastNoise
                                    float frequency, int seed)
     {
         float[] minMax = new float[2];
-#pragma warning disable CA1806 // Do not ignore method results
-        fnGenUniformGrid2D(this.mNodeHandle, noiseOut, xStart, yStart, xSize, ySize, frequency, seed, minMax);
-#pragma warning restore CA1806 // Do not ignore method results
+        _ = fnGenUniformGrid2D(mNodeHandle, noiseOut, xStart, yStart, xSize, ySize, frequency, seed, minMax);
         return new OutputMinMax(minMax);
     }
 
@@ -214,9 +190,7 @@ public class FastNoise
                                    float frequency, int seed)
     {
         float[] minMax = new float[2];
-#pragma warning disable CA1806 // Do not ignore method results
-        fnGenUniformGrid3D(this.mNodeHandle, noiseOut, xStart, yStart, zStart, xSize, ySize, zSize, frequency, seed, minMax);
-#pragma warning restore CA1806 // Do not ignore method results
+        _ = fnGenUniformGrid3D(mNodeHandle, noiseOut, xStart, yStart, zStart, xSize, ySize, zSize, frequency, seed, minMax);
         return new OutputMinMax(minMax);
     }
 
@@ -226,9 +200,7 @@ public class FastNoise
                                    float frequency, int seed)
     {
         float[] minMax = new float[2];
-#pragma warning disable CA1806 // Do not ignore method results
-        fnGenUniformGrid4D(this.mNodeHandle, noiseOut, xStart, yStart, zStart, wStart, xSize, ySize, zSize, wSize, frequency, seed, minMax);
-#pragma warning restore CA1806 // Do not ignore method results
+        _ = fnGenUniformGrid4D(mNodeHandle, noiseOut, xStart, yStart, zStart, wStart, xSize, ySize, zSize, wSize, frequency, seed, minMax);
         return new OutputMinMax(minMax);
     }
 
@@ -237,7 +209,7 @@ public class FastNoise
                                    float frequency, int seed)
     {
         float[] minMax = new float[2];
-        fnGenTileable2D(this.mNodeHandle, noiseOut, xSize, ySize, frequency, seed, minMax);
+        fnGenTileable2D(mNodeHandle, noiseOut, xSize, ySize, frequency, seed, minMax);
         return new OutputMinMax(minMax);
     }
 
@@ -247,7 +219,7 @@ public class FastNoise
                                          int seed)
     {
         float[] minMax = new float[2];
-        fnGenPositionArray2D(this.mNodeHandle, noiseOut, xPosArray.Length, xPosArray, yPosArray, xOffset, yOffset, seed, minMax);
+        fnGenPositionArray2D(mNodeHandle, noiseOut, xPosArray.Length, xPosArray, yPosArray, xOffset, yOffset, seed, minMax);
         return new OutputMinMax(minMax);
     }
 
@@ -257,7 +229,7 @@ public class FastNoise
                                          int seed)
     {
         float[] minMax = new float[2];
-        fnGenPositionArray3D(this.mNodeHandle, noiseOut, xPosArray.Length, xPosArray, yPosArray, zPosArray, xOffset, yOffset, zOffset, seed, minMax);
+        fnGenPositionArray3D(mNodeHandle, noiseOut, xPosArray.Length, xPosArray, yPosArray, zPosArray, xOffset, yOffset, zOffset, seed, minMax);
         return new OutputMinMax(minMax);
     }
 
@@ -267,24 +239,15 @@ public class FastNoise
                                          int seed)
     {
         float[] minMax = new float[2];
-        fnGenPositionArray4D(this.mNodeHandle, noiseOut, xPosArray.Length, xPosArray, yPosArray, zPosArray, wPosArray, xOffset, yOffset, zOffset, wOffset, seed, minMax);
+        fnGenPositionArray4D(mNodeHandle, noiseOut, xPosArray.Length, xPosArray, yPosArray, zPosArray, wPosArray, xOffset, yOffset, zOffset, wOffset, seed, minMax);
         return new OutputMinMax(minMax);
     }
 
-    public float GenSingle2D(float x, float y, int seed)
-    {
-        return fnGenSingle2D(this.mNodeHandle, x, y, seed);
-    }
+    public float GenSingle2D(float x, float y, int seed) => fnGenSingle2D(mNodeHandle, x, y, seed);
 
-    public float GenSingle3D(float x, float y, float z, int seed)
-    {
-        return fnGenSingle3D(this.mNodeHandle, x, y, z, seed);
-    }
+    public float GenSingle3D(float x, float y, float z, int seed) => fnGenSingle3D(mNodeHandle, x, y, z, seed);
 
-    public float GenSingle4D(float x, float y, float z, float w, int seed)
-    {
-        return fnGenSingle4D(this.mNodeHandle, x, y, z, w, seed);
-    }
+    public float GenSingle4D(float x, float y, float z, float w, int seed) => fnGenSingle4D(mNodeHandle, x, y, z, w, seed);
 
 #pragma warning disable IDE0044 // Add readonly modifier
 #pragma warning disable IDE1006 // Naming Styles
@@ -309,18 +272,10 @@ public class FastNoise
                 Hybrid,
             }
 
-#pragma warning disable IDE1006 // Naming Styles
             public string name;
-#pragma warning restore IDE1006 // Naming Styles
-#pragma warning disable IDE1006 // Naming Styles
             public Type type;
-#pragma warning restore IDE1006 // Naming Styles
-#pragma warning disable IDE1006 // Naming Styles
             public int index;
-#pragma warning restore IDE1006 // Naming Styles
-#pragma warning disable IDE1006 // Naming Styles
             public Dictionary<string, int> enumNames;
-#pragma warning restore IDE1006 // Naming Styles
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
             public Member()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -329,15 +284,9 @@ public class FastNoise
             }
         }
 
-#pragma warning disable IDE1006 // Naming Styles
         public int id;
-#pragma warning restore IDE1006 // Naming Styles
-#pragma warning disable IDE1006 // Naming Styles
         public string name = string.Empty;
-#pragma warning restore IDE1006 // Naming Styles
-#pragma warning disable IDE1006 // Naming Styles
         public Dictionary<string, Member> members = new();
-#pragma warning restore IDE1006 // Naming Styles
     }
 
     static FastNoise()
@@ -351,9 +300,7 @@ public class FastNoise
         for (int id = 0; id < metadataCount; id++)
         {
 #pragma warning disable IDE0017 // Simplify object initialization
-#pragma warning disable IDE0007 // Use implicit type
-            Metadata metadata = new Metadata();
-#pragma warning restore IDE0007 // Use implicit type
+            Metadata metadata = new();
 #pragma warning restore IDE0017 // Simplify object initialization
 
             metadata.id = id;
@@ -371,11 +318,9 @@ public class FastNoise
             // Init variables
             for (int variableIdx = 0; variableIdx < variableCount; variableIdx++)
             {
-#pragma warning disable IDE0007 // Use implicit type
 #pragma warning disable IDE0017 // Simplify object initialization
-                Metadata.Member member = new Metadata.Member();
+                Metadata.Member member = new();
 #pragma warning restore IDE0017 // Simplify object initialization
-#pragma warning restore IDE0007 // Use implicit type
 
 #pragma warning disable CS8604 // Possible null reference argument.
                 member.name = FormatLookup(Marshal.PtrToStringAnsi(fnGetMetadataVariableName(id, variableIdx)));
@@ -405,11 +350,9 @@ public class FastNoise
             // Init node lookups
             for (int nodeLookupIdx = 0; nodeLookupIdx < nodeLookupCount; nodeLookupIdx++)
             {
-#pragma warning disable IDE0007 // Use implicit type
 #pragma warning disable IDE0017 // Simplify object initialization
-                Metadata.Member member = new Metadata.Member();
+                Metadata.Member member = new();
 #pragma warning restore IDE0017 // Simplify object initialization
-#pragma warning restore IDE0007 // Use implicit type
 
 #pragma warning disable CS8604 // Possible null reference argument.
                 member.name = FormatLookup(Marshal.PtrToStringAnsi(fnGetMetadataNodeLookupName(id, nodeLookupIdx)));
@@ -426,11 +369,9 @@ public class FastNoise
             // Init hybrids
             for (int hybridIdx = 0; hybridIdx < hybridCount; hybridIdx++)
             {
-#pragma warning disable IDE0007 // Use implicit type
 #pragma warning disable IDE0017 // Simplify object initialization
-                Metadata.Member member = new Metadata.Member();
+                Metadata.Member member = new();
 #pragma warning restore IDE0017 // Simplify object initialization
-#pragma warning restore IDE0007 // Use implicit type
 
 #pragma warning disable CS8604 // Possible null reference argument.
                 member.name = FormatLookup(Marshal.PtrToStringAnsi(fnGetMetadataHybridName(id, hybridIdx)));
@@ -448,9 +389,7 @@ public class FastNoise
     }
 
     // Append dimension char where neccessary 
-#pragma warning disable IDE1006 // Naming Styles
     private static string FormatDimensionMember(string name, int dimIdx)
-#pragma warning restore IDE1006 // Naming Styles
     {
         if (dimIdx >= 0)
         {
@@ -461,27 +400,20 @@ public class FastNoise
     }
 
     // Ignores spaces and caps, harder to mistype strings
-#pragma warning disable IDE1006 // Naming Styles
-    private static string FormatLookup(string s)
-#pragma warning restore IDE1006 // Naming Styles
-    {
-        return s.Replace(" ", "").ToLower();
-    }
+    private static string FormatLookup(string s) => s.Replace(" ", "").ToLower();
 
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable IDE0044 // Add readonly modifier
-    static private Dictionary<string, int> metadataNameLookup;
+    private static Dictionary<string, int> metadataNameLookup;
 #pragma warning restore IDE0044 // Add readonly modifier
 #pragma warning restore IDE1006 // Naming Styles
 #pragma warning disable IDE1006 // Naming Styles
 #pragma warning disable IDE0044 // Add readonly modifier
-    static private Metadata[] nodeMetadata;
+    private static Metadata[] nodeMetadata;
 #pragma warning restore IDE0044 // Add readonly modifier
 #pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable IDE1006 // Naming Styles
     private const string NATIVE_LIB = "FastNoise";
-#pragma warning restore IDE1006 // Naming Styles
 
     [DllImport(NATIVE_LIB)]
 #pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time

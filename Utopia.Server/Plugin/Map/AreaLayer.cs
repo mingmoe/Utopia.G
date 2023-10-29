@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named AreaLayer.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Map;
 using Utopia.Core.Utilities.IO;
@@ -32,47 +22,47 @@ public class AreaLayer : IAreaLayer
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._stage;
+                return _stage;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                this._stage = value;
+                _stage = value;
             }
         }
     }
 
     internal AreaLayer(IBlock[][] blocks, WorldPosition position)
     {
-        this._blocks = blocks;
-        this.Position = position;
+        _blocks = blocks;
+        Position = position;
     }
 
     public AreaLayer(WorldPosition position)
     {
-        this.Position = position;
+        Position = position;
 
         var n = new Block[IArea.XSize][];
 
-        for (var xIndex = 0; xIndex != IArea.XSize; xIndex++)
+        for (int xIndex = 0; xIndex != IArea.XSize; xIndex++)
         {
             n[xIndex] = new Block[IArea.YSize];
 
-            for (var yIndex = 0; yIndex != IArea.YSize; yIndex++)
+            for (int yIndex = 0; yIndex != IArea.YSize; yIndex++)
             {
                 n[xIndex][yIndex] = new(new WorldPosition(
-                     xIndex + this.Position.X,
-                     yIndex + this.Position.Y,
+                     xIndex + Position.X,
+                     yIndex + Position.Y,
                      position.Z,
-                     this.Position.Id));
+                     Position.Id));
             }
         }
 
-        this._blocks = n;
+        _blocks = n;
     }
 
     public bool TryGetBlock(FlatPosition position, out IBlock? block)
@@ -84,16 +74,16 @@ public class AreaLayer : IAreaLayer
             return false;
         }
 
-        block = this._blocks[position.X][position.Y];
+        block = _blocks[position.X][position.Y];
 
         return true;
     }
 
     public void Update(IUpdater updater)
     {
-        foreach (var blocks in this._blocks)
+        foreach (IBlock[] blocks in _blocks)
         {
-            foreach (var block in blocks)
+            foreach (IBlock block in blocks)
             {
                 updater.AssignTask(block.LogicUpdate);
             }
@@ -104,9 +94,9 @@ public class AreaLayer : IAreaLayer
     {
         MemoryStream stream = new();
 
-        foreach (var x in this._blocks)
+        foreach (IBlock[] x in _blocks)
         {
-            foreach (var y in x)
+            foreach (IBlock y in x)
             {
                 StreamUtility.WriteDataWithLength(stream, y.Save()).Wait();
             }

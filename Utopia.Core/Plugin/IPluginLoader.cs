@@ -1,26 +1,15 @@
-#region copyright
-// This file(may named IPluginLoader.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
+using System.Collections.Immutable;
+using System.Reflection;
 using Autofac;
 using CommunityToolkit.Diagnostics;
 using NLog;
-using System.Collections.Immutable;
-using System.Reflection;
 using Utopia.Core.Events;
-using Utopia.Core;
 
-namespace Utopia.Server;
+namespace Utopia.Core.Plugin;
 
 /// <summary>
 /// 插件加载器接口，保证线程安全
@@ -51,7 +40,7 @@ public interface IPluginLoader<PluginT> : IDisposable
     public class ActivePlguinEventArgs : Event
     {
         /// <summary>
-        /// 插件类型. If it's null(and <see cref="PluginInstance"/> is not null), throw a <see cref="Utopia.Core.Exceptions.EventAssertionException"/>.
+        /// 插件类型. If it's null(and <see cref="PluginInstance"/> is not null), throw a <see cref="Exceptions.EventAssertionException"/>.
         /// </summary>
         public Type PluginType { get; set; }
 
@@ -67,12 +56,12 @@ public interface IPluginLoader<PluginT> : IDisposable
         /// </summary>
         public IContainer? Container { get; }
 
-        public ActivePlguinEventArgs(PluginT plugin,Type pluginType, IContainer? container)
+        public ActivePlguinEventArgs(PluginT plugin, Type pluginType, IContainer? container)
         {
             Guard.IsNotNull(pluginType);
-            this.PluginType = pluginType;
-            this.Container = container;
-            this.PluginInstance = plugin;
+            PluginType = pluginType;
+            Container = container;
+            PluginInstance = plugin;
         }
     }
 
@@ -91,19 +80,19 @@ public interface IPluginLoader<PluginT> : IDisposable
         ArgumentNullException.ThrowIfNull(builder, nameof(builder));
 
         var loaded = Assembly.LoadFrom(dllFile);
-        var types = loaded.ExportedTypes;
+        IEnumerable<Type> types = loaded.ExportedTypes;
 
-        foreach (var type in types)
+        foreach (Type type in types)
         {
-            this.Register(builder, type);
+            Register(builder, type);
         }
     }
 
     /// <summary>
     /// Active all types of plugin in <see cref="IPluginLoader{PluginT}.UnresolveredPlugins"/>.
     /// They will be resolved using the IContainer from the argument. And then fire the <see cref="ActivePlguinEvent"/>,
-    /// and then call the <see cref="IPluginBase.Active"/> method of the plugin.
-    /// If a plugin throw any exception when call <see cref="IPluginBase.Active"/>,
+    /// and then call the <see cref="IPluginBase.Activate"/> method of the plugin.
+    /// If a plugin throw any exception when call <see cref="IPluginBase.Activate"/>,
     /// this plugin will be ignored and won't be added to the <see cref="ActivedPlugins"/>.
     /// </summary>
     /// <param name="container">This container should from the argument of method
@@ -121,10 +110,10 @@ public interface IPluginLoader<PluginT> : IDisposable
 
     /// <summary>
     /// If you create a plugin manually,use this method add it to the <see cref="ActivedPlugins"/>.
-    /// This will also fire the <see cref="ActivePlguinEvent"/> event.And call the <see cref="IPluginBase.Active"/>
+    /// This will also fire the <see cref="ActivePlguinEvent"/> event.And call the <see cref="IPluginBase.Activate"/>
     /// </summary>
     /// <param name="typed">if this is null, get type from plugin.<see cref="object.GetType"/></param>
-    void AddResolved(PluginT plugin,Type? typed = null);
+    void AddResolved(PluginT plugin, Type? typed = null);
 
     /// <summary>
     /// If you register a type of plugin,it will be registered in <see cref="ContainerBuilder"/>,
@@ -134,8 +123,8 @@ public interface IPluginLoader<PluginT> : IDisposable
     /// <param name="type"></param>
     void Register(ContainerBuilder builder, Type type)
     {
-        builder.RegisterType(type);
-        this.AddUnresolved(type);
+        _ = builder.RegisterType(type);
+        AddUnresolved(type);
     }
 }
 
@@ -152,9 +141,9 @@ public static class PluginLoadHelper
     public static void LoadFromDirectory<T>(this IPluginLoader<T> loader, string dir,
         ContainerBuilder builder, ILogger logger)
     {
-        foreach (var f in Directory.GetFiles(dir, "*.dll", SearchOption.AllDirectories))
+        foreach (string f in Directory.GetFiles(dir, "*.dll", SearchOption.AllDirectories))
         {
-            var file = Path.GetFullPath(f);
+            string file = Path.GetFullPath(f);
             logger.Info("loading plugin from dll:{plugin}", file);
             loader.RegisterPluginFromDll(builder, file);
         }

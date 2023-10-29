@@ -1,22 +1,12 @@
-#region copyright
-// This file(may named LogManager.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
+using System.Diagnostics;
+using System.Text;
 using NLog;
 using NLog.Layouts;
 using NLog.Targets;
-using System.Diagnostics;
-using System.Text;
 
 namespace Utopia.Core.Logging;
 
@@ -46,29 +36,23 @@ public static class LogManager
         /// Create a new default log option. e.g. use colorful output.
         /// </summary>
         /// <returns></returns>
-        public static LogOption CreateDefault()
+        public static LogOption CreateDefault() => new()
         {
-            return new LogOption()
-            {
-                ColorfulOutput = true,
-                EnableDateRegexColor = true,
-                DetailCmdOutput = false,
-            };
-        }
+            ColorfulOutput = true,
+            EnableDateRegexColor = true,
+            DetailCmdOutput = false,
+        };
 
         /// <summary>
         /// Create a new log option for batch. e.g. disable colorful output.
         /// </summary>
         /// <returns></returns>
-        public static LogOption CreateBatch()
+        public static LogOption CreateBatch() => new()
         {
-            return new LogOption()
-            {
-                ColorfulOutput = false,
-                EnableDateRegexColor = false,
-                DetailCmdOutput = true,
-            };
-        }
+            ColorfulOutput = false,
+            EnableDateRegexColor = false,
+            DetailCmdOutput = true,
+        };
     }
 
     /// <summary>
@@ -187,9 +171,9 @@ public static class LogManager
         };
 
         // 设置更好的异常格式
-        NLog.LogManager.Setup().SetupExtensions((e) =>
+        _ = NLog.LogManager.Setup().SetupExtensions((e) =>
         {
-            e.RegisterLayoutRenderer("demystifiedException", (e) =>
+            _ = e.RegisterLayoutRenderer("demystifiedException", (e) =>
             {
                 if (e.Exception != null)
                 {
@@ -220,9 +204,6 @@ public static class LogManager
     /// <summary>
     /// 关闭日志
     /// </summary>
-    public static void Shutdown()
-    {
-        NLog.LogManager.Shutdown();
-    }
+    public static void Shutdown() => NLog.LogManager.Shutdown();
 
 }

@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named GuuidBenchmark.cs) is a part of the project: Utopia.Benchmark.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Benchmark.
-//
-// Utopia.Benchmark is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Benchmark is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Benchmark. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using BenchmarkDotNet.Attributes;
 using Utopia.Core.Utilities;
@@ -30,26 +20,27 @@ public class GuuidBenchmark
 
     public GuuidBenchmark()
     {
-        this._new = new Guuid(this._data.First(), this._data[1..]);
-        this._converted = this._new.ToString();
+        _new = new Guuid(_data.First(), _data[1..]);
+        _converted = _new.ToString();
     }
 
     [Benchmark]
-    public Guuid Construction()
-    {
-        return new Guuid(this._data.First(), this._data[1..]);
-    }
+    public Guuid ConstructionGuuid() => new(_data.First(), _data[1..]);
 
     [Benchmark]
-    public Guuid PauseGuuid()
-    {
-        return Guuid.Parse(this._converted);
-    }
+    public string ConstructionString() => new(_converted);
+    [Benchmark]
+    public Guuid PauseGuuid() => Guuid.Parse(_converted);
 
     [Benchmark]
-    public string ToStringBenchmark()
-    {
-        return this._new.ToString();
-    }
+    public string StringToString() => _converted.ToString();
 
+    [Benchmark]
+    public string GuuidToString() => _new.ToString();
+
+    [Benchmark]
+    public int GuuidHashCode() => _new.GetHashCode();
+
+    [Benchmark]
+    public int StringHashCode() => _converted.GetHashCode();
 }

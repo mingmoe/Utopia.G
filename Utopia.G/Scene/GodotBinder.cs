@@ -1,20 +1,10 @@
-#region copyright
-// This file(may named GodotBinder.cs) is a part of the project: Utopia.G.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.G.
-//
-// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
-using Godot;
 using System;
 using System.Reflection;
+using Godot;
 
 namespace Utopia.G.Scene;
 
@@ -29,7 +19,7 @@ public class GodotNodeBindAttribute : Attribute
     public GodotNodeBindAttribute(string nodeName = "")
     {
         ArgumentNullException.ThrowIfNull(nodeName);
-        this.NodeName = nodeName;
+        NodeName = nodeName;
     }
 }
 
@@ -44,7 +34,7 @@ public class GodotResourceBindAttribute : Attribute
     public GodotResourceBindAttribute(string resourceName = "")
     {
         ArgumentNullException.ThrowIfNull(resourceName);
-        this.ResourceName = resourceName;
+        ResourceName = resourceName;
     }
 }
 
@@ -63,13 +53,13 @@ public static class GodotBinder
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(target);
-        var type = target.GetType();
+        Type type = target.GetType();
 
-        foreach (var item in type.GetProperties(BindingFlags.NonPublic |
+        foreach (PropertyInfo item in type.GetProperties(BindingFlags.NonPublic |
                          BindingFlags.Instance))
         {
-            var bind = item.GetCustomAttribute<GodotNodeBindAttribute>();
-            var resource = item.GetCustomAttribute<GodotResourceBindAttribute>();
+            GodotNodeBindAttribute? bind = item.GetCustomAttribute<GodotNodeBindAttribute>();
+            GodotResourceBindAttribute? resource = item.GetCustomAttribute<GodotResourceBindAttribute>();
 
             if (bind != null)
             {
@@ -78,16 +68,16 @@ public static class GodotBinder
             }
             if (resource != null)
             {
-                var ss = ResourceLoader.Load(resource.ResourceName == string.Empty ?
+                Resource ss = ResourceLoader.Load(resource.ResourceName == string.Empty ?
                     item.Name : resource.ResourceName);
                 item.SetValue(target, ss);
             }
         }
-        foreach (var item in type.GetFields(BindingFlags.NonPublic |
+        foreach (FieldInfo item in type.GetFields(BindingFlags.NonPublic |
                          BindingFlags.Instance))
         {
-            var bind = item.GetCustomAttribute<GodotNodeBindAttribute>();
-            var resource = item.GetCustomAttribute<GodotResourceBindAttribute>();
+            GodotNodeBindAttribute? bind = item.GetCustomAttribute<GodotNodeBindAttribute>();
+            GodotResourceBindAttribute? resource = item.GetCustomAttribute<GodotResourceBindAttribute>();
 
             if (bind != null)
             {
@@ -96,7 +86,7 @@ public static class GodotBinder
             }
             if (resource != null)
             {
-                var ss = ResourceLoader.Load(resource.ResourceName == string.Empty ?
+                Resource ss = ResourceLoader.Load(resource.ResourceName == string.Empty ?
                     item.Name : resource.ResourceName);
                 item.SetValue(target, ss);
             }

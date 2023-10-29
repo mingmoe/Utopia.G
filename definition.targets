@@ -1,0 +1,10 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<PropertyGroup>
+		<Authors>MingMoe</Authors>
+		<Copyright>Copyright ©MingMoe 2023</Copyright>
+		<PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+		<UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/version.txt</UtopiaVersionFilePath>
+	</PropertyGroup>
+
+</Project>

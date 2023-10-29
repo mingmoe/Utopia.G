@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named GuuidTest.cs) is a part of the project: Utopia.Test.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Test.
-//
-// Utopia.Test is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Test is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Test. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Utilities;
 
@@ -23,7 +13,7 @@ public class GuuidTest
     public void TestGuuidToStringAndParseStringWorksWell()
     {
         var guuid = new Guuid("root", "node");
-        var str = guuid.ToString();
+        string str = guuid.ToString();
 
         var parsed = Guuid.Parse(str);
 
@@ -35,7 +25,7 @@ public class GuuidTest
 
     public void CheckIllegalNames()
     {
-        var parsed = Guuid.CheckName(string.Empty);
+        bool parsed = Guuid.CheckName(string.Empty);
 
         Assert.False(parsed);
     }
@@ -43,11 +33,8 @@ public class GuuidTest
     [Theory]
     [InlineData("", "non-empty")]
     [InlineData("non-empty", "")]
-    public void TestGuuidParseStringParseIllegal(string root, string node)
-    {
-        Assert.Throws<ArgumentException>(() =>
-        {
-            _ = new Guuid(root, node);
-        });
-    }
+    public void TestGuuidParseStringParseIllegal(string root, string node) => Assert.Throws<ArgumentException>(() =>
+                                                                                   {
+                                                                                       _ = new Guuid(root, node);
+                                                                                   });
 }

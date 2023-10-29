@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named SocketConnecter.cs) is a part of the project: Utopia.G.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.G.
-//
-// Utopia.G is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.G is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.G. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using System;
 using System.IO;
@@ -18,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
+using Utopia.Core.Net;
 
 namespace Utopia.G.Net;
 
@@ -47,9 +38,9 @@ public class SocketConnecter : ISocketConnecter
     {
         ArgumentNullException.ThrowIfNull(host);
 
-        lock (this._lock)
+        lock (_lock)
         {
-            if (this._socket != null)
+            if (_socket != null)
             {
                 throw new InvalidOperationException("the client has connected");
             }
@@ -82,25 +73,25 @@ public class SocketConnecter : ISocketConnecter
                 throw new IOException("failed to connect the server:" + host);
             }
 
-            this._socket = tempSocket;
+            _socket = tempSocket;
 
             var @event = new ComplexEvent<Socket, IConnectHandler>(tempSocket, null);
 
-            this.ConnectCreatedEvent.Fire(@event);
+            ConnectCreatedEvent.Fire(@event);
 
-            this.ConnectHandler = @event.Result ??
+            ConnectHandler = @event.Result ??
                 throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
 
-            return this.ConnectHandler;
+            return ConnectHandler;
         }
     }
 
     public void Close()
     {
-        lock (this._lock)
+        lock (_lock)
         {
-            this._socket?.Close();
-            this._socket = null;
+            _socket?.Close();
+            _socket = null;
         }
     }
 }

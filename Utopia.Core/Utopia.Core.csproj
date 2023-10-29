@@ -1,44 +1,45 @@
 <Project Sdk="Kawayi.Utopia.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-        <RootNamespace>Utopia.Core</RootNamespace>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-	  <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
-    </PropertyGroup>
+	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <DebugType>embedded</DebugType>
-    </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<RootNamespace>Utopia.Core</RootNamespace>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-        <DebugType>embedded</DebugType>
-    </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Autofac" Version="7.1.0" />
-        <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-        <PackageReference Include="CommunityToolkit.Common" Version="8.2.1" />
-        <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.1" />
-        <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
-        <PackageReference Include="Lib.Harmony" Version="2.2.2" />
-        <PackageReference Include="MessageFormat" Version="7.0.0" />
-        <PackageReference Include="MessagePack" Version="2.5.129" />
-        <PackageReference Include="MessagePackAnalyzer" Version="2.5.129">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-        <PackageReference Include="NeoSmart.AsyncLock" Version="3.2.1" />
-        <PackageReference Include="NLog" Version="5.2.4" />
-        <PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />
-        <PackageReference Include="System.CodeDom" Version="7.0.0" />
-        <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
-        <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
-        <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
-        <PackageReference Include="Tomlyn" Version="0.16.2" />
-        <PackageReference Include="System.IO.Hashing" Version="7.0.0" />
-    </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Autofac" Version="7.1.0" />
+		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
+		<PackageReference Include="CommunityToolkit.Common" Version="8.2.1" />
+		<PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.1" />
+		<PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
+		<PackageReference Include="MessageFormat" Version="7.0.0" />
+		<PackageReference Include="MessagePack" Version="2.5.129" />
+		<PackageReference Include="MessagePackAnalyzer" Version="2.5.129">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
+		<PackageReference Include="NeoSmart.AsyncLock" Version="3.2.1" />
+		<PackageReference Include="NLog" Version="5.2.4" />
+		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />
+		<PackageReference Include="System.CodeDom" Version="7.0.0" />
+		<PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
+		<PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+		<PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
+		<PackageReference Include="Tomlyn" Version="0.16.2" />
+		<PackageReference Include="System.IO.Hashing" Version="7.0.0" />
+	</ItemGroup>
 
 </Project>

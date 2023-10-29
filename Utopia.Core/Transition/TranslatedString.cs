@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named TranslatedString.cs) is a part of the project: Utopia.Core.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Core.
-//
-// Utopia.Core is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Core is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Core. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using CommunityToolkit.Diagnostics;
 using Jeffijoe.MessageFormat;
@@ -18,7 +8,7 @@ using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Core.Translate;
+namespace Utopia.Core.Transition;
 
 /// <summary>
 /// 通常应该是线程安全的
@@ -48,16 +38,16 @@ public class TranslatedString : ITranslatedString
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._value;
+                return _value;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                this._value = value;
+                _value = value;
             }
         }
     }
@@ -68,7 +58,7 @@ public class TranslatedString : ITranslatedString
     public TranslatedString(string translated)
     {
         ArgumentNullException.ThrowIfNull(translated);
-        this._value = translated;
+        _value = translated;
     }
 }
 
@@ -82,25 +72,22 @@ public class ICUTranslatedString : ITranslatedString
 
     private string _translated;
 
-    private void _ManagerUpdateHandle(IEventWithParam<ITranslateManager> manager)
-    {
-        this.UpdateTranslate(null);
-    }
+    private void _ManagerUpdateHandle(IEventWithParam<ITranslateManager> manager) => UpdateTranslate(null);
 
     public string Translated
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._translated;
+                return _translated;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                this._translated = value;
+                _translated = value;
             }
         }
     }
@@ -115,17 +102,17 @@ public class ICUTranslatedString : ITranslatedString
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._key;
+                return _key;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
                 ArgumentNullException.ThrowIfNull(value);
-                this._key = value;
+                _key = value;
             }
         }
     }
@@ -140,22 +127,22 @@ public class ICUTranslatedString : ITranslatedString
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._manager;
+                return _manager;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
                 ArgumentNullException.ThrowIfNull(value);
-                this._manager.TranslateUpdatedEvent.Unregister(
-                        this._ManagerUpdateHandle
+                _manager.TranslateUpdatedEvent.Unregister(
+                        _ManagerUpdateHandle
                     );
-                this._manager = value;
-                this._manager.TranslateUpdatedEvent.Register(
-                    this._ManagerUpdateHandle
+                _manager = value;
+                _manager.TranslateUpdatedEvent.Register(
+                    _ManagerUpdateHandle
                     );
             }
         }
@@ -171,17 +158,17 @@ public class ICUTranslatedString : ITranslatedString
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._identifence;
+                return _identifence;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
                 ArgumentNullException.ThrowIfNull(value);
-                this._identifence = value;
+                _identifence = value;
             }
         }
     }
@@ -200,36 +187,36 @@ public class ICUTranslatedString : ITranslatedString
     /// </param>
     public void UpdateTranslate(object? newData = null)
     {
-        lock (this._lock)
+        lock (_lock)
         {
             if (newData != null)
             {
-                this._data = newData;
+                _data = newData;
             }
 
-            if (!this._manager.TryGetTranslate(
-                this._identifence,
-                this.Key.TranslateProviderId == null ? null : Guuid.Parse(this.Key.TranslateProviderId),
-                Guuid.Parse(this.Key.TranslateItemId),
+            if (!_manager.TryGetTranslate(
+                _identifence,
+                Key.TranslateProviderId == null ? null : Guuid.Parse(Key.TranslateProviderId),
+                Guuid.Parse(Key.TranslateItemId),
                 out string? got))
             {
-                got = this._key.TranslateItemId;
+                got = _key.TranslateItemId;
             }
 
-            var @new =
-                MessageFormatter.Format(got!, this._data);
+            string @new =
+                MessageFormatter.Format(got!, _data);
 
-            this._cached = @new;
+            _cached = @new;
 
-            this._FireReformatEvent();
+            _FireReformatEvent();
         }
     }
 
     private void _FireReformatEvent()
     {
-        ComplexEvent<string, string> @event = new(this._translated, this._cached);
-        this.TranslateUpdateEvent.Fire(@event);
-        this._translated = EventAssertionException.ThrowIfResultIsNull(@event);
+        ComplexEvent<string, string> @event = new(_translated, _cached);
+        TranslateUpdateEvent.Fire(@event);
+        _translated = EventAssertionException.ThrowIfResultIsNull(@event);
     }
 
     /// <summary>
@@ -249,12 +236,12 @@ public class ICUTranslatedString : ITranslatedString
         Guard.IsNotNull(manager);
         Guard.IsNotNull(identifence);
 
-        this._key = msg;
-        this._manager = manager;
-        this._identifence = identifence;
-        this._translated = null!;
-        this._data = data;
+        _key = msg;
+        _manager = manager;
+        _identifence = identifence;
+        _translated = null!;
+        _data = data;
 
-        this.UpdateTranslate(null);
+        UpdateTranslate(null);
     }
 }

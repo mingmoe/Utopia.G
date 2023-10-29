@@ -1,16 +1,6 @@
-#region copyright
-// This file(may named Area.cs) is a part of the project: Utopia.Server.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Server.
-//
-// Utopia.Server is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Server is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Server. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Collections;
 using Utopia.Core.Map;
@@ -22,8 +12,7 @@ namespace Utopia.Server.Plugin.Map;
 public class Area : IArea
 {
     private readonly object _lock = new();
-
-    readonly SafeDictionary<int, AreaLayer> _floors = new();
+    private readonly SafeDictionary<int, AreaLayer> _floors = new();
 
     public FlatPositionWithId Position { get; init; }
 
@@ -33,16 +22,16 @@ public class Area : IArea
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._temperature;
+                return _temperature;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                this._temperature = value;
+                _temperature = value;
             }
         }
     }
@@ -53,16 +42,16 @@ public class Area : IArea
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._biome;
+                return _biome;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                this._biome = value;
+                _biome = value;
             }
         }
     }
@@ -73,16 +62,16 @@ public class Area : IArea
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._precipitation;
+                return _precipitation;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                this._precipitation = value;
+                _precipitation = value;
             }
         }
     }
@@ -93,16 +82,16 @@ public class Area : IArea
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._elevation;
+                return _elevation;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                this._elevation = value;
+                _elevation = value;
             }
         }
     }
@@ -113,59 +102,53 @@ public class Area : IArea
     {
         get
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                return this._construction;
+                return _construction;
             }
         }
         set
         {
-            lock (this._lock)
+            lock (_lock)
             {
-                this._construction = value;
+                _construction = value;
             }
         }
     }
 
-    public Area(FlatPositionWithId worldPosition)
-    {
-        this.Position = worldPosition;
-    }
+    public Area(FlatPositionWithId worldPosition) => Position = worldPosition;
 
     public bool TryGetBlock(Position position, out IBlock? block)
     {
-        var floor = this._floors.GetOrAdd(position.Z, (k) =>
+        AreaLayer floor = _floors.GetOrAdd(position.Z, (k) =>
         {
             return new AreaLayer(
-                    new WorldPosition(this.Position.X,
-                    this.Position.Y,
+                    new WorldPosition(Position.X,
+                    Position.Y,
                     k,
-                    this.Position.Id
+                    Position.Id
                 ));
         });
 
         return floor.TryGetBlock(position.ToFlat(), out block);
     }
 
-    public IAreaLayer GetLayer(int z)
-    {
-        return this._floors.GetOrAdd(
+    public IAreaLayer GetLayer(int z) => _floors.GetOrAdd(
             z, (k) =>
             {
                 return new AreaLayer(
-                    new WorldPosition(this.Position.X,
-                    this.Position.Y,
+                    new WorldPosition(Position.X,
+                    Position.Y,
                     k,
-                    this.Position.Id
+                    Position.Id
                 ));
             });
-    }
 
     public void Update(Logic.IUpdater updater)
     {
-        var floor = this._floors.ToArray();
+        KeyValuePair<int, AreaLayer>[] floor = _floors.ToArray();
 
-        foreach (var z in floor)
+        foreach (KeyValuePair<int, AreaLayer> z in floor)
         {
             z.Value.Update(updater);
         }
@@ -173,10 +156,10 @@ public class Area : IArea
 
     public byte[] Save()
     {
-        var floors = this._floors.ToArray();
+        KeyValuePair<int, AreaLayer>[] floors = _floors.ToArray();
         var stream = new MemoryStream();
 
-        foreach (var floor in floors)
+        foreach (KeyValuePair<int, AreaLayer> floor in floors)
         {
             StreamUtility.WriteInt(stream, floor.Key).Wait();
             StreamUtility.WriteDataWithLength(stream, floor.Value.Save()).Wait();

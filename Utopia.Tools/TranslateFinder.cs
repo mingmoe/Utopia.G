@@ -1,26 +1,16 @@
-#region copyright
-// This file(may named TranslateFinder.cs) is a part of the project: Utopia.Analyzer.
-// 
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// 
-// This file is part of Utopia.Analyzer.
-//
-// Utopia.Analyzer is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// 
-// Utopia.Analyzer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License along with Utopia.Analyzer. If not, see <https://www.gnu.org/licenses/>.
-#endregion
+// The file was licensed under the AGPL 3.0-or-later license
 
+using System.Text;
+using System.Text.Json;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
-using System.Text;
-using System.Text.Json;
-using Utopia.Core.Translate;
+using Utopia.Core.Transition;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools;
@@ -31,15 +21,9 @@ namespace Utopia.Tools;
 public class TranslateFinder
 {
 
-    private static readonly Lazy<Logger> _logger = new(() => { return LogManager.GetLogger(typeof(TranslateFinder).FullName); });
+    private static readonly Lazy<Logger> s_logger = new(() => { return LogManager.GetLogger(typeof(TranslateFinder).FullName); });
 
-    private static Logger _Logger
-    {
-        get
-        {
-            return _logger.Value;
-        }
-    }
+    private static Logger _Logger => s_logger.Value;
 
     public record Item(in string SlnFilePath, in string ProjectGuid, in string SourceFilePath, in string SourceSpan,
         in string TranslateGuuid,
@@ -55,7 +39,7 @@ public class TranslateFinder
 
         List<Item> items = new();
         // read source file and create semantic model
-        if (!file.TryGetText(out var text))
+        if (!file.TryGetText(out Microsoft.CodeAnalysis.Text.SourceText? text))
         {
             throw new InvalidOperationException($"failed to get the source of file {file.FilePath}");
         }
@@ -73,19 +57,19 @@ public class TranslateFinder
         SemanticModel model = compilation.GetSemanticModel(tree);
 
         // find syntax
-        var nodes = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>();
+        IEnumerable<ObjectCreationExpressionSyntax> nodes = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>();
 
         // look up the name we want
-        foreach (var node in nodes)
+        foreach (ObjectCreationExpressionSyntax node in nodes)
         {
-            var sym = model.GetSymbolInfo(node);
-            var symName = sym.Symbol?.ContainingType.ToString();
+            SymbolInfo sym = model.GetSymbolInfo(node);
+            string? symName = sym.Symbol?.ContainingType.ToString();
 
             // check name
             if (symName == typeof(TranslateKey).FullName)
             {
                 // find strings
-                var translate = node.DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+                LiteralExpressionSyntax[] translate = node.DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
 
                 if (translate.Length < 2)
                 {
@@ -94,8 +78,8 @@ public class TranslateFinder
                 }
 
                 // check name
-                var id = translate[0].GetText().ToString().Trim('"');
-                var comment = translate[1].GetText().ToString().Trim('"');
+                string id = translate[0].GetText().ToString().Trim('"');
+                string comment = translate[1].GetText().ToString().Trim('"');
                 string? provider = null;
 
                 // parse,there are two or three arguments we need to think
@@ -143,7 +127,7 @@ public class TranslateFinder
 
         List<Item> items = new();
 
-        foreach (var file in project.Documents)
+        foreach (Document file in project.Documents)
         {
             items.AddRange(await _WalkDocument(file, compilation));
         }
@@ -153,38 +137,38 @@ public class TranslateFinder
 
     public static void Command(CommandLineApplication configCmd)
     {
-        var slnOpt = configCmd.Option<string>("-s|--sln", "the path to the .sln file", CommandOptionType.SingleValue).IsRequired();
-        var projOpt = configCmd.Option<string>
+        CommandOption<string> slnOpt = configCmd.Option<string>("-s|--sln", "the path to the .sln file", CommandOptionType.SingleValue).IsRequired();
+        CommandOption<string> projOpt = configCmd.Option<string>
         ("-p|--project", "the project guid of the sln that you want to get translate item", CommandOptionType.SingleValue);
-        var optOpt = configCmd.Option<string>("-o|--output", "the output file", CommandOptionType.SingleValue);
+        CommandOption<string> optOpt = configCmd.Option<string>("-o|--output", "the output file", CommandOptionType.SingleValue);
 
         projOpt.DefaultValue = null;
-        var defaultOpt = "./translate-items.json";
+        string defaultOpt = "./translate-items.json";
         optOpt.DefaultValue = defaultOpt;
 
         configCmd.OnExecute(async () =>
         {
             // Find MSBuild
-            MSBuildLocator.RegisterDefaults();
+            _ = MSBuildLocator.RegisterDefaults();
 
-            var sln = slnOpt.Value();
-            var proj = projOpt.Value();
-            var opt = optOpt.Value();
+            string? sln = slnOpt.Value();
+            string? proj = projOpt.Value();
+            string? opt = optOpt.Value();
 
             _Logger.Info("load solution {sln}", sln);
 
-            var projs = Utility.OpenSlnToProject(sln!, proj);
+            Project[] projs = Utility.OpenSlnToProject(sln!, proj);
             _ = await Utility.GetCompilation(projs);
 
             var finder = new TranslateFinder();
 
             List<Task<Item[]>> tasks = new();
-            foreach (var item in projs)
+            foreach (Project item in projs)
             {
                 tasks.Add(FindTranslateItem(item));
             }
             Task.WaitAll(tasks.ToArray());
-            var results = tasks.Select((t) => { return t.Result; }).Aggregate((old, n) =>
+            Item[] results = tasks.Select((t) => { return t.Result; }).Aggregate((old, n) =>
             {
                 var ret = new Item[old.Length + n.Length];
                 Array.Copy(old, ret, old.Length);

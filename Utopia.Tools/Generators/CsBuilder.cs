@@ -1,3 +1,7 @@
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using System.Diagnostics;
 using System.Text;
 
@@ -7,13 +11,7 @@ public class CsBuilder
 {
     private int _alignCount = 0;
 
-    private string _Align
-    {
-        get
-        {
-            return new string(' ', _alignCount * 4);
-        }
-    }
+    private string _Align => new(' ', _alignCount * 4);
 
     public List<string> Usings = new();
 
@@ -25,14 +23,14 @@ public class CsBuilder
 
     public string[] Source;
 
-    public void AddClass(string className, bool isPublic = false, bool isStatic = false,bool isPartial = false, params string[] parentClass)
+    public void EmitClass(string className, bool isPublic = false, bool isStatic = false, bool isPartial = false, params string[] parentClass)
     {
-        var pub = isPublic ? "public" : string.Empty;
-        var sat = isStatic ? "static" : string.Empty;
-        var prt = isPartial ? "partial" : string.Empty;
+        string pub = isPublic ? "public" : string.Empty;
+        string sat = isStatic ? "static" : string.Empty;
+        string prt = isPartial ? "partial" : string.Empty;
 
-        var parent = parentClass.Length == 0 ? string.Empty : " : ";
-        foreach (var c in parentClass)
+        string parent = parentClass.Length == 0 ? string.Empty : " : ";
+        foreach (string c in parentClass)
         {
             parent += $"{c},";
         }
@@ -41,97 +39,97 @@ public class CsBuilder
             parent = parent[0..^1];
         }
 
-        this.Lines.Add($"{this._Align}{pub} {sat} {prt} class {className} {parent}");
-        this.BeginCodeBlock();
+        Lines.Add($"{_Align}{pub} {sat} {prt} class {className} {parent}");
+        BeginCodeBlock();
     }
 
     public void BeginCodeBlock()
     {
-        this.Lines.Add("{");
-        this._alignCount++;
+        Lines.Add("{");
+        _alignCount++;
     }
 
     public void CloseCodeBlock()
     {
-        if(this._alignCount <= 0)
+        if (_alignCount <= 0)
         {
             throw new InvalidOperationException("all blocks have been closed");
         }
 
-        this._alignCount--;
-        this.Lines.Add("}");
+        _alignCount--;
+        Lines.Add("}");
     }
 
-    public void AddComment(string comment,bool forceMultiline = false)
+    public void EmitComment(string comment, bool forceMultiline = false)
     {
-        var lines = comment.Split(new[] { '\r', '\n' });
-        if(lines.Length == 1 && (!forceMultiline))
+        string[] lines = comment.Split(new[] { '\r', '\n' });
+        if (lines.Length == 1 && (!forceMultiline))
         {
-            this.Lines.Add($"{this._Align}// {comment}");
+            Lines.Add($"{_Align}// {comment}");
         }
         else
         {
-            this.Lines.Add($"{this._Align}/*");
-            foreach(var line in lines)
+            Lines.Add($"{_Align}/*");
+            foreach (string line in lines)
             {
-                this.Lines.Add($"{this._Align} * {line}");
+                Lines.Add($"{_Align} * {line}");
             }
-            this.Lines.Add($"{this._Align} */");
+            Lines.Add($"{_Align} */");
         }
     }
 
-    public void AddLine(string line,int alignFix = 0)
+    public void EmitLine(string line, int alignFix = 0)
     {
-        var origin = this._alignCount;
-        this._alignCount = origin + alignFix;
-        this.Lines.Add($"{this._Align}{line}");
-        this._alignCount = origin;
+        int origin = _alignCount;
+        _alignCount = origin + alignFix;
+        Lines.Add($"{_Align}{line}");
+        _alignCount = origin;
     }
 
-    public void AddProperty(string accessibility,string type,string name,bool isStatic = false)
+    public void EmitProperty(string accessibility, string type, string name, bool isStatic = false)
     {
-        var @static = isStatic ? "static" : string.Empty;
+        string @static = isStatic ? "static" : string.Empty;
 
-        this.Lines.Add($"{this._Align}{accessibility} {@static} {type} {name} {{ get; set; }}");
+        Lines.Add($"{_Align}{accessibility} {@static} {type} {name} {{ get; set; }}");
     }
 
-    public void AddField(string accessibility,string type,string name,string? defaultValue = null,bool isReadonly = false,bool isStatic = false)
+    public void EmitField(string accessibility, string type, string name, string? defaultValue = null, bool isReadonly = false, bool isStatic = false)
     {
-        var @static = isStatic? "static" : string.Empty;
-        var @readonly = isReadonly ? "readonly" : string.Empty;
-        var @value = defaultValue != null ? " = " + defaultValue : string.Empty;
+        string @static = isStatic ? "static" : string.Empty;
+        string @readonly = isReadonly ? "readonly" : string.Empty;
+        string @value = defaultValue != null ? " = " + defaultValue : string.Empty;
 
-        this.Lines.Add($"{this._Align}{accessibility} {@static} {@readonly} {type} {name}{@value};");
+        Lines.Add($"{_Align}{accessibility} {@static} {@readonly} {type} {name}{@value};");
     }
 
     public string Generate()
     {
         StringBuilder sb = new();
 
-        sb.AppendLine("// This file was generated by source generator:" + this.Generator?.FullName ?? string.Empty);
-        sb.AppendLine("// This file was generated from file:");
+        _ = sb.AppendLine("// This file was generated by source generator:" + Generator?.FullName ?? string.Empty);
+        _ = sb.AppendLine("// This file was generated from file:");
 
-        foreach(var source in this.Source)
+        foreach (string source in Source)
         {
-            sb.AppendLine("// " + source);
+            _ = sb.AppendLine("// " + source);
         }
-        sb.AppendLine();
+        _ = sb.AppendLine();
 
-        foreach (var s in this.Usings)
+        foreach (string s in Usings)
         {
-            sb.Append("using ").Append(s).AppendLine(";");
-        }
-
-        if (this.Namespace != null)
-        {
-            sb.AppendLine($"namespace {this.Namespace};");
+            _ = sb.Append("using ").Append(s).AppendLine(";");
         }
 
-        sb.AppendLine();
-
-        foreach (var s in this.Lines)
+        if (Namespace != null)
         {
-            sb.AppendLine(s);
+            _ = sb.AppendLine($"namespace {Namespace};");
+        }
+
+        _ = sb.AppendLine();
+
+        foreach (string s in Lines)
+        {
+            _ = sb.AppendLine(s);
         }
 
         return sb.ToString();
@@ -139,8 +137,8 @@ public class CsBuilder
 
     public CsBuilder(params string[] source)
     {
-        var methodInfo = new StackTrace().GetFrame(1)?.GetMethod();
-        this.Generator = methodInfo?.ReflectedType;
-        this.Source = source;
+        System.Reflection.MethodBase? methodInfo = new StackTrace().GetFrame(1)?.GetMethod();
+        Generator = methodInfo?.ReflectedType;
+        Source = source;
     }
 }

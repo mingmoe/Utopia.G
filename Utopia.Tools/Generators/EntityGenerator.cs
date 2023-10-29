@@ -1,11 +1,9 @@
-using Microsoft.AspNetCore.Razor.TagHelpers;
-using NLog;
-using System;
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NLog;
 using Tomlyn;
 using Tomlyn.Model;
 
@@ -38,24 +36,24 @@ public class GeneratedEntityInfo
 public class EntityGenerator : IGenerator
 {
 
-    private readonly static Logger _logger = LogManager.GetCurrentClassLogger();
+    private static readonly Logger s_logger = LogManager.GetCurrentClassLogger();
 
     public int ThreadCount { get; set; }
 
     public ConcurrentDictionary<string, IEntityGenerator> Generators { get; } = new();
 
-    public string SubcommandName => "entity";
+    public string SubcommandName => "server-entity";
 
     private static IEnumerable<string> _GetAllFile(string dir)
     {
         dir = Path.GetFullPath(dir);
-        foreach (var f in Directory.GetFiles(dir))
+        foreach (string f in Directory.GetFiles(dir))
         {
             yield return f;
         }
         foreach (string d in Directory.GetDirectories(dir))
         {
-            foreach(var f in _GetAllFile(d))
+            foreach (string f in _GetAllFile(d))
             {
                 yield return f;
             }
@@ -67,25 +65,25 @@ public class EntityGenerator : IGenerator
         // find all .toml
         List<string> tomls = new();
 
-        foreach(var toml in _GetAllFile(option.TargetProject.EntitiesDir))
+        foreach (string toml in _GetAllFile(option.TargetProject.EntitiesDirectory))
         {
             if (toml.EndsWith(".toml"))
             {
                 tomls.Add(toml);
             }
         }
-        
+
         // parse
-        foreach(var toml in tomls)
+        foreach (string toml in tomls)
         {
             try
             {
-                var info = Toml.ToModel<GeneratedEntityInfo>(toml);
+                GeneratedEntityInfo info = Toml.ToModel<GeneratedEntityInfo>(toml);
 
                 // find type
-                var type = info.Type;
+                string type = info.Type;
 
-                if (this.Generators.TryGetValue(type, out IEntityGenerator? generator))
+                if (Generators.TryGetValue(type, out IEntityGenerator? generator))
                 {
                     generator!.Generate(toml, info, option);
                 }
@@ -94,9 +92,9 @@ public class EntityGenerator : IGenerator
                     throw new InvalidOperationException("failed to find the generator for the file");
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
-                _logger.Error("get a exception when process file:{toml}", toml);
+                s_logger.Error("get a exception when process file:{toml}", toml);
                 throw;
             }
         }

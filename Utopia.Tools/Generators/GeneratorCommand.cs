@@ -1,5 +1,8 @@
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using McMaster.Extensions.CommandLineUtils;
-using NLog;
 
 namespace Utopia.Tools.Generators;
 public class GeneratorCommand
@@ -7,19 +10,19 @@ public class GeneratorCommand
 
     public static void Command(CommandLineApplication application)
     {
-        var version = application.Option("--version-file <FILE>", "the path of version file", CommandOptionType.SingleValue);
-        var pluginInfo = application.Option("--plugin-info-file <FILE>", "the path of plugin information file", CommandOptionType.SingleValue);
-        var translateDir = application.Option("--translate-dir <DIR>", "the path to the translate files", CommandOptionType.SingleValue);
-        var assertsDir = application.Option("--assert-dir <DIR>", "the path to the assert files", CommandOptionType.SingleValue);
-        var generatedDir = application.Option("--generated-dir <DIR>", "the path to the generated .cs files", CommandOptionType.SingleValue);
-        var project = application.Option("--project <DIR>", "the path to the projects which need to generate source files", CommandOptionType.SingleValue).IsRequired();
-        var @namespace = application.Option("--namespace <NAMESPACE>", "the target namespace of the generated code", CommandOptionType.SingleValue);
+        CommandOption version = application.Option("--version-file <FILE>", "the path of version file", CommandOptionType.SingleValue);
+        CommandOption pluginInfo = application.Option("--plugin-info-file <FILE>", "the path of plugin information file", CommandOptionType.SingleValue);
+        CommandOption translateDir = application.Option("--translate-dir <DIR>", "the path to the translate files", CommandOptionType.SingleValue);
+        CommandOption assertsDir = application.Option("--assert-dir <DIR>", "the path to the assert files", CommandOptionType.SingleValue);
+        CommandOption generatedDir = application.Option("--generated-dir <DIR>", "the path to the generated .cs files", CommandOptionType.SingleValue);
+        CommandOption project = application.Option("--project <DIR>", "the path to the projects which need to generate source files", CommandOptionType.SingleValue).IsRequired();
+        CommandOption @namespace = application.Option("--namespace <NAMESPACE>", "the target namespace of the generated code", CommandOptionType.SingleValue);
 
         @namespace.DefaultValue = "global";
 
-        IFileSystem createFileSystem(string project)
+        IPluginDevFileSystem createFileSystem(string project)
         {
-            FileSystem system = new(project);
+            PluginDevFileSystem system = new(project);
             if (version.HasValue())
             {
                 system.VersionFile = version.Value()!;
@@ -30,26 +33,23 @@ public class GeneratorCommand
             }
             if (translateDir.HasValue())
             {
-                system.TranslateDir = translateDir.Value()!;
+                system.TranslationDirectory = translateDir.Value()!;
             }
             if (assertsDir.HasValue())
             {
-                system.AssertDir = assertsDir.Value()!;
+                system.AssetsDirectory = assertsDir.Value()!;
             }
             if (generatedDir.HasValue())
             {
-                system.GeneratedDir = generatedDir.Value()!;
+                system.GeneratedDirectory = generatedDir.Value()!;
             }
 
-            ((IFileSystem)system).CreateNotExistsDirectory();
+            ((IPluginDevFileSystem)system).CreateNotExistsDirectory();
 
             return system;
         }
 
-        GeneratorOption getOption()
-        {
-            return new GeneratorOption(@namespace.Value()!, createFileSystem(project.Value()!));
-        }
+        GeneratorOption getOption() => new(@namespace.Value()!, createFileSystem(project.Value()!));
 
         var generators = new IGenerator[] {
             new PluginInformationGenerator(),
@@ -57,9 +57,9 @@ public class GeneratorCommand
             new TranslateKeyGenerator(),
         };
 
-        foreach(var generator in generators)
+        foreach (IGenerator generator in generators)
         {
-            application.Command(generator.SubcommandName, (config) =>
+            _ = application.Command(generator.SubcommandName, (config) =>
             {
                 generator.Command(config, getOption);
             });

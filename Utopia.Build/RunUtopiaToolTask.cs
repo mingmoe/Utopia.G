@@ -1,9 +1,12 @@
-using Microsoft.Build.Framework;
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Microsoft.Build.Framework;
 
 namespace Utopia.Build
 {
@@ -36,7 +39,7 @@ namespace Utopia.Build
 
         private static string _EscapePwsh(string str)
         {
-            var formatted = str.Replace("\"", "`\"");
+            string formatted = str.Replace("\"", "`\"");
             formatted = formatted.Replace("'", "`\\'");
             return formatted;
         }
@@ -48,47 +51,53 @@ namespace Utopia.Build
             // find tools
             string tool;
 
-            if (!string.IsNullOrEmpty(this.RunFromProject))
+            if (!string.IsNullOrEmpty(RunFromProject))
             {
-                tool = _EscapePwsh(this.DotnetPath);
-                sb.Append($" run  --configuration \"{_EscapePwsh(this.ProjectCondifuration)}\" --project \"{_EscapePwsh(this.RunFromProject)}\" -- ");
+                tool = _EscapePwsh(DotnetPath);
+                _ = sb.Append($" run  --configuration \"{_EscapePwsh(ProjectCondifuration)}\" --project \"{_EscapePwsh(RunFromProject)}\" -- ");
             }
             else
             {
-                if (!this.LocalTool)
+                if (!LocalTool)
                 {
                     tool = _EscapePwsh("Utopia.Tools");
 
                 }
                 else
                 {
-                    tool = _EscapePwsh(this.DotnetPath);
-                    sb.Append(" tool run Utopia.Tools ");
+                    tool = _EscapePwsh(DotnetPath);
+                    _ = sb.Append(" tool run Utopia.Tools ");
                 }
             }
 
             // build argument
-            foreach(var argument in this.Arguments)
+            foreach (string argument in Arguments)
             {
-                sb.Append($" \"{_EscapePwsh(argument)}\" ");
+                _ = sb.Append($" \"{_EscapePwsh(argument)}\" ");
+            }
+
+            var commentBuilder = new StringBuilder();
+            foreach (string argument in Arguments)
+            {
+                commentBuilder.AppendLine($"# {argument.Replace("\n","`n")}");
             }
 
             // build script file
-            var scriptFile = Path.GetTempFileName() + ".ps1";
+            string scriptFile = Path.GetTempFileName() + ".ps1";
 
-            while(File.Exists(scriptFile))
+            while (File.Exists(scriptFile))
             {
                 scriptFile = Path.GetTempFileName() + ".ps1";
             }
-            var script = $"\n&\"{tool}\" {sb}\n";
+            string script = $"\n{commentBuilder}\n&\"{tool}\" {sb}\n";
 
-            this.Log.LogMessage(MessageImportance.High,$"generate powershell script file({scriptFile}):{script}");
+            Log.LogMessage(MessageImportance.High, $"generate powershell script file({scriptFile}):{script}");
 
             File.WriteAllText(scriptFile, script, Encoding.UTF8);
 
             // build pwsh process
             var proc = new Process();
-            var info = new ProcessStartInfo(this.PwshPath, $" -f \"{scriptFile}\"")
+            var info = new ProcessStartInfo(PwshPath, $" -f \"{scriptFile}\"")
             {
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
@@ -96,25 +105,25 @@ namespace Utopia.Build
             };
             proc.StartInfo = info;
 
-            this.Log.LogCommandLine(MessageImportance.High,$"{info.FileName} {info.Arguments}");
+            Log.LogCommandLine(MessageImportance.High, $"{info.FileName} {info.Arguments}");
 
             // run
-            proc.Start();
+            _ = proc.Start();
             proc.WaitForExit();
 
-            var code = proc.ExitCode;
+            int code = proc.ExitCode;
 
-            this.Log.LogMessageFromText($"Utopia.Tools: run [{info.FileName} {info.Arguments}] exit with code {code}", MessageImportance.High);
+            _ = Log.LogMessageFromText($"Utopia.Tools: run [{info.FileName} {info.Arguments}] exit with code {code}", MessageImportance.High);
 
             if (code == 0)
             {
-                this.Log.LogMessage("stdio:{0}", proc.StandardOutput.ReadToEnd());
-                this.Log.LogMessage("stderr:{0}", proc.StandardError.ReadToEnd());
+                Log.LogMessage("stdio:{0}", proc.StandardOutput.ReadToEnd());
+                Log.LogMessage("stderr:{0}", proc.StandardError.ReadToEnd());
             }
             else
             {
-                this.Log.LogError("stdio:{0}", proc.StandardOutput.ReadToEnd());
-                this.Log.LogError("stderr:{0}", proc.StandardError.ReadToEnd());
+                Log.LogError("stdio:{0}", proc.StandardOutput.ReadToEnd());
+                Log.LogError("stderr:{0}", proc.StandardError.ReadToEnd());
             }
 
             proc.Dispose();

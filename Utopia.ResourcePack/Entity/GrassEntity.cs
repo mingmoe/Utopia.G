@@ -1,3 +1,7 @@
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 #region copyright
 // This file(may named GrassEntity.cs) is a part of the project: Utopia.ResourcePack.
 // 
@@ -12,7 +16,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.ResourcePack. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using Utopia.Core.Translate;
+using Utopia.Core.Transition;
 using Utopia.Core.Utilities;
 
 namespace Utopia.ResourcePack.Entity;

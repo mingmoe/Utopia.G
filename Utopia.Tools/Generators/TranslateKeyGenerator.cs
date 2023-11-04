@@ -3,12 +3,22 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using System.Text;
+using System.Xml.Serialization;
 using NLog;
 using Tomlyn;
 using Utopia.Core.Transition;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators;
+public class TransitionConfiguration
+{
+    [XmlElement]
+    public string TargetNamespace { get; set; } = "global";
+
+    [XmlElement]
+    public string TargetClass { get; set; } = "TranslationKeys";
+}
+
 public class TranslateKeyGenerator : IGenerator
 {
 
@@ -24,16 +34,17 @@ public class TranslateKeyGenerator : IGenerator
     private static string _GenerateFor(string source, Dictionary<Guuid, TomlTranslateHumanItem> items
         , GeneratorOption option)
     {
-        CsBuilder builder = new(source);
+        CsBuilder builder = new(null,source);
 
-        builder.Usings.Add("Utopia.Core.Transition");
-        builder.Namespace = option.TargetNamespace;
+        builder.Using.Add("Utopia.Core.Transition");
+        builder.Namespace = option.Configuration.TransitionConfiguration.TargetNamespace;
 
         builder.EmitClass(TranslationClassName, isPartial: true, isStatic: true, isPublic: true);
 
         foreach (KeyValuePair<Guuid, TomlTranslateHumanItem> item in items)
         {
-            builder.EmitField("public", "TranslateKey", item.Key.ToCsIdentifier(),
+            builder.EmitField("public", option.Configuration.TransitionConfiguration.TargetClass,
+                item.Key.ToCsIdentifier(),
                 defaultValue: $"TranslateKey.Create(\"{item.Key}\",\"{item.Value.Comment}\",\"{item.Value.Provider}\")", isReadonly: true, isStatic: true);
         }
 

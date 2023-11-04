@@ -19,12 +19,12 @@ public static class GuuidManager
     /// <summary>
     /// Get the translate key id of the plugin.
     /// </summary>
-    public static Guuid GetTranslateGuuidOf(Guuid pluginId, Guuid translateId) => pluginId.EnterGeneratedSpace().Append("Translated").Append(translateId);
+    public static Guuid GetTranslateGuuidOf(Guuid pluginId, Guuid translateId) => pluginId.EnterGeneratedSpace().Append("Transitions").Append(translateId);
 
     /// <summary>
     /// Get the translate provider of the plugin.
     /// </summary>
-    public static Guuid GetTranslateProviderGuuidOf(Guuid pluginId) => pluginId.EnterGeneratedSpace().Append("Translated").Append("Privoder");
+    public static Guuid GetTranslateProviderGuuidOf(Guuid pluginId) => pluginId.EnterGeneratedSpace().Append("Transitions", "Provider");
 
     public static Guuid GetPluginNameTranslateId(Guuid pluginId) => pluginId.EnterGeneratedSpace().Append("PluginInfo", "Name");
 

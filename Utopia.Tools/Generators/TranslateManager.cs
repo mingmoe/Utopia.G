@@ -34,6 +34,8 @@ public sealed class TranslateManager : IDisposable
 
     private readonly IPluginDevFileSystem _fileSystem;
 
+    private readonly Configuration _configuration;
+
     private readonly Dictionary<TranslateItemType, Dictionary<Guuid, TranslationDeclare>?> _translates = new();
 
     private readonly TranslateItemType[] _keys;
@@ -99,9 +101,10 @@ public sealed class TranslateManager : IDisposable
     /// </summary>
     public void Save() => _Write();
 
-    public TranslateManager(IPluginDevFileSystem fileSystem)
+    public TranslateManager(Configuration configuration,IPluginDevFileSystem fileSystem)
     {
         _fileSystem = fileSystem;
+        _configuration = configuration;
         _keys = Enum.GetValues<TranslateItemType>();
 
         foreach (TranslateItemType item in _keys)
@@ -136,7 +139,7 @@ public sealed class TranslateManager : IDisposable
         });
     }
 
-    public Action<Guuid, string> GetEnsurer(TranslateItemType type)
+    public Action<Guuid, string> GetTransitionAdder(TranslateItemType type)
     {
         _Read();
 
@@ -146,28 +149,27 @@ public sealed class TranslateManager : IDisposable
         };
     }
 
-    public void EnsurePluginInformationTrnaslate()
+    public void EnsurePluginInformationTransition()
     {
-        Action<Guuid, string> ensurer = GetEnsurer(TranslateItemType.PluginInformation);
+        Action<Guuid, string> adder = GetTransitionAdder(TranslateItemType.PluginInformation);
 
-        Guuid id = _fileSystem.ReadPluginInfo().Id;
+        Guuid id = _configuration.Plugin.Id.Guuid;
 
-        ensurer.Invoke(GuuidManager.GetPluginNameTranslateId(id), "the translation of the name");
-        ensurer.Invoke(GuuidManager.GetPluginDescriptionTranslateId(id), "the translation of the description");
+        adder.Invoke(GuuidManager.GetPluginNameTranslateId(id), "the translation of the name");
+        adder.Invoke(GuuidManager.GetPluginDescriptionTranslateId(id), "the translation of the description");
     }
 
-    public void EnsureTranslate(TranslateItemType type, Guuid transletKeyid, string comment)
+    public void EnsureTranslate(TranslateItemType type, Guuid transitionKey, string comment)
     {
-        ArgumentNullException.ThrowIfNull(transletKeyid);
+        ArgumentNullException.ThrowIfNull(transitionKey);
         ArgumentNullException.ThrowIfNull(comment);
 
         _Read();
 
-        PluginInfo pluginInfo = _fileSystem.ReadPluginInfo();
-        Guuid id = pluginInfo.Id;
+        Guuid id = _configuration.Plugin.Id.Guuid;
         Guuid provider = GuuidManager.GetTranslateProviderGuuidOf(id);
 
-        _EnsureTranslateKey(_translates[type]!, transletKeyid, provider, comment);
+        _EnsureTranslateKey(_translates[type]!, transitionKey, provider, comment);
     }
 
     public void Dispose()

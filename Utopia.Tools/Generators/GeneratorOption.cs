@@ -5,27 +5,21 @@
 using System.Text;
 
 namespace Utopia.Tools.Generators;
-public sealed class GeneratorOption : IDisposable
+
+public sealed class GeneratorOption(Configuration configuration, IPluginDevFileSystem targetProject) : IDisposable
 {
-    public string TargetNamespace { get; set; }
+    public Configuration Configuration { get; set; } = configuration;
 
-    public IPluginDevFileSystem TargetProject { get; set; }
+    public IPluginDevFileSystem TargetProject { get; set; } = targetProject;
 
-    public TranslateManager TranslateManager { get; set; }
-
-    public GeneratorOption(string targetNamespace, IPluginDevFileSystem targetProject)
-    {
-        TargetNamespace = targetNamespace;
-        TargetProject = targetProject;
-        TranslateManager = new TranslateManager(targetProject);
-    }
+    public TranslateManager TranslateManager { get; set; } = new TranslateManager(configuration, targetProject);
 
     public override string ToString()
     {
         var builder = new StringBuilder();
 
         _ = builder.AppendLine(TargetProject.ToString());
-        _ = builder.AppendLine("Target Namespace:" + TargetNamespace);
+        _ = builder.AppendLine("Target Namespace:" + Configuration.RootNamespace);
         return builder.ToString();
     }
 

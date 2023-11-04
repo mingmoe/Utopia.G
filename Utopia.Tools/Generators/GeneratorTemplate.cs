@@ -4,7 +4,7 @@ namespace Utopia.Tools.Generators;
 
 public class GeneratorTemplate {
 
-    public const string PluginClassTemplate =
+    public const string ServerPluginClassTemplate =
         """
         ﻿using Autofac;
         using NLog;
@@ -45,7 +45,7 @@ public class GeneratorTemplate {
 
             public PluginForServer(Core.IServiceProvider provider)
             {
-                // set up servicd provider and other managers
+                // set up service provider and other managers
                 ArgumentNullException.ThrowIfNull(provider);
                 _serviceProvider = provider;
                 _translateManager = provider.GetService<TranslateManager>();

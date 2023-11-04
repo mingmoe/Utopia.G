@@ -15,7 +15,6 @@ namespace Utopia.Tools.Generators;
 /// </summary>
 public interface IPluginDevFileSystem
 {
-
     public const string DefaultGenerationDirectoryName = "Generated";
 
     public const string DefaultTranslationDirectoryName = IPluginFileSystem.DefaultTranslationDirectoryName;
@@ -24,7 +23,7 @@ public interface IPluginDevFileSystem
 
     public const string DefaultEntitiesDirectoryName = "Entities";
 
-    public const string DefaultPluginInfoFileName = "utopia.toml";
+    public const string DefaultConfigurationFileName = "utopia.xml";
 
     public const string DefaultVersionFileName = "version.txt";
 
@@ -35,8 +34,6 @@ public interface IPluginDevFileSystem
     string EntitiesDirectory { get; }
 
     string AssetsDirectory { get; }
-
-    string PluginInfoFile { get; }
 
     string VersionFile { get; }
 
@@ -76,52 +73,30 @@ public interface IPluginDevFileSystem
         _ = sb.AppendLine("Target Generated:" + GeneratedDirectory);
         _ = sb.AppendLine("Target Translate:" + TranslationDirectory);
         _ = sb.AppendLine("Target Version File:" + VersionFile);
-        _ = sb.AppendLine("Target Plugin Information File:" + PluginInfoFile);
 
         return sb.ToString();
     }
-
-    PluginInfo ReadPluginInfo(bool forceReread = false);
 }
 
 public class PluginDevFileSystem : IPluginDevFileSystem
 {
-    public string ProjectRootDir { get; set; }
-
-    private PluginInfo? _info = null;
-
-    public PluginInfo ReadPluginInfo(bool forceReread = false)
-    {
-        if (forceReread || _info == null)
-        {
-            string text = File.ReadAllText(PluginInfoFile, Encoding.UTF8);
-
-            TomlModelOptions option = Guuid.AddTomlOption();
-
-            _info = Toml.ToModel<PluginInfo>(text, options: option);
-        }
-
-        return _info;
-    }
-
     public PluginDevFileSystem(string rootDir = ".")
     {
         ProjectRootDir = Path.GetFullPath(rootDir);
         TranslationDirectory = Path.Combine(ProjectRootDir, IPluginDevFileSystem.DefaultTranslationDirectoryName);
         EntitiesDirectory = Path.Combine(ProjectRootDir, IPluginDevFileSystem.DefaultEntitiesDirectoryName);
         AssetsDirectory = Path.Combine(ProjectRootDir, IPluginDevFileSystem.DefaultAssetsDirectoryName);
-        PluginInfoFile = Path.Combine(ProjectRootDir, IPluginDevFileSystem.DefaultPluginInfoFileName);
         VersionFile = Path.Combine(ProjectRootDir, IPluginDevFileSystem.DefaultVersionFileName);
         GeneratedDirectory = Path.Combine(ProjectRootDir, IPluginDevFileSystem.DefaultGenerationDirectoryName);
     }
+
+    public string ProjectRootDir { get; set; }
 
     public string TranslationDirectory { get; set; }
 
     public string EntitiesDirectory { get; set; }
 
     public string AssetsDirectory { get; set; }
-
-    public string PluginInfoFile { get; set; }
 
     public string VersionFile { get; set; }
 

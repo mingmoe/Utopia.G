@@ -152,18 +152,18 @@ public class TranslateFinder
             _ = MSBuildLocator.RegisterDefaults();
 
             string? sln = slnOpt.Value();
-            string? proj = projOpt.Value();
+            string? projectOpt = projOpt.Value();
             string? opt = optOpt.Value();
 
             _Logger.Info("load solution {sln}", sln);
 
-            Project[] projs = Utility.OpenSlnToProject(sln!, proj);
-            _ = await Utility.GetCompilation(projs);
+            Project[] projects = Utility.OpenSlnToProject(sln!, projectOpt);
+            _ = await Utility.GetCompilation(projects);
 
             var finder = new TranslateFinder();
 
             List<Task<Item[]>> tasks = new();
-            foreach (Project item in projs)
+            foreach (Project item in projects)
             {
                 tasks.Add(FindTranslateItem(item));
             }

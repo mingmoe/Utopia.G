@@ -2,68 +2,67 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Configuration;
+using System.Xml.Serialization;
+using Json.Schema;
 using McMaster.Extensions.CommandLineUtils;
+using Utopia.Tools.Generators.Server;
 
 namespace Utopia.Tools.Generators;
 public class GeneratorCommand
 {
-
     public static void Command(CommandLineApplication application)
     {
-        CommandOption version = application.Option("--version-file <FILE>", "the path of version file", CommandOptionType.SingleValue);
-        CommandOption pluginInfo = application.Option("--plugin-info-file <FILE>", "the path of plugin information file", CommandOptionType.SingleValue);
-        CommandOption translateDir = application.Option("--translate-dir <DIR>", "the path to the translate files", CommandOptionType.SingleValue);
-        CommandOption assertsDir = application.Option("--assert-dir <DIR>", "the path to the assert files", CommandOptionType.SingleValue);
-        CommandOption generatedDir = application.Option("--generated-dir <DIR>", "the path to the generated .cs files", CommandOptionType.SingleValue);
-        CommandOption project = application.Option("--project <DIR>", "the path to the projects which need to generate source files", CommandOptionType.SingleValue).IsRequired();
-        CommandOption @namespace = application.Option("--namespace <NAMESPACE>", "the target namespace of the generated code", CommandOptionType.SingleValue);
+        CommandOption config = application.Option(
+            "--configuration <FILE>",
+            "the path to the configuration file",
+            CommandOptionType.SingleValue)
+            .IsRequired(errorMessage: "you must provide a configuration file");
+        CommandOption project = application.Option(
+            "--project <DIR>",
+            "the path to the root of the project which need to generate source files",
+            CommandOptionType.SingleValue)
+            .IsRequired(errorMessage: "you must provide a project!");
 
-        @namespace.DefaultValue = "global";
-
-        IPluginDevFileSystem createFileSystem(string project)
+        (IPluginDevFileSystem, Configuration) createFileSystem(string project)
         {
             PluginDevFileSystem system = new(project);
-            if (version.HasValue())
+
+            XmlSerializer serializer =
+                new(typeof(Configuration));
+
+            Configuration configuration;
+
+            using (Stream reader = new FileStream(config.Value()! , FileMode.Open))
             {
-                system.VersionFile = version.Value()!;
+                configuration = (Configuration)(serializer.Deserialize(reader) ?? throw new InvalidCastException("The "));
             }
-            if (pluginInfo.HasValue())
-            {
-                system.PluginInfoFile = pluginInfo.Value()!;
-            }
-            if (translateDir.HasValue())
-            {
-                system.TranslationDirectory = translateDir.Value()!;
-            }
-            if (assertsDir.HasValue())
-            {
-                system.AssetsDirectory = assertsDir.Value()!;
-            }
-            if (generatedDir.HasValue())
-            {
-                system.GeneratedDirectory = generatedDir.Value()!;
-            }
+
+            configuration.ApplyToFileSystem(system);
 
             ((IPluginDevFileSystem)system).CreateNotExistsDirectory();
-
-            return system;
+            return (system,configuration);
         }
 
-        GeneratorOption getOption() => new(@namespace.Value()!, createFileSystem(project.Value()!));
-
-        var generators = new IGenerator[] {
-            new PluginInformationGenerator(),
-            new PluginGenerator(),
-            new TranslateKeyGenerator(),
-        };
-
-        foreach (IGenerator generator in generators)
+        application.OnExecute(() =>
         {
-            _ = application.Command(generator.SubcommandName, (config) =>
-            {
-                generator.Command(config, getOption);
-            });
-        }
+            (IPluginDevFileSystem system, Configuration configuration) = createFileSystem(project.Value()!);
+            GeneratorOption option = new(configuration, system);
 
+            Dictionary<string, IGenerator> generators = new();
+            foreach (IGenerator generator in (IGenerator[])[
+                new PluginInformationGenerator(),
+                new PluginGenerator(),
+                new ServerEntityGenerator(),
+                new TranslateKeyGenerator()])
+            {
+                generators.Add(generator.SubcommandName, generator);
+            }
+
+            foreach (string generator in configuration.Generators)
+            {
+                generators[generator].Execute(option);
+            }
+        });
     }
 }

@@ -66,6 +66,16 @@ public class Program
         return Console.IsErrorRedirected || Console.IsOutputRedirected || Console.IsInputRedirected;
     }
 
+    public static Version GetVersion()
+    {
+        return typeof(Program).Assembly.GetName().Version ?? new Version(1, 1, 0, 1);
+    }
+
+    public static string GetProgramName()
+    {
+        return typeof(Program).Assembly.GetName().Name ?? "Utopia.Tools";
+    }
+
     private static Logger _Logger => s_loggerHandler.Value;
 
     private static int Main(string[] args)
@@ -92,7 +102,7 @@ public class Program
 
         var app = new CommandLineApplication
         {
-            Name = "Utopia.Tools",
+            Name = GetProgramName() ,
             Description = "A C# tool which is used for utopia(and its plugin) development",
         };
 
@@ -128,8 +138,7 @@ public class Program
             {
                 return;
             }
-            string? v = typeof(Program).Assembly.GetName().Version?.ToString();
-            Console.WriteLine(v ?? "0.0.0-FAIL-TO-GET");
+            string v = GetVersion().ToString();
             if (v == null)
             {
                 Console.WriteLine("Failed to get the Assembly verion(null). return Default Value.");

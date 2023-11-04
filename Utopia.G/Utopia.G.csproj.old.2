@@ -1,12 +1,15 @@
-<Project Sdk="Godot.NET.Sdk/4.2.0-beta.3">
-  <Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+<Project Sdk="Godot.NET.Sdk/4.1.1">
+
+	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+
+	<PropertyGroup>
+        <UseNetSdk>false</UseNetSdk>
+    </PropertyGroup>
+    <!--Do not use <Sdk/> element, or the <UseNetSdk> won't work-->
+    <Import Sdk="Kawayi.Utopia.Sdk" Project="Sdk.props"/>
+    
   <PropertyGroup>
-    <UseNetSdk>false</UseNetSdk>
-  </PropertyGroup>
-  <!--Do not use <Sdk/> element, or the <UseNetSdk> won't work-->
-  <Import Sdk="Kawayi.Utopia.Sdk" Project="Sdk.props" />
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -54,5 +57,8 @@
   </ItemGroup>
   <Target Name="Release">
   </Target>
-  <Import Sdk="Kawayi.Utopia.Sdk" Project="Sdk.targets" />
+
+
+  <Import Sdk="Kawayi.Utopia.Sdk" Project="Sdk.targets"/>
+
 </Project>

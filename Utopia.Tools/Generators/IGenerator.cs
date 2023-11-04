@@ -7,7 +7,7 @@ using McMaster.Extensions.CommandLineUtils;
 namespace Utopia.Tools.Generators;
 
 /// <summary>
-/// The same from microsoft is shit. So use this.
+/// The same from Microsoft is shit. So use this.
 /// </summary>
 public interface IGenerator
 {
@@ -27,7 +27,7 @@ public interface IGenerator
     }
 
     /// <summary>
-    /// Note: this may be call many times
+    /// Note: this may be called many times
     /// </summary>
     void Execute(GeneratorOption option);
 }

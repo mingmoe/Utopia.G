@@ -3,8 +3,15 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using System.Text;
+using System.Xml.Serialization;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tools.Generators.Server;
+
+public class ServerGeneratorConfiguration
+{
+    [XmlElement]
+    public string ServerNamespaceName { get; set; } = string.Empty;
+}
 
 /// <summary>
 /// Generate the plugin file.
@@ -15,8 +22,9 @@ public class PluginGenerator : IGenerator
 
     public void Execute(GeneratorOption option)
     {
-        var source = GeneratorTemplate.PluginClassTemplate.Replace("$TARGET_NAMESPACE$", option.TargetNamespace);
-       
+        var source = GeneratorTemplate.ServerPluginClassTemplate.Replace("$TARGET_NAMESPACE$",
+            option.Configuration.ServerGeneratorConfiguration.ServerNamespaceName);
+
         string output = option.TargetProject.GetGeneratedCsFilePath("Plugin");
 
         File.WriteAllText(output, source, Encoding.UTF8);

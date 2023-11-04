@@ -13,13 +13,13 @@ public class CsBuilder
 
     private string _Align => new(' ', _alignCount * 4);
 
-    public List<string> Usings = new();
+    public List<string> Using = ["System.CodeDom.Compiler"];
 
     public string? Namespace = null;
 
-    public List<string> Lines = new();
+    public List<string> Lines = [];
 
-    public Type? Generator = null;
+    public readonly Type Generator;
 
     public string[] Source;
 
@@ -39,7 +39,8 @@ public class CsBuilder
             parent = parent[0..^1];
         }
 
-        Lines.Add($"{_Align}{pub} {sat} {prt} class {className} {parent}");
+        Lines.Add($"{_Align}[GeneratedCode(\"{Generator?.ToString() ?? "Unknown"}\",\"{Program.GetVersion()}\")]");
+        Lines.Add($"{_Align}{pub} {sat} {prt}".TrimEnd() + $" class {className} {parent}");
         BeginCodeBlock();
     }
 
@@ -62,7 +63,7 @@ public class CsBuilder
 
     public void EmitComment(string comment, bool forceMultiline = false)
     {
-        string[] lines = comment.Split(new[] { '\r', '\n' });
+        string[] lines = comment.Split(['\r', '\n']);
         if (lines.Length == 1 && (!forceMultiline))
         {
             Lines.Add($"{_Align}// {comment}");
@@ -115,7 +116,7 @@ public class CsBuilder
         }
         _ = sb.AppendLine();
 
-        foreach (string s in Usings)
+        foreach (string s in Using)
         {
             _ = sb.Append("using ").Append(s).AppendLine(";");
         }
@@ -135,10 +136,15 @@ public class CsBuilder
         return sb.ToString();
     }
 
-    public CsBuilder(params string[] source)
+    /// <summary>
+    /// Build a new cs builder
+    /// </summary>
+    /// <param name="generator">the generator type. If it is null,method will read type from stack,if </param>
+    /// <param name="source">the source (files) that emit those CSharp codes.</param>
+    public CsBuilder(Type? generator = null, params string[] source)
     {
         System.Reflection.MethodBase? methodInfo = new StackTrace().GetFrame(1)?.GetMethod();
-        Generator = methodInfo?.ReflectedType;
+        Generator = (generator ?? methodInfo?.ReflectedType) ?? typeof(CsBuilder);
         Source = source;
     }
 }

@@ -41,5 +41,10 @@ public interface IPluginInformation
     /// 网址，或者其他联系方式等。
     /// </summary>
     string Homepage { get; }
+
+    /// <summary>
+    /// The guuid of dependent plugins.
+    /// </summary>
+    Guuid[] Dependences { get; }
 }
 

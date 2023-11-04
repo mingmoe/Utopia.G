@@ -6,6 +6,9 @@ using System.Collections;
 using System.IO.Hashing;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
@@ -267,6 +270,37 @@ public sealed class Guuid : IEnumerable<string>
                 : obj is Guuid id && type.IsAssignableTo(typeof(string)) ? id.ToString() : (defaultToModel?.Invoke(obj, type));
         };
         return options;
+    }
+}
+
+/// <summary>
+/// This class was used for xml.
+/// Do not use it in other code.
+/// </summary>
+public class XmlGuuid : IXmlSerializable
+{
+    public Guuid Guuid { get; set; } = Guuid.Empty;
+
+    public XmlSchema? GetSchema()
+    {
+        XmlSchema xml = new();
+
+        XmlSchemaElement element = new();
+        element.Name = "guuid";
+        element.SchemaTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema");
+
+        xml.Items.Add(element);
+
+        return xml;
+    }
+    public void ReadXml(XmlReader reader)
+    {
+        Guuid = Guuid.Parse(reader.ReadContentAsString());
+    }
+
+    public void WriteXml(XmlWriter writer)
+    {
+        writer.WriteString(Guuid.ToString());
     }
 }
 

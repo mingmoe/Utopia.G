@@ -11,6 +11,7 @@ Set `UseUtopiaSdk` to `false` to remove the `<PackageReference Include="Kawayi.U
 
 set `UseNetSdk` to `false` to remove the `<Sdk Name="Microsoft.NET.Sdk" />`(If you want to set this option,you need use `<Import>` instead of `<Sdk>`,see https://learn.microsoft.com/en-us/visualstudio/msbuild/how-to-use-project-sdk?view=vs-2022#use-the-import-element-anywhere-in-your-project)
 
+set `RecommendUtopiaNetOption` to `false` to let SDK not to set some .NET properties(such as `<Nullable>true<Nullable/>` or `<TargetFramework>net8.0</TargetFramework>`)
 
 TODO:
 

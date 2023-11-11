@@ -29,6 +29,11 @@ namespace Utopia.Core.Utilities;
 public sealed class Guuid : IEnumerable<string>
 {
     /// <summary>
+    /// Use this to check the guuid string
+    /// </summary>
+    public const string Pattern = @"^[a-zA-Z]{1}[a-zA-Z0-9]*(\.[a-zA-Z]{1}[a-zA-Z0-9]*)+$";
+
+    /// <summary>
     /// utopia游戏所使用的GUUID的root.
     /// 不推荐插件使用,避免出现问题.
     /// </summary>
@@ -182,6 +187,7 @@ public sealed class Guuid : IEnumerable<string>
         result = new Guuid(strs.First(), strs[1..]);
         return true;
     }
+
     /// <summary>
     /// 获取一个新的随机的标识符。
     /// </summary>
@@ -277,25 +283,53 @@ public sealed class Guuid : IEnumerable<string>
 /// This class was used for xml.
 /// Do not use it in other code.
 /// </summary>
+[XmlSchemaProvider("GetGuuidSchemaOfType")]
 public class XmlGuuid : IXmlSerializable
 {
     public Guuid Guuid { get; set; } = Guuid.Empty;
 
+    public XmlGuuid()
+    {
+
+    }
+
+    public XmlGuuid(Guuid guuid)
+    {
+        this.Guuid = guuid;
+    }
+
+    public override bool Equals(object? obj) => Guuid.Equals(obj);
+
+    public override int GetHashCode() => Guuid.GetHashCode();
+
+    public override string ToString() => Guuid.ToString();
+
+    public static XmlSchemaSimpleType GetGuuidSchemaOfType(XmlSchemaSet set)
+    {
+        XmlSchemaSimpleType type = new();
+
+        {
+            XmlSchemaSimpleTypeRestriction restriction = new();
+            restriction.BaseTypeName = new("string", "http://www.w3.org/2001/XMLSchema");
+            {
+                XmlSchemaPatternFacet facet = new();
+                facet.Value = Guuid.Pattern;
+                restriction.Facets.Add(facet);
+            }
+            type.Content = restriction;
+        }
+
+        return type;
+    }
+
     public XmlSchema? GetSchema()
     {
-        XmlSchema xml = new();
-
-        XmlSchemaElement element = new();
-        element.Name = "guuid";
-        element.SchemaTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema");
-
-        xml.Items.Add(element);
-
-        return xml;
+        return null;
     }
+
     public void ReadXml(XmlReader reader)
     {
-        Guuid = Guuid.Parse(reader.ReadContentAsString());
+        Guuid = Guuid.Parse(reader.ReadElementContentAsString());
     }
 
     public void WriteXml(XmlWriter writer)

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Call Tool": {
+      "commandName": "Project",
+      "commandLineArgs": "generate\r\n--configuration\r\nC:\\Users\\mingm\\Projects\\utopia-godot/utopia.xml\r\n--project\r\nC:\\Users\\mingm\\Projects\\utopia-godot/"
+    }
+  }
+}

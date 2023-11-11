@@ -17,6 +17,7 @@ public class GenerateDocs
 
     public static void Command(CommandLineApplication configCmd)
     {
+        configCmd.Description = "this subcommand will generate documents for the project";
         CommandOption<string> configOpt = configCmd.Option<string>("-c|--config", "the config file", CommandOptionType.SingleValue);
 
         configOpt.DefaultValue = "docfx.json";

@@ -73,7 +73,7 @@ public class Program
 
     public static string GetProgramName()
     {
-        return typeof(Program).Assembly.GetName().Name ?? "Utopia.Tools";
+        return typeof(Program).Assembly.GetName().Name ?? "Utopia.Tool";
     }
 
     private static Logger _Logger => s_loggerHandler.Value;
@@ -102,14 +102,14 @@ public class Program
 
         var app = new CommandLineApplication
         {
-            Name = GetProgramName() ,
+            Name = GetProgramName(),
             Description = "A C# tool which is used for utopia(and its plugin) development",
         };
 
         // build command
-        _ = app.Command("extractTranslate", TranslateFinder.Command);
+        _ = app.Command("extract-translate", TranslateFinder.Command);
         _ = app.Command("docs", GenerateDocs.Command);
-        _ = app.Command("generate", GeneratorCommand.Command);
+        _ = app.Command("generate", GenerationCommand.Command);
 
         // build option
         _ = app.HelpOption(inherited: true);
@@ -141,7 +141,7 @@ public class Program
             string v = GetVersion().ToString();
             if (v == null)
             {
-                Console.WriteLine("Failed to get the Assembly verion(null). return Default Value.");
+                Console.WriteLine("Failed to get the Assembly version(null). return Default Value.");
             }
             Console.WriteLine("Licensed by AGPL 3.0-or-later");
             Console.WriteLine("Copyright 2020-2023 mingmoe(http://kawayi.moe)");
@@ -152,4 +152,3 @@ public class Program
         return app.Execute(args);
     }
 }
-

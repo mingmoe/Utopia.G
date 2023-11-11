@@ -15,14 +15,13 @@ namespace Utopia.Build
     /// </summary>
     public class RunUtopiaToolTask : Microsoft.Build.Utilities.Task
     {
-
         /// <summary>
         /// If is null or <see cref="string.Empty"/>,
         /// use `dotnet tool` to run Utopia.Tools.
         /// </summary>
         public string RunFromProject { get; set; } = null;
 
-        public string ProjectCondifuration { get; set; } = "Release";
+        public string ProjectCondition { get; set; } = "Release";
 
         /// <summary>
         /// This flag mark the position of Utopia.Tools.
@@ -32,10 +31,13 @@ namespace Utopia.Build
 
         public string DotnetPath { get; set; } = "dotnet";
 
-        public string PwshPath { get; set; } = "pwsh";
+        public string PowerShellPath { get; set; } = "pwsh";
 
         [Required]
-        public string[] Arguments { get; set; } = Array.Empty<string>();
+        public string ConfigurationFilePath { get; set; } = "./utopia.xml";
+
+        [Required]
+        public string ProjectPath { get; set; } = ".";
 
         private static string _EscapePwsh(string str)
         {
@@ -54,7 +56,7 @@ namespace Utopia.Build
             if (!string.IsNullOrEmpty(RunFromProject))
             {
                 tool = _EscapePwsh(DotnetPath);
-                _ = sb.Append($" run  --configuration \"{_EscapePwsh(ProjectCondifuration)}\" --project \"{_EscapePwsh(RunFromProject)}\" -- ");
+                _ = sb.Append($" run  --configuration \"{_EscapePwsh(ProjectCondition)}\" --project \"{_EscapePwsh(RunFromProject)}\" -- ");
             }
             else
             {
@@ -71,6 +73,8 @@ namespace Utopia.Build
             }
 
             // build argument
+            string[] Arguments = new string[] { "generate", "--configuration", ConfigurationFilePath,"--project", ProjectPath };
+
             foreach (string argument in Arguments)
             {
                 _ = sb.Append($" \"{_EscapePwsh(argument)}\" ");
@@ -91,13 +95,13 @@ namespace Utopia.Build
             }
             string script = $"\n{commentBuilder}\n&\"{tool}\" {sb}\n";
 
-            Log.LogMessage(MessageImportance.High, $"generate powershell script file({scriptFile}):{script}");
+            Log.LogMessage(MessageImportance.High, $"generate PowerShell script file({scriptFile}):{script}");
 
             File.WriteAllText(scriptFile, script, Encoding.UTF8);
 
-            // build pwsh process
+            // build PowerShell process
             var proc = new Process();
-            var info = new ProcessStartInfo(PwshPath, $" -f \"{scriptFile}\"")
+            var info = new ProcessStartInfo(PowerShellPath, $" -f \"{scriptFile}\"")
             {
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
@@ -117,13 +121,13 @@ namespace Utopia.Build
 
             if (code == 0)
             {
-                Log.LogMessage("stdio:{0}", proc.StandardOutput.ReadToEnd());
-                Log.LogMessage("stderr:{0}", proc.StandardError.ReadToEnd());
+                Log.LogMessage("standard output:{0}", proc.StandardOutput.ReadToEnd());
+                Log.LogMessage("standard error:{0}", proc.StandardError.ReadToEnd());
             }
             else
             {
-                Log.LogError("stdio:{0}", proc.StandardOutput.ReadToEnd());
-                Log.LogError("stderr:{0}", proc.StandardError.ReadToEnd());
+                Log.LogError("standard output:{0}", proc.StandardOutput.ReadToEnd());
+                Log.LogError("standard error:{0}", proc.StandardError.ReadToEnd());
             }
 
             proc.Dispose();

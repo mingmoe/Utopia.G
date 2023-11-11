@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:tns="http://utopia.kawayi.moe" elementFormDefault="qualified" targetNamespace="http://utopia.kawayi.moe" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Configuration" nillable="true" type="tns:Configuration" />
+  <xs:complexType name="Configuration">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="ProjectRootDir" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Subprojects" type="tns:ArrayOfSubprojectConfiguration" />
+      <xs:element minOccurs="0" maxOccurs="1" name="TransitionConfiguration" type="tns:TransitionConfiguration" />
+      <xs:element minOccurs="0" maxOccurs="1" name="ServerGeneratorConfiguration" type="tns:ServerGeneratorConfiguration" />
+      <xs:element minOccurs="0" maxOccurs="1" name="PluginInformation" type="tns:PluginInformation" />
+      <xs:element minOccurs="1" maxOccurs="1" name="GenerateXmlSchemaFileTo" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfSubprojectConfiguration">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Subproject" nillable="true" type="tns:SubprojectConfiguration" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SubprojectConfiguration">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Path" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Generators" type="tns:ArrayOfString" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Configuration" type="tns:ProjectConfiguration" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfString">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Generator" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ProjectConfiguration">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="RootNamespace" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="VersionFile" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="AssetsDirectory" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="TransitionDirectory" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="GeneratedDirectory" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="EntitiesDirectory" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="TransitionConfiguration">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="TargetNamespace" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="TargetClass" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ServerGeneratorConfiguration">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="ServerNamespaceName" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PluginInformation">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Description" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="License" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="PluginId">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="^[a-zA-Z]{1}[a-zA-Z0-9]*(\.[a-zA-Z]{1}[a-zA-Z0-9]*)+$" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="Homepage" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Dependences" type="tns:ArrayOfXmlGuuid" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfXmlGuuid">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Dependence" nillable="true">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="^[a-zA-Z]{1}[a-zA-Z0-9]*(\.[a-zA-Z]{1}[a-zA-Z0-9]*)+$" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

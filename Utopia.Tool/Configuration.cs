@@ -8,15 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Utopia.Core.Utilities;
 using Utopia.Tools.Generators;
 using Utopia.Tools.Generators.Server;
 
 namespace Utopia.Tools;
 
-/// <summary>
-/// This class is a configuration.
-/// </summary>
-public class Configuration
+public class ProjectConfiguration
 {
     [XmlElement]
     public string RootNamespace { get; set; } = "global";
@@ -36,15 +34,44 @@ public class Configuration
     [XmlElement]
     public string EntitiesDirectory { get; set; } = IPluginDevFileSystem.DefaultEntitiesDirectoryName;
 
+    public void ApplyToFileSystem(PluginDevFileSystem system)
+    {
+        system.AssetsDirectory = AssetsDirectory;
+        system.TranslationDirectory = TransitionDirectory;
+        system.EntitiesDirectory = EntitiesDirectory;
+        system.VersionFile = VersionFile;
+        system.GeneratedDirectory = GeneratedDirectory;
+    }
+}
+
+public class SubprojectConfiguration
+{
+    [XmlElement]
+    public string Path { get; set; } = ".";
+
+    [XmlArray("Generators")]
+    [XmlArrayItem("Generator")]
+    public List<string> Generators { get; set; } = [];
+
+    [XmlElement]
+    public ProjectConfiguration Configuration { get; set; } = new();
+}
+
+/// <summary>
+/// This class is a configuration.
+/// </summary>
+[XmlRoot(Namespace = Xml.Namespace)]
+public class Configuration
+{
     [XmlElement]
     public string ProjectRootDir { get; set; } = ".";
 
     /// <summary>
     /// What do you want to generate?
     /// </summary>
-    [XmlArray("Generators")]
-    [XmlArrayItem("Generator")]
-    public List<string> Generators { get; set; } = [];
+    [XmlArray("Subprojects")]
+    [XmlArrayItem("Subproject")]
+    public List<SubprojectConfiguration> Subprojects { get; set; } = [];
 
     [XmlElement]
     public TransitionConfiguration TransitionConfiguration { get; set; } = new();
@@ -53,15 +80,8 @@ public class Configuration
     public ServerGeneratorConfiguration ServerGeneratorConfiguration { get; set; } = new();
 
     [XmlElement]
-    public PluginInformation Plugin { get; set; } = new();
+    public PluginInformation PluginInformation { get; set; } = new();
 
-    public void ApplyToFileSystem(PluginDevFileSystem system)
-    {
-        system.AssetsDirectory = AssetsDirectory;
-        system.TranslationDirectory = TransitionDirectory;
-        system.ProjectRootDir = ProjectRootDir;
-        system.EntitiesDirectory = EntitiesDirectory;
-        system.VersionFile = VersionFile;
-        system.GeneratedDirectory = GeneratedDirectory;
-    }
+    [XmlElement(IsNullable = true)]
+    public string? GenerateXmlSchemaFileTo { get; set; } = null;
 }

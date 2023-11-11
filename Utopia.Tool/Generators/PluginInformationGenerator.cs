@@ -20,7 +20,7 @@ public class PluginInformation
     public string License { get; set; } = "Unknown";
 
     [XmlElement]
-    public XmlGuuid Id { get; set; } = new XmlGuuid();
+    public XmlGuuid PluginId { get; set; } = new XmlGuuid();
 
     [XmlElement]
     public string Homepage { get; set; } = "Unknown";
@@ -41,9 +41,9 @@ public class PluginInformationGenerator : IGenerator
     public void Execute(GeneratorOption option)
     {
         // read toml
-        string output = option.TargetProject.GetGeneratedCsFilePath(IPluginDevFileSystem.DefaultConfigurationFileName);
-        string inputVersion = option.TargetProject.VersionFile;
-        var info = option.Configuration.Plugin;
+        string output = option.CurrentFileSystem.GetGeneratedCsFilePath(IPluginDevFileSystem.DefaultConfigurationFileName);
+        string inputVersion = option.CurrentFileSystem.VersionFile;
+        var info = option.Configuration.PluginInformation;
 
         string version = File.ReadAllText(inputVersion, System.Text.Encoding.UTF8).Trim();
 
@@ -59,10 +59,10 @@ public class PluginInformationGenerator : IGenerator
         builder.Using.Add("Utopia.Core.Plugin");
         builder.Using.Add("Utopia.Core.Transition");
         builder.Using.Add("Utopia.Core.Utilities");
-        builder.Namespace = option.Configuration.RootNamespace;
+        builder.Namespace = option.CurrentProject.Configuration.RootNamespace;
 
         builder.EmitClass("PluginInformation", isPublic: true, parentClass: "IPluginInformation");
-        builder.EmitField("public", "Guuid", "ID", $"Guuid.Parse(\"{info.Id}\")", true, true);
+        builder.EmitField("public", "Guuid", "ID", $"Guuid.Parse(\"{info.PluginId}\")", true, true);
         builder.EmitField("public", "TranslatedString", "NAME", $"new(\"{info.Name}\")", true, true);
         builder.EmitField("public", "TranslatedString", "DESC", $"new(\"{info.Description}\")", true, true);
         builder.EmitField("public", "System.Version", "VER", $"Version.Parse(\"{version}\")", true, true);

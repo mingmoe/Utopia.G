@@ -137,6 +137,8 @@ public class TranslateFinder
 
     public static void Command(CommandLineApplication configCmd)
     {
+        configCmd.Description = "this subcommand will generate translation key from CSharp projects";
+
         CommandOption<string> slnOpt = configCmd.Option<string>("-s|--sln", "the path to the .sln file", CommandOptionType.SingleValue).IsRequired();
         CommandOption<string> projOpt = configCmd.Option<string>
         ("-p|--project", "the project guid of the sln that you want to get translate item", CommandOptionType.SingleValue);

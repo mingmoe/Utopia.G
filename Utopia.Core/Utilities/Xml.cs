@@ -8,12 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Tools.Generators.Server;
-public class CommonServerEntityGenerator : IServerEntityGenerator
+namespace Utopia.Core.Utilities;
+public static class Xml
 {
-    public void Generate(string tomlPath, ServerEntityInfo info, GeneratorOption option)
-    {
-        // no output any thing
-        return;
-    }
+    public const string Namespace = "http://utopia.kawayi.moe";
 }

@@ -3,6 +3,8 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
 using Tomlyn;
 using Utopia.Core.Utilities;
 
@@ -18,11 +20,23 @@ public enum TranslateItemType
 /// <summary>
 /// Only declare a existence of a transition item,no any translated content.
 /// </summary>
-public class TranslationDeclare
+public class TranslationDeclareItem
 {
-    public Guuid Provider { get; set; } = Guuid.Empty;
+    [XmlElement]
+    public XmlGuuid Id { get; set; } = new();
 
+    [XmlElement]
+    public XmlGuuid ProviderId { get; set; } = new();
+
+    [XmlElement]
     public string Comment { get; set; } = string.Empty;
+}
+
+public class TranslationDeclares
+{
+    [XmlArray("Translations")]
+    [XmlArrayItem("Translation")]
+    public List<TranslationDeclareItem> Translations { get; set; } = [];
 }
 
 /// <summary>
@@ -31,12 +45,13 @@ public class TranslationDeclare
 /// </summary>
 public sealed class TranslateManager : IDisposable
 {
+    private readonly XmlSerializer _serializer = new(typeof(TranslationDeclares));
 
     private readonly IPluginDevFileSystem _fileSystem;
 
     private readonly Configuration _configuration;
 
-    private readonly Dictionary<TranslateItemType, Dictionary<Guuid, TranslationDeclare>?> _translates = new();
+    private readonly Dictionary<TranslateItemType, Dictionary<Guuid, TranslationDeclareItem>?> _translates = new();
 
     private readonly TranslateItemType[] _keys;
 
@@ -45,15 +60,18 @@ public sealed class TranslateManager : IDisposable
     /// </summary>
     private void _Read()
     {
-        Dictionary<Guuid, TranslationDeclare> read(TranslateItemType type)
+        Dictionary<Guuid, TranslationDeclareItem> read(TranslateItemType type)
         {
-            string path = _fileSystem.GetTranslatedTomlFilePath(type);
+            string path = _fileSystem.GetTranslatedXmlFilePath(type);
             TomlModelOptions option = Guuid.AddTomlOption();
 
             _EnsureFile(path);
 
-            return Toml.ToModel<Dictionary<Guuid, TranslationDeclare>>(
-                File.ReadAllText(path), options: option);
+            using var fs = new FileStream(path, FileMode.Open);
+
+            var obj = (TranslationDeclares)(_serializer.Deserialize(fs) ?? throw new XmlException("XmlSerializer.Deserialize returns null"));
+
+            return obj.Translations.ToDictionary((item) => { return item.Id.Guuid; });
         }
 
         foreach (TranslateItemType key in _keys)
@@ -67,10 +85,9 @@ public sealed class TranslateManager : IDisposable
 
     private void _Write()
     {
-        void write(TranslateItemType type, Dictionary<Guuid, TranslationDeclare> model)
+        void write(TranslateItemType type, Dictionary<Guuid, TranslationDeclareItem> model)
         {
-            string path = _fileSystem.GetTranslatedTomlFilePath(type);
-            TomlModelOptions option = Guuid.AddTomlOption();
+            string path = _fileSystem.GetTranslatedXmlFilePath(type);
 
             if (File.Exists(path))
             {
@@ -78,8 +95,15 @@ public sealed class TranslateManager : IDisposable
             }
             _EnsureFile(path);
 
-            File.WriteAllText(path, Toml.FromModel(
-                model, options: option), Encoding.UTF8);
+            using var fs = new FileStream(path, FileMode.Open);
+
+            var declares = new TranslationDeclares();
+            foreach(KeyValuePair<Guuid, TranslationDeclareItem> item in model)
+            {
+                declares.Translations.Add(item.Value);
+            }
+
+            _serializer.Serialize(fs, declares);
         }
 
         foreach (TranslateItemType key in _keys)
@@ -125,16 +149,17 @@ public sealed class TranslateManager : IDisposable
     /// Ensure the translate item exists in the toml table.
     /// Otherwise create it.
     /// </summary>
-    private static void _EnsureTranslateKey(IDictionary<Guuid, TranslationDeclare> model, Guuid id, Guuid provider, string comment)
+    private static void _EnsureTranslateKey(IDictionary<Guuid, TranslationDeclareItem> model, Guuid id, Guuid provider, string comment)
     {
         if (model.ContainsKey(id))
         {
             return;
         }
 
-        model.Add(id, new TranslationDeclare
+        model.Add(id, new TranslationDeclareItem
         {
-            Provider = provider,
+            Id = new(id),
+            ProviderId = new(provider),
             Comment = comment
         });
     }
@@ -153,7 +178,7 @@ public sealed class TranslateManager : IDisposable
     {
         Action<Guuid, string> adder = GetTransitionAdder(TranslateItemType.PluginInformation);
 
-        Guuid id = _configuration.Plugin.Id.Guuid;
+        Guuid id = _configuration.PluginInformation.PluginId.Guuid;
 
         adder.Invoke(GuuidManager.GetPluginNameTranslateId(id), "the translation of the name");
         adder.Invoke(GuuidManager.GetPluginDescriptionTranslateId(id), "the translation of the description");
@@ -166,7 +191,7 @@ public sealed class TranslateManager : IDisposable
 
         _Read();
 
-        Guuid id = _configuration.Plugin.Id.Guuid;
+        Guuid id = _configuration.PluginInformation.PluginId.Guuid;
         Guuid provider = GuuidManager.GetTranslateProviderGuuidOf(id);
 
         _EnsureTranslateKey(_translates[type]!, transitionKey, provider, comment);

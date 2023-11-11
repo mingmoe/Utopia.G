@@ -14,10 +14,10 @@ using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators.Server;
 
-public class ServerCustomEntity
+public class ServerCustomGenerator
 {
     [XmlElement]
-    public string Name { get; set; } = string.Empty;
+    public string GeneratorName { get; set; } = string.Empty;
 
     [XmlElement]
     public XmlElement Data { get; set; } = null!;
@@ -40,13 +40,13 @@ public class ServerEntityInfo
     /// <summary>
     /// This hint use which entity generator.
     /// </summary>
-    [XmlChoiceIdentifier("Type")]
-    [XmlElement("Common", typeof(string))]
-    [XmlElement("Custom", typeof(ServerCustomEntity))]
-    public object Data { get; set; } = null!;
+    [XmlChoiceIdentifier(nameof(Types))]
+    [XmlElement("CommonGenerator", typeof(XmlElement))]
+    [XmlElement("CustomGenerator", typeof(ServerCustomGenerator))]
+    public object[] Generators { get; set; } = null!;
 
     [XmlIgnore]
-    public StandardEntityType Type { get; set; } = StandardEntityType.None;
+    public StandardEntityType[] Types { get; set; } = [];
 }
 
 /// <summary>
@@ -54,15 +54,14 @@ public class ServerEntityInfo
 /// </summary>
 public enum StandardEntityType
 {
-    None,
     /// <summary>
     /// stand for <see cref="CommonServerEntityGenerator"/>
     /// </summary>
-    Common,
+    CommonGenerator,
     /// <summary>
     /// stand for user custom entity type
     /// </summary>
-    Custom,
+    CustomGenerator,
 }
 
 /// <summary>
@@ -103,7 +102,7 @@ public class ServerEntityGenerator : IGenerator
         // find all .xml
         List<string> xmlDocuments = [];
 
-        foreach (string toml in _GetAllFile(option.TargetProject.EntitiesDirectory))
+        foreach (string toml in _GetAllFile(option.CurrentFileSystem.EntitiesDirectory))
         {
             if (toml.EndsWith(".xml"))
             {
@@ -121,22 +120,27 @@ public class ServerEntityGenerator : IGenerator
                 var obj = (ServerEntityInfo)(xml.Deserialize(fs) ?? throw new XmlException("XmlSerializer.Deserialize return null"));
 
                 // find type
-                switch(obj.Type)
+                for (int index=0;index!= obj.Types.Length;index++)
                 {
-                    case StandardEntityType.None:
-                        throw new InvalidDataException("the type of the entity xml file is None");
-                    case StandardEntityType.Common:
-                        _commonGenerator.Generate(xmlDocument, obj,option);
-                        break;
-                    case StandardEntityType.Custom:
-                        var info = ((ServerCustomEntity)obj.Data);
-                        if(!CustomGenerators.TryGetValue(info.Name, out IServerEntityGenerator? generator))
-                        {
-                            throw new InvalidDataException(
-                                "the custom generator of the entity xml file can not be found." +
-                                "ensure you have added the right custom generators");
-                        }
-                        break;
+                    StandardEntityType type = obj.Types[index];
+                    object generator = obj.Generators[index];
+
+                    switch (type)
+                    {
+                        case StandardEntityType.CommonGenerator:
+                            _commonGenerator.Generate(xmlDocument, obj,(XmlElement)generator, option);
+                            break;
+                        case StandardEntityType.CustomGenerator:
+                            var customGeneratorInfo = ((ServerCustomGenerator)generator);
+                            if (!CustomGenerators.TryGetValue(customGeneratorInfo.GeneratorName, out IServerEntityGenerator? customGenerator))
+                            {
+                                throw new InvalidDataException(
+                                    "the custom generator of the entity xml file can not be found." +
+                                    "ensure you have added the right custom generators");
+                            }
+                            customGenerator.Generate(xmlDocument, obj, customGeneratorInfo.Data , option);
+                            break;
+                    }
                 }
             }
             catch (Exception)

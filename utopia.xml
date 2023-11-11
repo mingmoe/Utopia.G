@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://utopia.kawayi.moe">
+  <ProjectRootDir>.</ProjectRootDir>
+  <Subprojects />
+  <TransitionConfiguration>
+    <TargetNamespace>global</TargetNamespace>
+    <TargetClass>TranslationKeys</TargetClass>
+  </TransitionConfiguration>
+  <ServerGeneratorConfiguration>
+    <ServerNamespaceName />
+  </ServerGeneratorConfiguration>
+  <PluginInformation>
+    <Name>utopia core plugin</Name>
+    <Description>the core plugin of the game utopia</Description>
+    <License>AGPL v3</License>
+    <PluginId>moe.kawayi.org.utopia</PluginId>
+    <Homepage>https://github.com/moe-org/utopia</Homepage>
+  </PluginInformation>
+  <GenerateXmlSchemaFileTo>utopia.xsd</GenerateXmlSchemaFileTo>
+</Configuration>

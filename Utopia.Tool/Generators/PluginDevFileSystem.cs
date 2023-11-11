@@ -46,14 +46,13 @@ public interface IPluginDevFileSystem
     }
     string GetGeneratedCsFilePath(string origin, string path, string classify = "") => Path.Join(GeneratedDirectory, Path.GetRelativePath(origin, path) + $".{classify}.generated.cs");
 
-    string GetTranslatedTomlFilePath(string origin)
+    string GetTranslatedXmlFilePath(string origin)
     {
         origin = Path.GetFileName(origin);
-        return Path.Join(TranslationDirectory, $"{origin}.translation.toml");
+        return Path.Join(TranslationDirectory, $"{origin}.translation.xml");
     }
-    string GetTranslatedTomlFilePath(string origin, string path, string classify = "") => Path.Join(TranslationDirectory, Path.GetRelativePath(origin, path) + $".{classify}.translated.toml");
 
-    string GetTranslatedTomlFilePath(TranslateItemType type) => GetTranslatedTomlFilePath(type.ToString());
+    string GetTranslatedXmlFilePath(TranslateItemType type) => GetTranslatedXmlFilePath(type.ToString());
 
     void CreateNotExistsDirectory()
     {

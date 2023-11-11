@@ -4,25 +4,14 @@
 
 	<PropertyGroup>
 	<OutputType>Exe</OutputType>
-	<TargetFramework>net8.0</TargetFramework>
-	<ImplicitUsings>enable</ImplicitUsings>
-	<Nullable>enable</Nullable>
 	<StartupObject>Utopia.Server.Launcher</StartupObject>
 	</PropertyGroup>
 
-	<Target Name="GenerateSource" BeforeTargets="Build;Rebuild">
-		<GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="false" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace).Plugin" Generate="server-plugin">
-			<Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
-		</GeneratePluginSourceTask>
-		<RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
-		<GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="false" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace).Plugin" Generate="plugin-info">
-			<Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
-		</GeneratePluginSourceTask>
-		<RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
-		<GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="false" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace).Plugin" Generate="translate-key">
-			<Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
-		</GeneratePluginSourceTask>
-		<RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
+	<Target Name="GenerateSource" AfterTargets="Build;Rebuild">
+		<RunUtopiaToolTask
+      RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools"
+      ConfigurationFilePath="$(MSBuildThisFileDirectory)/../utopia.xml"
+      ProjectPath="$(MSBuildThisFileDirectory)/../" />
 	</Target>
 
 	<ItemGroup>

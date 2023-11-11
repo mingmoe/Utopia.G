@@ -1,4 +1,4 @@
-﻿<Project Sdk="Kawayi.Utopia.Sdk">
+<Project Sdk="Kawayi.Utopia.Sdk">
 
 	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
 
@@ -41,17 +41,11 @@
     <PackageReference Include="System.CodeDom" Version="7.0.0" />
     <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
-    <PackageReference Include="Tomlyn" Version="0.16.2" />
+    <PackageReference Include="XmlSchemaClassGenerator-beta" Version="2.1.963" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Generators\GeneratorTemplate.cs">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Compile>
   </ItemGroup>
 
 </Project>

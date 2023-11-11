@@ -19,25 +19,25 @@ public interface IPluginLoader<PluginT> : IDisposable
     /// <summary>
     /// 已经实例化的插件.
     /// Why we have a `Type` ?
-    /// Because the <see cref="ActivePlguinEvent"/> may change the instance of the plugin.
+    /// Because the <see cref="ActivePluginEvent"/> may change the instance of the plugin.
     /// And the `Type` is the argument of the method as <see cref="Register(ContainerBuilder, Type)"/>,
     /// <see cref="AddUnresolved(Type)"/> and <see cref="AddResolved(PluginT, Type?)"/>.
-    /// <see cref="ActivePlguinEventArgs.PluginType"/> can change the `Type`.
+    /// <see cref="ActivePluginEventArgs.PluginType"/> can change the `Type`.
     /// In sum,the `Type` won't always equal to <see cref="object.GetType()"/>) of the instance.
     /// </summary>
-    ImmutableArray<(Type, PluginT)> ActivedPlugins { get; }
+    ImmutableArray<(Type, PluginT)> ActivatedPlugins { get; }
 
     /// <summary>
     /// Unresolverd plugins. Call <see cref="IPluginLoader{PluginT}.Active(IContainer)"/>
     /// should remove all of them,and create instances of each them,add them into
-    /// <see cref="PluginLoader{PluginT}.ActivedPlugins"/>.
+    /// <see cref="PluginLoader{PluginT}.ActivatedPlugins"/>.
     /// </summary>
-    ImmutableArray<Type> UnresolveredPlugins { get; }
+    ImmutableArray<Type> UnresolvePlugins { get; }
 
     /// <summary>
     /// 激活插件时触发.
     /// </summary>
-    public class ActivePlguinEventArgs : Event
+    public class ActivePluginEventArgs : Event
     {
         /// <summary>
         /// 插件类型. If it's null(and <see cref="PluginInstance"/> is not null), throw a <see cref="Exceptions.EventAssertionException"/>.
@@ -45,7 +45,7 @@ public interface IPluginLoader<PluginT> : IDisposable
         public Type PluginType { get; set; }
 
         /// <summary>
-        /// 如果在事件<see cref="IPluginLoader{PluginT}.ActivePlguinEvent"/> after firing时此值为null，那么则将会取消对这个插件的加载。
+        /// 如果在事件<see cref="IPluginLoader{PluginT}.ActivePluginEvent"/> after firing时此值为null，那么则将会取消对这个插件的加载。
         /// 默认将会有一个使用默认容器对插件进行依赖注入生成的实例。
         /// </summary>
         public PluginT? PluginInstance { get; set; }
@@ -56,7 +56,7 @@ public interface IPluginLoader<PluginT> : IDisposable
         /// </summary>
         public IContainer? Container { get; }
 
-        public ActivePlguinEventArgs(PluginT plugin, Type pluginType, IContainer? container)
+        public ActivePluginEventArgs(PluginT plugin, Type pluginType, IContainer? container)
         {
             Guard.IsNotNull(pluginType);
             PluginType = pluginType;
@@ -66,9 +66,9 @@ public interface IPluginLoader<PluginT> : IDisposable
     }
 
     /// <summary>
-    /// 激活插件事件。<see cref="IPluginLoader{PluginT}.ActivePlguinEventArgs"/>。
+    /// 激活插件事件。<see cref="IPluginLoader{PluginT}.ActivePluginEventArgs"/>。
     /// </summary>
-    IEventManager<ActivePlguinEventArgs> ActivePlguinEvent { get; }
+    IEventManager<ActivePluginEventArgs> ActivePluginEvent { get; }
 
     /// <summary>
     /// Register plugin from dll file。将会注册所有实现了<see cref="PluginT"/>的类型。
@@ -89,11 +89,11 @@ public interface IPluginLoader<PluginT> : IDisposable
     }
 
     /// <summary>
-    /// Active all types of plugin in <see cref="IPluginLoader{PluginT}.UnresolveredPlugins"/>.
-    /// They will be resolved using the IContainer from the argument. And then fire the <see cref="ActivePlguinEvent"/>,
+    /// Active all types of plugin in <see cref="IPluginLoader{PluginT}.UnresolvePlugins"/>.
+    /// They will be resolved using the IContainer from the argument. And then fire the <see cref="ActivePluginEvent"/>,
     /// and then call the <see cref="IPluginBase.Activate"/> method of the plugin.
     /// If a plugin throw any exception when call <see cref="IPluginBase.Activate"/>,
-    /// this plugin will be ignored and won't be added to the <see cref="ActivedPlugins"/>.
+    /// this plugin will be ignored and won't be added to the <see cref="ActivatedPlugins"/>.
     /// </summary>
     /// <param name="container">This container should from the argument of method
     /// <see cref="Register(ContainerBuilder, Type)"/>
@@ -102,15 +102,15 @@ public interface IPluginLoader<PluginT> : IDisposable
     void Active(IContainer container);
 
     /// <summary>
-    /// This method should add type to <see cref="IPluginLoader{PluginT}.UnresolveredPlugins"/>
-    /// so that them can be actived.
+    /// This method should add type to <see cref="IPluginLoader{PluginT}.UnresolvePlugins"/>
+    /// so that them can be activated.
     /// </summary>
     /// <param name="type"></param>
     void AddUnresolved(Type type);
 
     /// <summary>
-    /// If you create a plugin manually,use this method add it to the <see cref="ActivedPlugins"/>.
-    /// This will also fire the <see cref="ActivePlguinEvent"/> event.And call the <see cref="IPluginBase.Activate"/>
+    /// If you create a plugin manually,use this method add it to the <see cref="ActivatedPlugins"/>.
+    /// This will also fire the <see cref="ActivePluginEvent"/> event.And call the <see cref="IPluginBase.Activate"/>
     /// </summary>
     /// <param name="typed">if this is null, get type from plugin.<see cref="object.GetType"/></param>
     void AddResolved(PluginT plugin, Type? typed = null);

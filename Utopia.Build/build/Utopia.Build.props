@@ -6,6 +6,5 @@
     </PropertyGroup>
 
     <UsingTask TaskName="$(MSBuildThisFileName).RunUtopiaToolTask" AssemblyFile="$(_UtopiaBuild_Assembly)"/>
-    <UsingTask TaskName="$(MSBuildThisFileName).GeneratePluginSourceTask" AssemblyFile="$(_UtopiaBuild_Assembly)"/>
     
 </Project>

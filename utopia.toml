@@ -1,7 +1,0 @@
-name = "utopia core"
-description = "the core plugin of the game utopia"
-# url: org.kawayi.moe
-id = "moe.kawayi.org.utopia"
-license = "AGPL v3"
-homepage = "https://github.com/moe-org/utopia"
-

@@ -25,7 +25,7 @@ public class PluginGenerator : IGenerator
         var source = GeneratorTemplate.ServerPluginClassTemplate.Replace("$TARGET_NAMESPACE$",
             option.Configuration.ServerGeneratorConfiguration.ServerNamespaceName);
 
-        string output = option.TargetProject.GetGeneratedCsFilePath("Plugin");
+        string output = option.CurrentFileSystem.GetGeneratedCsFilePath("Plugin");
 
         File.WriteAllText(output, source, Encoding.UTF8);
     }

@@ -24,7 +24,7 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    public ImmutableArray<(Type, PluginT)> ActivedPlugins
+    public ImmutableArray<(Type, PluginT)> ActivatedPlugins
     {
         get
         {
@@ -35,7 +35,7 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
         }
     }
 
-    public ImmutableArray<Type> UnresolveredPlugins
+    public ImmutableArray<Type> UnresolvePlugins
     {
         get
         {
@@ -55,13 +55,13 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
         }
     }
 
-    public IEventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs> ActivePlguinEvent { get; }
-    = new EventManager<IPluginLoader<PluginT>.ActivePlguinEventArgs>();
+    public IEventManager<IPluginLoader<PluginT>.ActivePluginEventArgs> ActivePluginEvent { get; }
+    = new EventManager<IPluginLoader<PluginT>.ActivePluginEventArgs>();
 
     private void _AddPlugin(PluginT plugin, Type type, IContainer? container)
     {
-        var args = new IPluginLoader<PluginT>.ActivePlguinEventArgs(plugin, type, container);
-        ActivePlguinEvent.Fire(args);
+        var args = new IPluginLoader<PluginT>.ActivePluginEventArgs(plugin, type, container);
+        ActivePluginEvent.Fire(args);
 
         if (args.PluginInstance == null)
         {

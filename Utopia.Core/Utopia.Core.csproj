@@ -3,10 +3,7 @@
 	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Utopia.Core</RootNamespace>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

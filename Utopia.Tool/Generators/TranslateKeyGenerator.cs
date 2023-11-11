@@ -21,7 +21,6 @@ public class TransitionConfiguration
 
 public class TranslateKeyGenerator : IGenerator
 {
-
     private static readonly Logger s_logger = LogManager.GetCurrentClassLogger();
 
     public const string TranslationClassName = "TranslationKeys";
@@ -56,11 +55,11 @@ public class TranslateKeyGenerator : IGenerator
     public void Execute(GeneratorOption option)
     {
         // read all translation files in translate-root directory
-        string[] files = Directory.GetFiles(option.TargetProject.TranslationDirectory);
+        string[] files = Directory.GetFiles(option.CurrentFileSystem.TranslationDirectory);
 
         // process
         TomlModelOptions tomlOpt = Guuid.AddTomlOption();
-        IPluginDevFileSystem fs = option.TargetProject;
+        IPluginDevFileSystem fs = option.CurrentFileSystem;
 
         foreach (string file in files)
         {

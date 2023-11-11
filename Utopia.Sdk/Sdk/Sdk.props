@@ -4,6 +4,7 @@
 
     <PropertyGroup>
         <UtopiaSdkVersion>$VERSION$</UtopiaSdkVersion>
+        <RecommendUtopiaNetOption>true</RecommendUtopiaNetOption>
     </PropertyGroup>
 
 </Project>

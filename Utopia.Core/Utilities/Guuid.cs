@@ -265,6 +265,7 @@ public sealed class Guuid : IEnumerable<string>
     public bool IsChild(in Guuid id)
     {
         var node = id.GetEnumerator();
+        node.MoveNext();
         foreach(var item in this)
         {
             if(node.Current != item)
@@ -272,10 +273,11 @@ public sealed class Guuid : IEnumerable<string>
                 return false;
             }
 
-            // the child is short than father!!!
+            // the child is short than(or equal in length) father!!!
             if (!node.MoveNext())
             {
-                return false;
+                // check if two guuid are the same
+                return id == this;
             }
         }
 

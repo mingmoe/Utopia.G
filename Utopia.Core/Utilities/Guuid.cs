@@ -12,7 +12,6 @@ using System.Xml.Serialization;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
-using Tomlyn;
 
 namespace Utopia.Core.Utilities;
 
@@ -258,24 +257,29 @@ public sealed class Guuid : IEnumerable<string>
         yield return (IEnumerable)GetEnumerator();
     }
 
-    public static TomlModelOptions AddTomlOption(TomlModelOptions? options = null)
+    /// <summary>
+    /// Check if another guuid is the child of this guuid.
+    /// e.g. `a:b:c:d` is a child guuid of `a:b:c:d` or `a:b:c` or `a:b`.
+    /// </summary>
+    /// <returns>true if another guuid is the child of this.</returns>
+    public bool IsChild(in Guuid id)
     {
-        options ??= new TomlModelOptions();
-
-        Func<object, object?>? defaultToToml = options.ConvertToToml;
-        Func<object, Type, object?>? defaultToModel = options.ConvertToModel;
-
-        options.ConvertToToml = (obj) =>
+        var node = id.GetEnumerator();
+        foreach(var item in this)
         {
-            return obj is Guuid id ? id.ToString() : (defaultToToml?.Invoke(obj));
-        };
-        options.ConvertToModel = (obj, type) =>
-        {
-            return type.IsAssignableTo(typeof(Guuid))
-                ? Parse((string)obj)
-                : obj is Guuid id && type.IsAssignableTo(typeof(string)) ? id.ToString() : (defaultToModel?.Invoke(obj, type));
-        };
-        return options;
+            if(node.Current != item)
+            {
+                return false;
+            }
+
+            // the child is short than father!!!
+            if (!node.MoveNext())
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

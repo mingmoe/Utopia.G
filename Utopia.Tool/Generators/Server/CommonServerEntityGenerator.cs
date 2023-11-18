@@ -18,11 +18,13 @@ public class CommonServerEntityGenerator : IServerEntityGenerator
         var adder = option.TranslateManager.GetTransitionAdder(TranslateItemType.Entity);
 
         adder.Invoke(GuuidManager.GetEntityNameTransitionOf(
-            option.Configuration.PluginInformation.PluginId.Guuid,
+            option.Configuration.PluginInformation.Id.Guuid,
             info.EntityId.Guuid), "the name of the entity");
         adder.Invoke(GuuidManager.GetEntityDescriptionTransitionOf(
-            option.Configuration.PluginInformation.PluginId.Guuid,
+            option.Configuration.PluginInformation.Id.Guuid,
             info.EntityId.Guuid),"the description of the entity");
+
+        option.TranslateManager.Save();
 
         return;
     }

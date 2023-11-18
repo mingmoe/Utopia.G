@@ -4,12 +4,14 @@
 
 using BenchmarkDotNet.Attributes;
 using Utopia.Core.Utilities;
+using static Utopia.Benchmark.Program;
 
 namespace Utopia.Benchmark;
 
 /// <summary>
 /// 对于Guuid的基准测试
 /// </summary>
+[Config(typeof(Configuration))]
 public class GuuidBenchmark
 {
     private readonly string[] _data = Utility.RandomStringArray(32);

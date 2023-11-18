@@ -1,3 +1,11 @@
 # Godot 4+ specific ignores
 .godot/
 Generated/
+
+Generated
+
+Translation\PluginInformation.translation.xml
+
+Translation\Entity.translation.xml
+
+Translation\Other.translation.xml

@@ -5,7 +5,6 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using Tomlyn;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators;
@@ -40,7 +39,7 @@ public class TranslationDeclares
 }
 
 /// <summary>
-/// This class will manage the translate files of the game/plugin.
+/// This class will manage the translations files of the game/plugin.
 /// Must call <see cref="Dispose"/> to save the translation files.
 /// </summary>
 public sealed class TranslateManager : IDisposable
@@ -63,11 +62,18 @@ public sealed class TranslateManager : IDisposable
         Dictionary<Guuid, TranslationDeclareItem> read(TranslateItemType type)
         {
             string path = _fileSystem.GetTranslatedXmlFilePath(type);
-            TomlModelOptions option = Guuid.AddTomlOption();
 
-            _EnsureFile(path);
+            if (_EnsureFile(path))
+            {
+                return new();
+            }
 
             using var fs = new FileStream(path, FileMode.Open);
+
+            if(fs.Length == 0)
+            {
+                return new();
+            }
 
             var obj = (TranslationDeclares)(_serializer.Deserialize(fs) ?? throw new XmlException("XmlSerializer.Deserialize returns null"));
 
@@ -137,12 +143,19 @@ public sealed class TranslateManager : IDisposable
         }
     }
 
-    private static void _EnsureFile(string path)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns>If return true, the file has existed</returns>
+    private static bool _EnsureFile(string path)
     {
         if (!File.Exists(path))
         {
             File.Create(path).Close();
+            return false;
         }
+        return true;
     }
 
     /// <summary>
@@ -178,10 +191,11 @@ public sealed class TranslateManager : IDisposable
     {
         Action<Guuid, string> adder = GetTransitionAdder(TranslateItemType.PluginInformation);
 
-        Guuid id = _configuration.PluginInformation.PluginId.Guuid;
+        Guuid id = _configuration.PluginInformation.Id.Guuid;
 
         adder.Invoke(GuuidManager.GetPluginNameTranslateId(id), "the translation of the name");
         adder.Invoke(GuuidManager.GetPluginDescriptionTranslateId(id), "the translation of the description");
+        Save();
     }
 
     public void EnsureTranslate(TranslateItemType type, Guuid transitionKey, string comment)
@@ -191,7 +205,7 @@ public sealed class TranslateManager : IDisposable
 
         _Read();
 
-        Guuid id = _configuration.PluginInformation.PluginId.Guuid;
+        Guuid id = _configuration.PluginInformation.Id.Guuid;
         Guuid provider = GuuidManager.GetTranslateProviderGuuidOf(id);
 
         _EnsureTranslateKey(_translates[type]!, transitionKey, provider, comment);

@@ -33,5 +33,8 @@ public class EmptyEntityFactory : IEntityFactory
     public ISafeDictionary<Guuid, IEntity> Entities { get; }
         = new SafeDictionary<Guuid, IEntity>();
 
-    public IEntity? Create(Guuid guuid, byte[]? data) => Entities.TryGetValue(guuid, out IEntity? entity) ? entity : throw new EntityNotFoundException(guuid);
+    public IEntity Create(Guuid guuid, byte[]? data)
+    {
+        return Entities.TryGetValue(guuid, out IEntity? entity) ? entity! : throw new EntityNotFoundException(guuid);
+    }
 }

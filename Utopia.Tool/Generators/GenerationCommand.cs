@@ -3,14 +3,15 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using System.Configuration;
+using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Json.Schema;
 using McMaster.Extensions.CommandLineUtils;
 using NLog;
 using NLog.Fluent;
+using Utopia.Tool.Generators;
 using Utopia.Tools.Generators.Server;
-using XmlSchemaClassGenerator;
 
 namespace Utopia.Tools.Generators;
 
@@ -28,7 +29,7 @@ public static class GenerationCommand
             XmlTypeMapping mapping = new XmlReflectionImporter().ImportTypeMapping(typeof(Configuration));
             exporter.ExportTypeMapping(mapping);
 
-            using (FileStream writer = File.OpenWrite(path))
+            using (FileStream writer = File.Open(path,FileMode.OpenOrCreate | FileMode.Truncate))
             {
                 foreach (XmlSchema schema in schemas)
                 {
@@ -40,7 +41,7 @@ public static class GenerationCommand
         }
         catch (Exception ex)
         {
-            s_logger.Info(ex,"Error in generating XSD. Error");
+            s_logger.Info(ex,"Error in generating XSD.");
         }
     }
 
@@ -53,17 +54,27 @@ public static class GenerationCommand
 
         using (Stream reader = File.OpenRead(configFile))
         {
-            configuration = (Configuration)(serializer.Deserialize(reader) ?? throw new InvalidCastException("The XmlSerializer.Deserialize return null"));
+            configuration = (Configuration)(serializer.Deserialize(reader) ?? throw new XmlException("The XmlSerializer.Deserialize return null"));
         }
+
+        if(configuration.RootDirectory == null)
+        {
+            configuration.RootDirectory = Path.GetDirectoryName(Path.GetFullPath(configFile));
+        }
+
+        configuration.VersionFile = Path.GetFullPath(configuration.VersionFile,configuration.RootDirectory!);
 
         return configuration;
     }
 
-    private static IPluginDevFileSystem _GetFileSystem(SubprojectConfiguration configuration)
+    private static IPluginDevFileSystem _GetFileSystem(
+        string root,
+        SubprojectConfiguration configuration,
+        string backupVersionFile)
     {
-        var filesystem = new PluginDevFileSystem(configuration.Path);
+        var filesystem = new PluginDevFileSystem(Path.GetFullPath(configuration.Path,root));
 
-        configuration.Configuration.ApplyToFileSystem(filesystem);
+        configuration.Configuration.ApplyToFileSystem(filesystem, backupVersionFile);
 
         return filesystem;
     }
@@ -83,7 +94,7 @@ public static class GenerationCommand
             .IsRequired(errorMessage: "you must provide a project!");
         CommandOption changeDirectory = application.Option<bool>(
             "--change-directory-to",
-            "change the working directory when process projects(change to the configuration file path or subproject path)",
+            "change the working directory to the one where the configuration file is",
             CommandOptionType.SingleValue);
 
         changeDirectory.DefaultValue = true.ToString().ToLower();
@@ -96,7 +107,8 @@ public static class GenerationCommand
                 new PluginInformationGenerator(),
                 new PluginGenerator(),
                 new ServerEntityGenerator(),
-                new TranslateKeyGenerator()])
+                new TranslateKeyGenerator(),
+                new GitIgnoreGenerator()])
             {
                 generators.Add(generator.SubcommandName, generator);
             }
@@ -104,22 +116,23 @@ public static class GenerationCommand
             // set up change directory method
             var changeDir = bool.Parse(changeDirectory.Value()!);
 
+            // read configurations and change directory
+            var configurationFilePath = Path.GetFullPath(config.Value()!);
+
+            var configuration = _LoadConfiguration(configurationFilePath);
+
             void cd(string path)
             {
-                path = Path.GetFullPath(path);
+                path = Path.GetFullPath(path,configuration.RootDirectory!);
                 if (changeDir)
                 {
                     s_logger.Info("change working directory to:{directory}", path);
                     Environment.CurrentDirectory = path;
                 }
-                s_logger.Info("process under directory:{directory}",path);
+                s_logger.Info("process under directory:{directory}", path);
             }
 
-            // read configurations
-            var configurationFilePath = Path.GetFullPath(config.Value()!);
-
-            cd(Path.GetDirectoryName(configurationFilePath) ?? ".");
-            var configuration = _LoadConfiguration(configurationFilePath);
+            cd(".");
 
             // generate xml schema
             if (configuration.GenerateXmlSchemaFileTo != null)
@@ -132,7 +145,12 @@ public static class GenerationCommand
             {
                 cd(subproject.Path);
 
-                var option = new GeneratorOption(configuration,subproject, _GetFileSystem(subproject));
+                var option = new GeneratorOption(
+                    configuration,
+                    subproject,
+                    _GetFileSystem(configuration.RootDirectory!, subproject, configuration.VersionFile));
+
+                option.CurrentFileSystem.CreateNotExistsDirectory();
 
                 foreach(var generator in subproject.Generators)
                 {

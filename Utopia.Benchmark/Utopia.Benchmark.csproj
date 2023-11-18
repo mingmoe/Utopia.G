@@ -4,23 +4,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	  <UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/../version.txt</UtopiaVersionFilePath>
+    <Utopia_BenchmarkModule>enable</Utopia_BenchmarkModule>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.8" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />
-    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
-    <ProjectReference Include="..\Utopia.G\Utopia.G.csproj" />
-    <ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
-    <ProjectReference Include="..\Utopia.Server\Utopia.Server.csproj" />
   </ItemGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)/../dependencies.targets" />
+  
 </Project>

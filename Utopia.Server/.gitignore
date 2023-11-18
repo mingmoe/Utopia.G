@@ -1,6 +1,8 @@
-# ignore auto-generated files
+﻿
 Generated/
-Translation/Entity.translation.toml
-Translation/Other.translation.toml
-Translation/PluginInformation.translation.toml
 
+Translation/PluginInformation.translation.xml
+
+Translation/Entity.translation.xml
+
+Translation/Other.translation.xml

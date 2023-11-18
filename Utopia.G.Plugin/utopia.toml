@@ -1,6 +1,0 @@
-name = "utopia client core plugin"
-description = "the core plugin of the client of the game utopia"
-# url: org.kawayi.moe
-id = "moe.kawayi.org.utopia.client"
-license = "AGPL v3"
-homepage = "https://github.com/moe-org/utopia"

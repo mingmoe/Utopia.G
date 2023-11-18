@@ -4,48 +4,21 @@
 
 	<PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
       
       <IsPackable>true</IsPackable>
       <Description>The command line tool for the Project Utopia.</Description>
       <PackAsTool>True</PackAsTool>
+    <Utopia_ToolModule>enable</Utopia_ToolModule>
   </PropertyGroup>
   
   <ItemGroup>
     <None Include="Generators\GeneratorTemplate.cs" />
   </ItemGroup>
 
-    <ItemGroup>
-    <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-    <PackageReference Include="CommunityToolkit.Common" Version="8.2.1" />
-    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.1" />
-    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.0" />
-    <PackageReference Include="MessageFormat" Version="7.0.0" />
-    <PackageReference Include="MessagePack" Version="2.5.129" />
-    <PackageReference Include="MessagePackAnalyzer" Version="2.5.129">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.6.10" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.6.0" />
-    <PackageReference Include="Microsoft.DocAsCode.App" Version="2.67.5" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />
-    <PackageReference Include="System.CodeDom" Version="7.0.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
-    <PackageReference Include="XmlSchemaClassGenerator-beta" Version="2.1.963" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
   </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)/../dependencies.targets" />
 
 </Project>

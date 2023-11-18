@@ -3,9 +3,10 @@
   <xs:element name="Configuration" nillable="true" type="tns:Configuration" />
   <xs:complexType name="Configuration">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="ProjectRootDir" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="RootDirectory" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="VersionFile" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="Subprojects" type="tns:ArrayOfSubprojectConfiguration" />
-      <xs:element minOccurs="0" maxOccurs="1" name="TransitionConfiguration" type="tns:TransitionConfiguration" />
+      <xs:element minOccurs="0" maxOccurs="1" name="TranslationConfiguration" type="tns:TranslationConfiguration" />
       <xs:element minOccurs="0" maxOccurs="1" name="ServerGeneratorConfiguration" type="tns:ServerGeneratorConfiguration" />
       <xs:element minOccurs="0" maxOccurs="1" name="PluginInformation" type="tns:PluginInformation" />
       <xs:element minOccurs="1" maxOccurs="1" name="GenerateXmlSchemaFileTo" nillable="true" type="xs:string" />
@@ -38,7 +39,7 @@
       <xs:element minOccurs="0" maxOccurs="1" name="EntitiesDirectory" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="TransitionConfiguration">
+  <xs:complexType name="TranslationConfiguration">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="1" name="TargetNamespace" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="TargetClass" type="xs:string" />
@@ -47,6 +48,7 @@
   <xs:complexType name="ServerGeneratorConfiguration">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="1" name="ServerNamespaceName" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="ServerPluginInformationClass" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="PluginInformation">
@@ -54,7 +56,7 @@
       <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="Description" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="License" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="PluginId">
+      <xs:element minOccurs="0" maxOccurs="1" name="Id">
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:pattern value="^[a-zA-Z]{1}[a-zA-Z0-9]*(\.[a-zA-Z]{1}[a-zA-Z0-9]*)+$" />

@@ -1,6 +1,0 @@
-﻿["moe.kawayi.org.utopia.generated.plugin_info.name"]
-provider = "moe.kawayi.org.utopia.generated.translate.provider"
-comment = "the translation of the name"
-["moe.kawayi.org.utopia.generated.plugin_info.description"]
-provider = "moe.kawayi.org.utopia.generated.translate.provider"
-comment = "the translation of the description"

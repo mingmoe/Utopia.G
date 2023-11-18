@@ -8,8 +8,6 @@ using System.Xml.Serialization;
 using HarmonyLib;
 using Microsoft.CodeAnalysis.Options;
 using NLog;
-using Tomlyn;
-using Tomlyn.Model;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators.Server;
@@ -79,7 +77,7 @@ public class ServerEntityGenerator : IGenerator
 
     private readonly CommonServerEntityGenerator _commonGenerator = new();
 
-    public string SubcommandName => "server-entity";
+    public string SubcommandName => "ServerEntity";
 
     private static IEnumerable<string> _GetAllFile(string dir)
     {

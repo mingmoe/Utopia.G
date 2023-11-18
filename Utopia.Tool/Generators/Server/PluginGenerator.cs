@@ -10,7 +10,10 @@ namespace Utopia.Tools.Generators.Server;
 public class ServerGeneratorConfiguration
 {
     [XmlElement]
-    public string ServerNamespaceName { get; set; } = string.Empty;
+    public string ServerNamespaceName { get; set; } = "global";
+
+    [XmlElement]
+    public string? ServerPluginInformationClass { get; set; } = null;
 }
 
 /// <summary>
@@ -18,12 +21,16 @@ public class ServerGeneratorConfiguration
 /// </summary>
 public class PluginGenerator : IGenerator
 {
-    public string SubcommandName => "server-plugin";
+    public string SubcommandName => "ServerPlugin";
 
     public void Execute(GeneratorOption option)
     {
-        var source = GeneratorTemplate.ServerPluginClassTemplate.Replace("$TARGET_NAMESPACE$",
-            option.Configuration.ServerGeneratorConfiguration.ServerNamespaceName);
+        var source = GeneratorTemplate.ServerPluginClassTemplate
+            .Replace("$TARGET_NAMESPACE$",
+            option.Configuration.ServerGeneratorConfiguration.ServerNamespaceName)
+            .Replace("$PluginInformationNamespace$",
+            option.Configuration.ServerGeneratorConfiguration.ServerPluginInformationClass != null
+            ? $"using {option.Configuration.ServerGeneratorConfiguration.ServerPluginInformationClass};" : string.Empty);
 
         string output = option.CurrentFileSystem.GetGeneratedCsFilePath("Plugin");
 

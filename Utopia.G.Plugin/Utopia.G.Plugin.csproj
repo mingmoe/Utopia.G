@@ -6,29 +6,15 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!--
-         -->
     <UseUtopiaBuild>false</UseUtopiaBuild>
     <UseUtopiaSdk>false</UseUtopiaSdk>
   </PropertyGroup>
-
-  <Target Name="GenerateSource" BeforeTargets="Build">
-    <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace)" Generate="plugin-info">
-      <Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
-    </GeneratePluginSourceTask>
-    <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
-    <GeneratePluginSourceTask AccessVersionFromParent="true" AccessPluginFromParent="true" ProjectDir="$(MSBuildThisFileDirectory)" Namespace="$(RootNamespace)" Generate="translate-key">
-      <Output TaskParameter="Arguments" PropertyName="UtopiaToolArgs" />
-    </GeneratePluginSourceTask>
-    <RunUtopiaToolTask Arguments="$(UtopiaToolArgs)" RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tools" />
-  </Target>
-
-  <ItemGroup>
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
     <ProjectReference Include="..\Utopia.G\Utopia.G.csproj" />
   </ItemGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)/../dependencies.targets" />
+  
 </Project>

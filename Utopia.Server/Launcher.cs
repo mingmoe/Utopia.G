@@ -171,7 +171,7 @@ public static class Launcher
                 }, s_logger, bus, provider);
 
                 // 创建世界
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadSaveings, () => { _LoadSave(provider); }, s_logger, bus, provider);
+                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadSavings, () => { _LoadSave(provider); }, s_logger, bus, provider);
 
                 // 设置逻辑线程
                 LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.StartLogicThread, () => { _StartLogicThread(provider); }, s_logger, bus, provider);

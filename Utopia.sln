@@ -29,8 +29,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.FastNoise", "Utopia.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F1E708FC-EB03-4723-A455-10E00E4D71E0}"
 	ProjectSection(SolutionItems) = preProject
-		AutoUpdateAssemblyName.txt = AutoUpdateAssemblyName.txt
+		.gitignore = .gitignore
 		definition.targets = definition.targets
+		dependencies.targets = dependencies.targets
 		.config\dotnet-tools.json = .config\dotnet-tools.json
 		global.json = global.json
 		utopia.xml = utopia.xml

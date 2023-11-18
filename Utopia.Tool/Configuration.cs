@@ -20,7 +20,7 @@ public class ProjectConfiguration
     public string RootNamespace { get; set; } = "global";
 
     [XmlElement]
-    public string VersionFile { get; set; } = IPluginDevFileSystem.DefaultVersionFileName;
+    public string? VersionFile { get; set; } = null;
 
     [XmlElement]
     public string AssetsDirectory { get; set; } = IPluginDevFileSystem.DefaultAssetsDirectoryName;
@@ -34,12 +34,12 @@ public class ProjectConfiguration
     [XmlElement]
     public string EntitiesDirectory { get; set; } = IPluginDevFileSystem.DefaultEntitiesDirectoryName;
 
-    public void ApplyToFileSystem(PluginDevFileSystem system)
+    public void ApplyToFileSystem(PluginDevFileSystem system,string backupVersionFile)
     {
         system.AssetsDirectory = AssetsDirectory;
         system.TranslationDirectory = TransitionDirectory;
         system.EntitiesDirectory = EntitiesDirectory;
-        system.VersionFile = VersionFile;
+        system.VersionFile = VersionFile ?? backupVersionFile;
         system.GeneratedDirectory = GeneratedDirectory;
     }
 }
@@ -63,8 +63,17 @@ public class SubprojectConfiguration
 [XmlRoot(Namespace = Xml.Namespace)]
 public class Configuration
 {
+    /// <summary>
+    /// If this is null,we set the directory where the configuration file is to root.
+    /// </summary>
     [XmlElement]
-    public string ProjectRootDir { get; set; } = ".";
+    public string? RootDirectory { get; set; } = null;
+
+    /// <summary>
+    /// This file is solved under <see cref="RootDirectory"/>.
+    /// </summary>
+    [XmlElement]
+    public string VersionFile { get; set; } = IPluginDevFileSystem.DefaultVersionFileName;
 
     /// <summary>
     /// What do you want to generate?
@@ -74,7 +83,7 @@ public class Configuration
     public List<SubprojectConfiguration> Subprojects { get; set; } = [];
 
     [XmlElement]
-    public TransitionConfiguration TransitionConfiguration { get; set; } = new();
+    public TranslationConfiguration TranslationConfiguration { get; set; } = new();
 
     [XmlElement]
     public ServerGeneratorConfiguration ServerGeneratorConfiguration { get; set; } = new();

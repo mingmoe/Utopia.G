@@ -1,17 +1,16 @@
 <Project Sdk="Kawayi.Utopia.Sdk">
 
 	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
-    
-    <ItemGroup>
-    <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-    <PackageReference Include="MessageFormat" Version="7.0.0" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />
-    <PackageReference Include="System.CodeDom" Version="7.0.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
-    </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Generated\" />
+    <Folder Include="Translation\" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)/../dependencies.targets" />
+  
 </Project>

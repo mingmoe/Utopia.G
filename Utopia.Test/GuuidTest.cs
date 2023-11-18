@@ -31,10 +31,37 @@ public class GuuidTest
     }
 
     [Theory]
-    [InlineData("", "non-empty")]
-    [InlineData("non-empty", "")]
+    [InlineData("", "nonempty")]
+    [InlineData("nonempty", "")]
     public void TestGuuidParseStringParseIllegal(string root, string node) => Assert.Throws<ArgumentException>(() =>
                                                                                    {
                                                                                        _ = new Guuid(root, node);
                                                                                    });
+
+    [Theory]
+    [InlineData("a", new string[] {"b"})]
+    [InlineData("a", new string[] { "b", "c" })]
+    [InlineData("a", new string[] { "b", "c", "d" })]
+    public void TestGuuidChildCheckFailureMethod(string root,params string[] childNodes)
+    {
+        var father = new Guuid(root,childNodes);
+        var child = new Guuid("a", "b", "c", "d");
+
+        var success = father.IsChild(child);
+
+        Assert.True(success);
+    }
+
+    [Theory]
+    [InlineData("a", new string[] { "b" })]
+    [InlineData("a", new string[] { "b", "c" })]
+    public void TestGuuidChildCheckMethod(string root, params string[] childNodes)
+    {
+        var father = new Guuid(root, childNodes);
+        var child = new Guuid("a", "b", "c", "d");
+
+        var failure = child.IsChild(father);
+
+        Assert.False(failure);
+    }
 }

@@ -12,6 +12,7 @@ public class GeneratorTemplate {
         using Utopia.Core.Events;
         using Utopia.Core.Plugin;
         using Utopia.Core.Transition;
+        $PluginInformationNamespace$
         namespace Utopia.Server.Plugin;
 
         public abstract class PluginForServer : PluginInformation, IPlugin

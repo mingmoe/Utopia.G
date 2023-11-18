@@ -56,7 +56,7 @@ public class LifeCycleEvent<CycleT> : Event
     }
 
     /// <summary>
-    /// Abhout how we will fire the event,see <see cref="LifeCycleOrder"/>
+    /// About how we will fire the event,see <see cref="LifeCycleOrder"/>
     /// </summary>
     public static void EnterCycle(CycleT cycle, Action action, ILogger logger, IEventManager<LifeCycleEvent<CycleT>> bus, Action switchAction)
     {

@@ -68,7 +68,7 @@ public static class GodotBinder
             }
             if (resource != null)
             {
-                Resource ss = ResourceLoader.Load(resource.ResourceName == string.Empty ?
+                Godot.Resource ss = ResourceLoader.Load(resource.ResourceName == string.Empty ?
                     item.Name : resource.ResourceName);
                 item.SetValue(target, ss);
             }
@@ -86,7 +86,7 @@ public static class GodotBinder
             }
             if (resource != null)
             {
-                Resource ss = ResourceLoader.Load(resource.ResourceName == string.Empty ?
+                Godot.Resource ss = ResourceLoader.Load(resource.ResourceName == string.Empty ?
                     item.Name : resource.ResourceName);
                 item.SetValue(target, ss);
             }

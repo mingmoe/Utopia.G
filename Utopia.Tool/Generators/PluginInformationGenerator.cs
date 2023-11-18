@@ -20,7 +20,7 @@ public class PluginInformation
     public string License { get; set; } = "Unknown";
 
     [XmlElement]
-    public XmlGuuid PluginId { get; set; } = new XmlGuuid();
+    public XmlGuuid Id { get; set; } = new XmlGuuid();
 
     [XmlElement]
     public string Homepage { get; set; } = "Unknown";
@@ -36,11 +36,10 @@ public class PluginInformation
 /// </summary>
 public class PluginInformationGenerator : IGenerator
 {
-    public string SubcommandName => "plugin-info";
+    public string SubcommandName => "PluginInformation";
 
     public void Execute(GeneratorOption option)
     {
-        // read toml
         string output = option.CurrentFileSystem.GetGeneratedCsFilePath(IPluginDevFileSystem.DefaultConfigurationFileName);
         string inputVersion = option.CurrentFileSystem.VersionFile;
         var info = option.Configuration.PluginInformation;
@@ -61,8 +60,8 @@ public class PluginInformationGenerator : IGenerator
         builder.Using.Add("Utopia.Core.Utilities");
         builder.Namespace = option.CurrentProject.Configuration.RootNamespace;
 
-        builder.EmitClass("PluginInformation", isPublic: true, parentClass: "IPluginInformation");
-        builder.EmitField("public", "Guuid", "ID", $"Guuid.Parse(\"{info.PluginId}\")", true, true);
+        builder.EmitClass("PluginInformation", isPublic: true, addGeneratedCodeAttribute: true,parentClass: ["IPluginInformation"]);
+        builder.EmitField("public", "Guuid", "ID", $"Guuid.Parse(\"{info.Id}\")", true, true);
         builder.EmitField("public", "TranslatedString", "NAME", $"new(\"{info.Name}\")", true, true);
         builder.EmitField("public", "TranslatedString", "DESC", $"new(\"{info.Description}\")", true, true);
         builder.EmitField("public", "System.Version", "VER", $"Version.Parse(\"{version}\")", true, true);

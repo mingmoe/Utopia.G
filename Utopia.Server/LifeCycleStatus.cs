@@ -4,6 +4,13 @@
 
 namespace Utopia.Server;
 
+/// <summary>
+/// The lifecycle usually is:
+/// <see cref="InitializedSystem"/> -> <see cref="LoadPlugin"/> -> <see cref="LoadSavings"/>
+/// -> <see cref="StartLogicThread"/> -> <see cref="StartNetThread"/>
+/// -> (<see cref="Crash"/> or <see cref="GracefulShutdown"/>) ->
+/// <see cref="Stop"/>.
+/// </summary>
 public enum LifeCycle
 {
     /// <summary>
@@ -12,7 +19,7 @@ public enum LifeCycle
     /// </summary>
     InitializedSystem,
     LoadPlugin,
-    LoadSaveings,
+    LoadSavings,
     StartLogicThread,
     StartNetThread,
     Crash,

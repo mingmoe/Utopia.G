@@ -4,7 +4,8 @@
 
 using System.Reflection;
 using System.Text;
-using Tomlyn;
+using System.Xml;
+using System.Xml.Serialization;
 using Utopia.Core.Plugin;
 using Utopia.Core.Utilities.IO;
 
@@ -39,15 +40,23 @@ public static class ConfigurationLoader
     /// <returns></returns>
     public static T Load<T>(IPluginInformation plugin, IFileSystem system) where T : class, new()
     {
-        string toml = _GetFile<T>(plugin, system);
-        return Toml.ToModel<T>(File.ReadAllText(toml, Encoding.UTF8));
+        string xml = _GetFile<T>(plugin, system);
+        XmlSerializer serializer = new(typeof(T));
+
+        using var fs = File.OpenRead(xml);
+
+        return (T?)serializer.Deserialize(fs) ?? throw new XmlException("XmlSerializer.Deserialize return null");
     }
 
     public static void Store<T>(IPluginInformation plugin, IFileSystem system, T config)
     {
         ArgumentNullException.ThrowIfNull(config);
-        string toml = _GetFile<T>(plugin, system);
+        string xml = _GetFile<T>(plugin, system);
 
-        File.WriteAllText(toml, Toml.FromModel(config));
+        XmlSerializer serializer = new(typeof(T));
+
+        using var fs = File.OpenWrite(xml);
+
+        serializer.Serialize(fs,config);
     }
 }

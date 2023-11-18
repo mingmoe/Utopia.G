@@ -1,48 +1,24 @@
 <Project Sdk="Godot.NET.Sdk/4.2.0-beta.3">
+  
   <Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+  
   <PropertyGroup>
     <UseNetSdk>false</UseNetSdk>
   </PropertyGroup>
+  
   <!--Do not use <Sdk/> element, or the <UseNetSdk> won't work-->
   <Import Sdk="Kawayi.Utopia.Sdk" Project="Sdk.props" />
+  
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="src\**" />
-    <EmbeddedResource Remove="src\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Autofac" Version="7.1.0" />
-    <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-    <PackageReference Include="CommunityToolkit.Common" Version="8.2.1" />
-    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.1" />
-    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
-    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
-    <PackageReference Include="MessageFormat" Version="7.0.0" />
-    <PackageReference Include="MessagePack" Version="2.5.129" />
-    <PackageReference Include="MessagePackAnalyzer" Version="2.5.129">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-    <PackageReference Include="NeoSmart.AsyncLock" Version="3.2.1" />
-    <PackageReference Include="NLog" Version="5.2.4" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />
-    <PackageReference Include="Standart.Hash.xxHash" Version="4.0.5" />
-    <PackageReference Include="System.CodeDom" Version="7.0.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
-    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
-    <PackageReference Include="Tomlyn" Version="0.16.2" />
-  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
     <ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
     <ProjectReference Include="..\Utopia.Server\Utopia.Server.csproj" />
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Update="Godot.SourceGenerators" Version="4.0.3" />
   </ItemGroup>
@@ -52,7 +28,8 @@
   <ItemGroup>
     <PackageReference Update="GodotSharpEditor" Version="4.0.3" />
   </ItemGroup>
-  <Target Name="Release">
-  </Target>
+
+  <Import Project="$(MSBuildThisFileDirectory)/../dependencies.targets" />
+  
   <Import Sdk="Kawayi.Utopia.Sdk" Project="Sdk.targets" />
 </Project>

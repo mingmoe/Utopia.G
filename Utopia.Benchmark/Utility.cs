@@ -2,36 +2,36 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Text;
+
 namespace Utopia.Benchmark;
 public static class Utility
 {
     private static readonly Random s_random = new();
 
-    private static readonly SpinLock s_lock = new();
+    private static readonly object s_lock = new();
 
     public static int RandomInt(int min = int.MinValue, int max = int.MaxValue)
     {
-        bool entered = false;
-        try
+        lock (s_lock)
         {
-            s_lock.Enter(ref entered);
-
             return s_random.Next(min, max);
         }
-        finally
-        {
-            if (entered)
-            {
-                s_lock.Exit();
-            }
-        }
+
     }
 
     public static string RandomString(int length)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghizklmnopqrstuvwxyz";
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[RandomInt(s.Length)]).ToArray());
+
+        StringBuilder @string = new();
+
+        for(var s = 0; s != length; s++)
+        {
+            @string.Append(chars[RandomInt(0, chars.Length - 1)]);
+        }
+
+        return @string.ToString();
     }
 
     public static string[] RandomStringArray(int length)

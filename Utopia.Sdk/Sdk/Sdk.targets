@@ -28,6 +28,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup Condition="$(RecommendUtopiaNetOption)' == 'true'">
+    <Using Include="Utopia.Core" />
+  </ItemGroup>
+
     <!--Import .NET Sdk-->
     <Import  Condition="'$(UseNetSdk)' != 'false'" Sdk="Microsoft.NET.Sdk" Project="Sdk.targets"/>
 

@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Collections.Frozen;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Transition;
@@ -9,7 +10,7 @@ namespace Utopia.Core.Transition;
 /// <summary>
 /// This class was used for code generated and human edit.
 /// </summary>
-public sealed class TomlTranslateHumanItem
+public sealed class TranslationItem
 {
     public Guuid Provider { get; set; } = Guuid.Empty;
 
@@ -18,28 +19,28 @@ public sealed class TomlTranslateHumanItem
     public string Translated { get; set; } = string.Empty;
 }
 
-public sealed class TomlTranslateProject
+public sealed class TranslationProject(IDictionary<Guuid,string> items)
 {
-    public TranslateIdentifence Identifence { get; set; } = new();
+    public TranslateIdentifence Identification { get; set; } = new();
 
-    public Dictionary<Guuid, string> Items { get; set; } = new();
+    public FrozenDictionary<Guuid, string> Items { get; set; } = items.ToFrozenDictionary();
 }
 
-internal class TomlTranslateProvider : ITranslateProvider
+internal class TranslationProvider : ITranslateProvider
 {
-    private TomlTranslateProject _Project { get; init; }
+    private TranslationProject _Project { get; init; }
 
-    public TomlTranslateProvider(TomlTranslateProject project)
+    public TranslationProvider(TranslationProject project)
     {
         ArgumentNullException.ThrowIfNull(project);
         _Project = project;
     }
 
-    public bool Contain(TranslateIdentifence language, Guuid id) => _Project.Identifence.Equals(language) && _Project.Items.ContainsKey(id);
+    public bool Contain(TranslateIdentifence language, Guuid id) => _Project.Identification.Equals(language) && _Project.Items.ContainsKey(id);
 
     public bool TryGetItem(TranslateIdentifence language, Guuid id, out string? result)
     {
-        if (!_Project.Identifence.Equals(language))
+        if (!_Project.Identification.Equals(language))
         {
             result = null;
             return false;

@@ -23,7 +23,12 @@ public class CsBuilder
 
     public string[] Source;
 
-    public void EmitClass(string className, bool isPublic = false, bool isStatic = false, bool isPartial = false, params string[] parentClass)
+    public void EmitClass(string className,
+        bool isPublic = false,
+        bool isStatic = false,
+        bool isPartial = false,
+        bool addGeneratedCodeAttribute = false,
+        params string[] parentClass)
     {
         string pub = isPublic ? "public" : string.Empty;
         string sat = isStatic ? "static" : string.Empty;
@@ -39,7 +44,10 @@ public class CsBuilder
             parent = parent[0..^1];
         }
 
-        Lines.Add($"{_Align}[GeneratedCode(\"{Generator?.ToString() ?? "Unknown"}\",\"{Program.GetVersion()}\")]");
+        if (addGeneratedCodeAttribute)
+        {
+            Lines.Add($"{_Align}[GeneratedCode(\"{Generator?.ToString() ?? "Unknown"}\",\"{Program.GetVersion()}\")]");
+        }
         Lines.Add($"{_Align}{pub} {sat} {prt}".TrimEnd() + $" class {className} {parent}");
         BeginCodeBlock();
     }

@@ -35,5 +35,5 @@
         <Content Include="$(OutputPath)\Sdk.props" PackagePath="Sdk\" />
         <Content Include="$(ProjectDir)\Sdk\Sdk.targets" PackagePath="Sdk\" />
     </ItemGroup>
-
+  
 </Project>

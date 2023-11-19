@@ -30,7 +30,9 @@ public class PluginGenerator : IGenerator
             option.Configuration.ServerGeneratorConfiguration.ServerNamespaceName)
             .Replace("$PluginInformationNamespace$",
             option.Configuration.ServerGeneratorConfiguration.ServerPluginInformationClass != null
-            ? $"using {option.Configuration.ServerGeneratorConfiguration.ServerPluginInformationClass};" : string.Empty);
+            ? $"using {option.Configuration.ServerGeneratorConfiguration.ServerPluginInformationClass};" : string.Empty)
+            .Replace("$GENERATOR_NAME$",typeof(PluginGenerator).FullName)
+            .Replace("$GENERATOR_VERSION$",Program.GetVersion().ToString());
 
         string output = option.CurrentFileSystem.GetGeneratedCsFilePath("Plugin");
 

@@ -2,14 +2,14 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using Utopia.Core;
 using Utopia.Core.Map;
-using Utopia.Server.Plugin.Map;
 
 namespace Utopia.Server.Map;
 
 public class AreaLayerBuilder
 {
-    public IBlock[][] Blocks { get; init; }
+    public Block[][] Blocks { get; init; }
 
     public WorldPosition Position { get; init; }
 
@@ -17,12 +17,12 @@ public class AreaLayerBuilder
 
     public AreaLayerBuilder(WorldPosition layerPosition)
     {
-        Blocks = new IBlock[IArea.XSize][];
+        Blocks = new Block[IArea.XSize][];
         Position = layerPosition;
 
         for (int i = 0; i != Blocks.Length; i++)
         {
-            Blocks[IArea.XSize] = new IBlock[IArea.YSize];
+            Blocks[IArea.XSize] = new Block[IArea.YSize];
 
             for (int j = 0; j != Blocks[i].Length; j++)
             {
@@ -41,16 +41,16 @@ public class AreaLayerBuilder
     {
         Position = layer.Position;
 
-        Blocks = new IBlock[IArea.XSize][];
+        Blocks = new Block[IArea.XSize][];
 
         for (int i = 0; i != Blocks.Length; i++)
         {
-            Blocks[IArea.XSize] = new IBlock[IArea.YSize];
+            Blocks[IArea.XSize] = new Block[IArea.YSize];
 
             for (int j = 0; j != Blocks[i].Length; j++)
             {
                 _ = layer.TryGetBlock(new FlatPosition(i, j), out IBlock? block);
-                Blocks[i][j] = block ?? throw new InvalidOperationException();
+                Blocks[i][j] = (Block?)block ?? throw new InvalidOperationException();
             }
         }
     }
@@ -61,6 +61,7 @@ public class AreaLayerBuilder
         {
             for (int y = 0; y != Blocks[x].Length; y++)
             {
+                using var _ = Blocks[x][y].EnterWriteLock();
                 action.Invoke(Blocks[x][y], new FlatPosition(x, y));
             }
         }
@@ -72,9 +73,9 @@ public class AreaLayerBuilder
                     _ = b.TryAddEntity(entityFactory.Invoke(b, p));
                 });
 
-    public IBlock this[int x, int y] => Blocks[x][y];
+    public Block this[int x, int y] => Blocks[x][y];
 
-    public IAreaLayer Get()
+    public AreaLayer Get()
     {
         var layer = new AreaLayer(Blocks, Position);
 

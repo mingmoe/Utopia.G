@@ -10,7 +10,7 @@ namespace Utopia.Server.Map;
 /// <summary>
 /// 代表一个图块，是地图上每个坐标的所指。
 /// </summary>
-public interface IBlock : ISaveable
+public interface IBlock : ISaveable,IRWSynchronizable
 {
     bool TryAddEntity(IEntity entity);
 
@@ -24,17 +24,11 @@ public interface IBlock : ISaveable
 
     IReadOnlyCollection<IEntity> GetAllEntities();
 
-    bool Collidable { get; }
+    bool HasCollision { get; }
 
-    bool Accessable { get; }
+    bool Accessible { get; }
 
     void LogicUpdate();
 
     WorldPosition Position { get; }
-
-    /// <summary>
-    /// Note:This method may break the block infomation
-    /// </summary>
-    /// <param name="action"></param>
-    void OperateEntities(Action<IList<IEntity>> action);
 }

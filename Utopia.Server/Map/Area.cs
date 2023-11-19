@@ -5,11 +5,10 @@
 using Utopia.Core.Collections;
 using Utopia.Core.Map;
 using Utopia.Core.Utilities.IO;
-using Utopia.Server.Map;
 
-namespace Utopia.Server.Plugin.Map;
+namespace Utopia.Server.Map;
 
-public class Area : IArea
+public struct Area : IArea
 {
     private readonly object _lock = new();
     private readonly SafeDictionary<int, AreaLayer> _floors = new();
@@ -120,29 +119,34 @@ public class Area : IArea
 
     public bool TryGetBlock(Position position, out IBlock? block)
     {
+        var pos = Position;
         AreaLayer floor = _floors.GetOrAdd(position.Z, (k) =>
         {
             return new AreaLayer(
-                    new WorldPosition(Position.X,
-                    Position.Y,
+                    new WorldPosition(pos.X,
+                    pos.Y,
                     k,
-                    Position.Id
+                    pos.Id
                 ));
         });
 
         return floor.TryGetBlock(position.ToFlat(), out block);
     }
 
-    public IAreaLayer GetLayer(int z) => _floors.GetOrAdd(
+    public IAreaLayer GetLayer(int z)
+    {
+        var pos = Position;
+        return _floors.GetOrAdd(
             z, (k) =>
             {
                 return new AreaLayer(
-                    new WorldPosition(Position.X,
-                    Position.Y,
+                    new WorldPosition(pos.X,
+                    pos.Y,
                     k,
-                    Position.Id
+                    pos.Id
                 ));
             });
+    }
 
     public void Update(Logic.IUpdater updater)
     {

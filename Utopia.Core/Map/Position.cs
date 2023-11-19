@@ -4,6 +4,9 @@
 
 using MessagePack;
 
+using Coordinate = int;
+using WorldId = long;
+
 namespace Utopia.Core.Map;
 
 /// <summary>
@@ -13,11 +16,11 @@ namespace Utopia.Core.Map;
 public readonly struct FlatPosition
 {
     [Key(0)]
-    public readonly int X;
+    public readonly Coordinate X;
     [Key(1)]
-    public readonly int Y;
+    public readonly Coordinate Y;
 
-    public FlatPosition(int x, int y)
+    public FlatPosition(Coordinate x, Coordinate y)
     {
         X = x;
         Y = y;
@@ -31,13 +34,13 @@ public readonly struct FlatPosition
 public readonly struct Position
 {
     [Key(0)]
-    public readonly int X;
+    public readonly Coordinate X;
     [Key(1)]
-    public readonly int Y;
+    public readonly Coordinate Y;
     [Key(2)]
-    public readonly int Z;
+    public readonly Coordinate Z;
 
-    public Position(int x, int y, int z)
+    public Position(Coordinate x, Coordinate y, Coordinate z)
     {
         X = x;
         Y = y;
@@ -54,18 +57,18 @@ public readonly struct Position
 public readonly struct WorldPosition
 {
     [Key(0)]
-    public readonly int X;
+    public readonly Coordinate X;
     [Key(1)]
-    public readonly int Y;
+    public readonly Coordinate Y;
     [Key(2)]
-    public readonly int Z;
+    public readonly Coordinate Z;
     /// <summary>
     /// stand for the World ID
     /// </summary>
     [Key(3)]
-    public readonly long Id;
+    public readonly WorldId Id;
 
-    public WorldPosition(int x, int y, int z, long id)
+    public WorldPosition(Coordinate x, Coordinate y, Coordinate z, WorldId id)
     {
         X = x;
         Y = y;
@@ -82,13 +85,13 @@ public readonly struct WorldPosition
 public readonly struct FlatPositionWithId
 {
     [Key(0)]
-    public readonly int X;
+    public readonly Coordinate X;
     [Key(1)]
-    public readonly int Y;
+    public readonly Coordinate Y;
     [Key(2)]
-    public readonly long Id;
+    public readonly WorldId Id;
 
-    public FlatPositionWithId(int x, int y, long id)
+    public FlatPositionWithId(Coordinate x, Coordinate y, WorldId id)
     {
         X = x;
         Y = y;

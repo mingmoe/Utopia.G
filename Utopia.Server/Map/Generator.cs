@@ -4,9 +4,8 @@
 
 using Utopia.Core.Map;
 using Utopia.Server.Entity;
-using Utopia.Server.Map;
 
-namespace Utopia.Server.Plugin.Map;
+namespace Utopia.Server.Map;
 
 public class ClimateGenerator : IClimateGenerator
 {

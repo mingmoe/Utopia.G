@@ -5,14 +5,25 @@
 using Utopia.Core.Map;
 using Utopia.Core.Utilities.IO;
 using Utopia.Server.Logic;
-using Utopia.Server.Map;
 
-namespace Utopia.Server.Plugin.Map;
+namespace Utopia.Server.Map;
 
-public class AreaLayer : IAreaLayer
+[System.Runtime.CompilerServices.InlineArray(IArea.XSize)]
+internal struct AreaLayerBlockLine
 {
-    private readonly IBlock[][] _blocks;
+    public Block element;
+}
+
+[System.Runtime.CompilerServices.InlineArray(IArea.YSize)]
+internal struct AreaLayerBlocks
+{
+    public AreaLayerBlockLine element;
+}
+
+public struct AreaLayer : IAreaLayer
+{
     private readonly object _lock = new();
+    private readonly AreaLayerBlocks _blocks;
 
     public WorldPosition Position { get; init; }
 
@@ -20,7 +31,7 @@ public class AreaLayer : IAreaLayer
 
     public GenerationStage Stage
     {
-        get
+        readonly get
         {
             lock (_lock)
             {
@@ -36,36 +47,29 @@ public class AreaLayer : IAreaLayer
         }
     }
 
-    internal AreaLayer(IBlock[][] blocks, WorldPosition position)
+    internal AreaLayer(Block[][] blocks, WorldPosition position)
     {
-        _blocks = blocks;
+        int yIndex = 0;
+        foreach(var y in blocks)
+        {
+            int xIndex = 0;
+            foreach(var x in y)
+            {
+                _blocks[yIndex][xIndex] = x;
+                xIndex++;
+            }
+            yIndex++;
+        }
+
         Position = position;
     }
 
     public AreaLayer(WorldPosition position)
     {
         Position = position;
-
-        var n = new Block[IArea.XSize][];
-
-        for (int xIndex = 0; xIndex != IArea.XSize; xIndex++)
-        {
-            n[xIndex] = new Block[IArea.YSize];
-
-            for (int yIndex = 0; yIndex != IArea.YSize; yIndex++)
-            {
-                n[xIndex][yIndex] = new(new WorldPosition(
-                     xIndex + Position.X,
-                     yIndex + Position.Y,
-                     position.Z,
-                     Position.Id));
-            }
-        }
-
-        _blocks = n;
     }
 
-    public bool TryGetBlock(FlatPosition position, out IBlock? block)
+    public readonly bool TryGetBlock(FlatPosition position, out IBlock? block)
     {
         if (position.X <= 0 || position.X >= IArea.XSize
             || position.Y <= 0 || position.Y >= IArea.YSize)
@@ -79,24 +83,24 @@ public class AreaLayer : IAreaLayer
         return true;
     }
 
-    public void Update(IUpdater updater)
+    public readonly void Update(IUpdater updater)
     {
-        foreach (IBlock[] blocks in _blocks)
+        foreach (var blocks in _blocks)
         {
-            foreach (IBlock block in blocks)
+            foreach (Block block in blocks)
             {
                 updater.AssignTask(block.LogicUpdate);
             }
         }
     }
 
-    public byte[] Save()
+    public readonly byte[] Save()
     {
         MemoryStream stream = new();
 
-        foreach (IBlock[] x in _blocks)
+        foreach (AreaLayerBlockLine x in _blocks)
         {
-            foreach (IBlock y in x)
+            foreach (Block y in x)
             {
                 StreamUtility.WriteDataWithLength(stream, y.Save()).Wait();
             }

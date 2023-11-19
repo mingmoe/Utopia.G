@@ -7,9 +7,9 @@ using Utopia.Core.Map;
 using Utopia.Core.Utilities;
 using Utopia.Core.Utilities.IO;
 using Utopia.Server.Logic;
-using Utopia.Server.Map;
+using Utopia.Server.Plugin;
 
-namespace Utopia.Server.Plugin.Map;
+namespace Utopia.Server.Map;
 
 public class World : IWorld
 {
@@ -73,7 +73,7 @@ public class World : IWorld
         {
             originIndex = Math.Abs(originIndex);
             areaIndex = (int)-Math.Ceiling((double)originIndex / split);
-            posInArea = originIndex % split == 0 ? 0 : split - (originIndex % split);
+            posInArea = originIndex % split == 0 ? 0 : split - originIndex % split;
         }
         return new(areaIndex, posInArea);
     }

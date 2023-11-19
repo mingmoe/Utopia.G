@@ -4,6 +4,7 @@
 
 using Autofac;
 using NLog;
+using Utopia.Core;
 using Utopia.Core.Collections;
 using Utopia.Core.Net.Packet;
 using Utopia.Core.Plugin;
@@ -12,8 +13,6 @@ using Utopia.Server.Entity;
 using Utopia.Server.Map;
 using Utopia.Server.Net;
 using Utopia.Server.Plugin.Entity;
-using Utopia.Server.Plugin.Map;
-using Utopia.Server.Plugin.Net;
 
 namespace Utopia.Server.Plugin;
 
@@ -69,10 +68,12 @@ public class Plugin : PluginForServer
                             {
                                 if (_serviceProvider.TryGetBlock(query.QueryPosition, out IBlock? block))
                                 {
+                                    using var _ = block!.EnterWriteLock();
+
                                     var packet = new BlockInfoPacket();
                                     IReadOnlyCollection<IEntity> entities = block!.GetAllEntities();
-                                    packet.Collidable = block.Collidable;
-                                    packet.Accessible = block.Accessable;
+                                    packet.Collidable = block.HasCollision;
+                                    packet.Accessible = block.Accessible;
                                     packet.Position = query.QueryPosition;
                                     packet.Entities = entities.Select((i) => i.Id).ToArray();
                                     packet.EntityData = entities.Select((i) => i.ClientOnlyData()).ToArray();

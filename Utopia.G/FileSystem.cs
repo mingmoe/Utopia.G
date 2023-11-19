@@ -12,15 +12,13 @@ public class FileSystem : Core.Utilities.IO.FileSystem
 
     public override string? ServerDirectory => Path.Join(RootDirectory, "Server");
 
-    private class ServerFileSystem : Core.Utilities.IO.FileSystem
+    private class ServerFileSystem(string root) : Core.Utilities.IO.FileSystem
     {
-        private readonly string _root;
+        private readonly string _root = root;
 
         public override string RootDirectory => _root;
 
         public override string? ServerDirectory => null;
-
-        public ServerFileSystem(string root) => _root = root;
     }
 
     public Core.Utilities.IO.FileSystem CreateServerFileSystem() => new ServerFileSystem(ServerDirectory!);

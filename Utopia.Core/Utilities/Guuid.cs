@@ -25,7 +25,7 @@ namespace Utopia.Core.Utilities;
 /// guuid的字符串形式类似于：root:namespaces1:namespaces2...
 /// </summary>
 [MessagePackObject]
-public sealed class Guuid : IEnumerable<string>
+public struct Guuid : IEnumerable<string>
 {
     /// <summary>
     /// Use this to check the guuid string
@@ -34,7 +34,6 @@ public sealed class Guuid : IEnumerable<string>
 
     /// <summary>
     /// utopia游戏所使用的GUUID的root.
-    /// 不推荐插件使用,避免出现问题.
     /// </summary>
     public const string UTOPIA_ROOT = "Utopia";
 
@@ -147,7 +146,7 @@ public sealed class Guuid : IEnumerable<string>
     /// </summary>
     /// <param name="s">字符串应该是来自Guuid的ToString()的结果。</param>
     /// <exception cref="ArgumentException">输入的字符串有误</exception>
-    public static Guuid Parse(string s) => !TryParse(s, out Guuid? result, out string? msg) ? throw new ArgumentException(msg) : result!;
+    public static Guuid Parse(string s) => !TryParse(s, out Guuid? result, out string? msg) ? throw new ArgumentException(msg) : result!.Value;
 
     /// <summary>
     /// See <see cref="Parse(string)"/>
@@ -350,11 +349,6 @@ public class GuuidMsgPackFormatter : IMessagePackFormatter<Guuid>
 
     public Guuid Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return null!;
-        }
-
         options.Security.DepthStep(ref reader);
 
         string? id = reader.ReadString();
@@ -366,11 +360,6 @@ public class GuuidMsgPackFormatter : IMessagePackFormatter<Guuid>
 
     public void Serialize(ref MessagePackWriter writer, Guuid value, MessagePackSerializerOptions options)
     {
-        if (value is null)
-        {
-            writer.WriteNil();
-            return;
-        }
 
         string v = value.ToString();
 

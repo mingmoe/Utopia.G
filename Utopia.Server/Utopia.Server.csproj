@@ -1,4 +1,4 @@
-<Project Sdk="Kawayi.Utopia.Sdk">
+﻿<Project Sdk="Kawayi.Utopia.Sdk">
 
 	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
 

@@ -5,8 +5,8 @@
 namespace Utopia.Core.Plugin;
 
 /// <summary>
-/// Warning: <see cref="PluginLifeCycle.Unactivated"/> won't work.
-/// Thta lifecycle won't fire any event and it should has no handler.
+/// Warning: <see cref="PluginLifeCycle.Created"/> won't work.
+/// That lifecycle won't fire any event and it should has no handler.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class LifecycleHandlerAttribute : Attribute
@@ -17,7 +17,7 @@ public sealed class LifecycleHandlerAttribute : Attribute
     {
         Lifecycle = value;
 
-        if (value == PluginLifeCycle.Unactivated)
+        if (value == PluginLifeCycle.Created)
         {
             throw new NotImplementedException("see documents");
         }

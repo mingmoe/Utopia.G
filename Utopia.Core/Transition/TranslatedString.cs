@@ -11,7 +11,7 @@ using Utopia.Core.Utilities;
 namespace Utopia.Core.Transition;
 
 /// <summary>
-/// 通常应该是线程安全的
+/// A formatted,translated and thread-safe string for human.
 /// </summary>
 public interface ITranslatedString
 {
@@ -63,16 +63,21 @@ public class TranslatedString : ITranslatedString
 }
 
 /// <summary>
-/// 已翻译的ICU字符串
+/// 已翻译的ICU format字符串
 /// </summary>
-public class ICUTranslatedString : ITranslatedString
+public struct ICUTranslatedString : ITranslatedString
 {
     private readonly object _lock = new();
-    private string _cached = null!;
-
+    private bool _reformatNeed;
     private string _translated;
 
-    private void _ManagerUpdateHandle(IEventWithParam<ITranslateManager> manager) => UpdateTranslate(null);
+    private void _ManagerUpdateHandle(IEventWithParam<ITranslateManager> manager)
+    {
+        lock (_lock)
+        {
+            _reformatNeed = true;
+        }
+    }
 
     public string Translated
     {
@@ -80,14 +85,12 @@ public class ICUTranslatedString : ITranslatedString
         {
             lock (_lock)
             {
+                if (_reformatNeed)
+                {
+                    _UpdateTranslation(null);
+                    _reformatNeed = false;
+                }
                 return _translated;
-            }
-        }
-        set
-        {
-            lock (_lock)
-            {
-                _translated = value;
             }
         }
     }
@@ -113,16 +116,13 @@ public class ICUTranslatedString : ITranslatedString
             {
                 ArgumentNullException.ThrowIfNull(value);
                 _key = value;
+                _reformatNeed = true;
             }
         }
     }
 
     private ITranslateManager _manager;
 
-    /// <summary>
-    /// 改变获取翻译的管理器.
-    /// 但是不会刷新翻译,需要手动调用<see cref="UpdateTranslate(object?)"/>
-    /// </summary>
     public ITranslateManager Manager
     {
         get
@@ -141,6 +141,7 @@ public class ICUTranslatedString : ITranslatedString
                         _ManagerUpdateHandle
                     );
                 _manager = value;
+                _reformatNeed = true;
                 _manager.TranslateUpdatedEvent.Register(
                     _ManagerUpdateHandle
                     );
@@ -150,10 +151,6 @@ public class ICUTranslatedString : ITranslatedString
 
     private TranslateIdentifence _identifence;
 
-    /// <summary>
-    /// 改变翻译的标识符.
-    /// 但是不会刷新翻译,需要手动调用<see cref="UpdateTranslate(object?)"/>
-    /// </summary>
     public TranslateIdentifence Identifence
     {
         get
@@ -169,6 +166,7 @@ public class ICUTranslatedString : ITranslatedString
             {
                 ArgumentNullException.ThrowIfNull(value);
                 _identifence = value;
+                _reformatNeed = true;
             }
         }
     }
@@ -179,7 +177,7 @@ public class ICUTranslatedString : ITranslatedString
     private object _data;
 
     /// <summary>
-    /// 更新翻译.
+    /// force 更新翻译.
     /// </summary>
     /// <param name="newData">
     /// 如果提供了新的数据对象(非null传入),那么就替换之前的数据对象.
@@ -189,32 +187,35 @@ public class ICUTranslatedString : ITranslatedString
     {
         lock (_lock)
         {
-            if (newData != null)
-            {
-                _data = newData;
-            }
-
-            if (!_manager.TryGetTranslate(
-                _identifence,
-                Key.TranslateProviderId == null ? null : Guuid.Parse(Key.TranslateProviderId),
-                Guuid.Parse(Key.TranslateItemId),
-                out string? got))
-            {
-                got = _key.TranslateItemId;
-            }
-
-            string @new =
-                MessageFormatter.Format(got!, _data);
-
-            _cached = @new;
-
-            _FireReformatEvent();
+            _UpdateTranslation(newData);
         }
     }
 
-    private void _FireReformatEvent()
+    private void _UpdateTranslation(object? newData)
     {
-        ComplexEvent<string, string> @event = new(_translated, _cached);
+        if (newData != null)
+        {
+            _data = newData;
+        }
+
+        if (!_manager.TryGetTranslate(
+            _identifence,
+            Key.TranslateProviderId == null ? null : Guuid.Parse(Key.TranslateProviderId),
+            Guuid.Parse(Key.TranslateItemId),
+            out string? got))
+        {
+            got = _key.TranslateItemId;
+        }
+
+        string @new =
+            MessageFormatter.Format(got!, _data);
+
+        _FireReformatEvent(@new);
+    }
+
+    private void _FireReformatEvent(string @new)
+    {
+        ComplexEvent<string, string> @event = new(_translated, @new);
         TranslateUpdateEvent.Fire(@event);
         _translated = EventAssertionException.ThrowIfResultIsNull(@event);
     }
@@ -241,6 +242,7 @@ public class ICUTranslatedString : ITranslatedString
         _identifence = identifence;
         _translated = null!;
         _data = data;
+        _reformatNeed = false;
 
         UpdateTranslate(null);
     }

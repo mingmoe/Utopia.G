@@ -11,8 +11,10 @@ public enum PluginLifeCycle
 {
     /// <summary>
     /// The instance of the plugin was constructed but the <see cref="IPluginBase.Activate"/> has not been called.
+    /// This is the initial status of the plugin.
+    /// And <see cref="IPluginBase.LifecycleEvent"/> won't fire event of this lifecycle.
     /// </summary>
-    Unactivated,
+    Created,
     /// <summary>
     /// Called the <see cref="IPluginBase.Activate"/> but <see cref="IPluginBase.Deactivate"/> has not been called.
     /// </summary>

@@ -3,9 +3,9 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Utilities;
-using Utopia.Server.Map;
+using Utopia.Server.Plugin;
 
-namespace Utopia.Server.Plugin.Map;
+namespace Utopia.Server.Map;
 
 /// <summary>
 /// 世界工厂

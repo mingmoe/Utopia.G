@@ -12,9 +12,11 @@ public class GeneratorTemplate {
         using Utopia.Core.Events;
         using Utopia.Core.Plugin;
         using Utopia.Core.Transition;
+        using System.CodeDom.Compiler;
         $PluginInformationNamespace$
         namespace Utopia.Server.Plugin;
-
+                
+        [GeneratedCode("$GENERATOR_NAME$","$GENERATOR_VERSION$")]
         public abstract class PluginForServer : PluginInformation, IPlugin
         {
 

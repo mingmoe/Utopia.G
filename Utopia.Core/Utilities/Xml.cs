@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Utopia.Core.Utilities;
+
 public static class Xml
 {
     public const string Namespace = "http://utopia.kawayi.moe";

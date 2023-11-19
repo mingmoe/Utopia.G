@@ -86,6 +86,9 @@ public class Configuration
     public TranslationConfiguration TranslationConfiguration { get; set; } = new();
 
     [XmlElement]
+    public TranslationProviderConfiguration TranslationProviderConfiguration { get; set; } = new();
+
+    [XmlElement]
     public ServerGeneratorConfiguration ServerGeneratorConfiguration { get; set; } = new();
 
     [XmlElement]

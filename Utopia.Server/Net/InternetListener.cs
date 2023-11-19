@@ -5,9 +5,8 @@
 using System.Net;
 using System.Net.Sockets;
 using Utopia.Core.Events;
-using Utopia.Server.Net;
 
-namespace Utopia.Server.Plugin.Net;
+namespace Utopia.Server.Net;
 public class InternetListener : IInternetListener
 {
 

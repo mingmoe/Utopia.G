@@ -43,8 +43,8 @@ public class TranslateManager : SafeDictionary<Guuid, ITranslateProvider>, ITran
 
         lock (_lock)
         {
-            if (translateProviderId is not null &&
-            TryGetValue(translateProviderId, out ITranslateProvider? value))
+            if (translateProviderId.HasValue is not false &&
+            TryGetValue(translateProviderId.Value, out ITranslateProvider? value))
             {
                 if (value!.TryGetItem(language, translateItemId, out result))
                 {

@@ -5,6 +5,7 @@
 using Utopia.Core.Map;
 using Utopia.Core.Utilities.IO;
 using Utopia.Server.Logic;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace Utopia.Server.Map;
 
@@ -20,7 +21,7 @@ internal struct AreaLayerBlocks
     public AreaLayerBlockLine element;
 }
 
-public struct AreaLayer : IAreaLayer
+public class AreaLayer : IAreaLayer
 {
     private readonly object _lock = new();
     private readonly AreaLayerBlocks _blocks;
@@ -31,7 +32,7 @@ public struct AreaLayer : IAreaLayer
 
     public GenerationStage Stage
     {
-        readonly get
+        get
         {
             lock (_lock)
             {
@@ -67,34 +68,42 @@ public struct AreaLayer : IAreaLayer
     public AreaLayer(WorldPosition position)
     {
         Position = position;
+
+        for(int line = 0;line != IArea.YSize;line++)
+        {
+            for(int x = 0;x != IArea.XSize; x++)
+            {
+                _blocks[line][x] = new(new(position.X + x,position.Y + line,position.Z,position.Id));
+            }
+        }
     }
 
-    public readonly bool TryGetBlock(FlatPosition position, out IBlock? block)
+    public bool TryGetBlock(FlatPosition position, out IBlock? block)
     {
-        if (position.X <= 0 || position.X >= IArea.XSize
-            || position.Y <= 0 || position.Y >= IArea.YSize)
+        if (position.X < 0 || position.X >= IArea.XSize
+            || position.Y < 0 || position.Y >= IArea.YSize)
         {
             block = null;
             return false;
         }
 
-        block = _blocks[position.X][position.Y];
+        block = _blocks[position.Y][position.X];
 
         return true;
     }
 
-    public readonly void Update(IUpdater updater)
+    public void Update(IUpdater updater)
     {
         foreach (var blocks in _blocks)
         {
-            foreach (Block block in blocks)
+            foreach (IBlock block in blocks)
             {
                 updater.AssignTask(block.LogicUpdate);
             }
         }
     }
 
-    public readonly byte[] Save()
+    public byte[] Save()
     {
         MemoryStream stream = new();
 

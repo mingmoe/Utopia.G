@@ -4,6 +4,7 @@
 
 using Utopia.Core;
 using Utopia.Core.Map;
+using Utopia.Core.Utilities;
 
 namespace Utopia.Server.Map;
 
@@ -12,15 +13,28 @@ namespace Utopia.Server.Map;
 /// </summary>
 public interface IBlock : ISaveable,IRWSynchronizable
 {
+    /// <summary>
+    /// Try add the entity to the block.
+    /// If the entity has added to the block,ignore it and return true.
+    /// If <see cref="HasCollision"/> is true and <see cref="IEntity.CanCollide"/> is true,
+    /// will not add the entity and return false.
+    /// </summary>
+    /// <param name="entity">
+    /// Its <see cref="IEntity.WorldPosition"/> will be set to <see cref="WorldPosition"/>.
+    /// </param>
     bool TryAddEntity(IEntity entity);
 
     void RemoveEntity(IEntity entity);
 
+    void RemoveAllEntity(Guuid idOfEntity);
+
     bool Contains(IEntity entity);
+
+    bool Contains(Guuid idOfEntity);
 
     bool IsEmpty();
 
-    long EntityCount();
+    long EntityCount { get; }
 
     IReadOnlyCollection<IEntity> GetAllEntities();
 

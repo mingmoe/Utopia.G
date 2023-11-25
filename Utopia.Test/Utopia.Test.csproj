@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
+    <ProjectReference Include="..\Utopia.Server\Utopia.Server.csproj" />
+    <ProjectReference Include="..\Utopia.G\Utopia.G.csproj" />
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)/../dependencies.targets" />

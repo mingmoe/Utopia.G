@@ -3,13 +3,14 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core.Map;
+using Utopia.Core.Utilities;
 using Utopia.Core.Utilities.IO;
 
 namespace Utopia.Server.Map;
 
-public struct Block : IBlock
+public class Block(WorldPosition position) : IBlock
 {
-    private readonly List<IEntity> _entities = new();
+    private readonly HashSet<IEntity> _entities = new();
     private ulong _cannotAccessible = 0;
     private bool _hasCollision = false;
     private readonly ReaderWriterLockSlim _readerWriterLock = new();
@@ -30,9 +31,7 @@ public struct Block : IBlock
         }
     }
 
-    public Block(WorldPosition position) => Position = position;
-
-    public WorldPosition Position { get; init; }
+    public WorldPosition Position { get; init; } = position;
 
     public ReaderWriterLockSlim @lock => _readerWriterLock;
 
@@ -42,15 +41,27 @@ public struct Block : IBlock
         return _entities.Contains(entity);
     }
 
-    public long EntityCount()
+    public bool Contains(Guuid idOfEntity)
     {
-        return _entities.Count;
+        return _entities.Any((e) => e.Id.Equals(idOfEntity));
     }
+
+    public long EntityCount => _entities.Count;
 
     public IReadOnlyCollection<IEntity> GetAllEntities()
     {
         // to array to prevent user to change list
         return _entities.ToArray();
+    }
+
+    public void RemoveAllEntity(Guuid idOfEntity)
+    {
+        var removed = _entities.TakeWhile((e) => e.Id.Equals(idOfEntity));
+
+        foreach(var item in removed)
+        {
+            RemoveEntity(item);
+        }
     }
 
     public bool IsEmpty()
@@ -69,7 +80,7 @@ public struct Block : IBlock
             return;
         }
         // update
-        if (entity.Collidable)
+        if (entity.CanCollide)
         {
             _hasCollision = false;
         }
@@ -84,14 +95,18 @@ public struct Block : IBlock
     public bool TryAddEntity(IEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-        if (_hasCollision && entity.Collidable)
+        if (_hasCollision && entity.CanCollide)
         {
             return false;
         }
-        _entities.Add(entity);
+
+        if (!_entities.Add(entity))
+        {
+            return false;
+        }
         entity.WorldPosition = Position;
 
-        _hasCollision = entity.Collidable;
+        _hasCollision = entity.CanCollide;
 
         if (!entity.Accessible)
         {

@@ -10,6 +10,7 @@ using Utopia.Core.Transition;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators;
+
 public class TranslationConfiguration
 {
     [XmlElement]

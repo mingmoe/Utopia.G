@@ -18,7 +18,7 @@ public class GrassEntity : IEntity
 
     public bool Accessible => false;
 
-    public bool Collidable => false;
+    public bool CanCollide => false;
 
     public Guuid Id => ResourcePack.Entity.GrassEntity.ID;
 

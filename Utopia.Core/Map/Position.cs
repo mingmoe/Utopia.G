@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Diagnostics.CodeAnalysis;
 using MessagePack;
 
 using Coordinate = int;
@@ -24,6 +25,25 @@ public readonly struct FlatPosition
     {
         X = x;
         Y = y;
+    }
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if(obj is FlatPosition position)
+        {
+            return position.X == X && position.Y == Y;
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X.GetHashCode(), Y.GetHashCode());
+    }
+
+    public override string ToString()
+    {
+        return string.Format("({0},{1})",X,Y);
     }
 }
 
@@ -48,6 +68,25 @@ public readonly struct Position
     }
 
     public FlatPosition ToFlat() => new(X, Y);
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if (obj is Position position)
+        {
+            return position.X == X && position.Y == Y && position.Z == Z;
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X.GetHashCode(), Y.GetHashCode(),Z.GetHashCode());
+    }
+
+    public override string ToString()
+    {
+        return string.Format("({0},{1},{2})", X, Y, Z);
+    }
 }
 
 /// <summary>
@@ -79,6 +118,25 @@ public readonly struct WorldPosition
     public FlatPosition ToFlat() => new(X, Y);
 
     public Position ToPos() => new(X, Y, Z);
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if (obj is WorldPosition position)
+        {
+            return position.X == X && position.Y == Y && position.Z == Z && position.Id == Id;
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X.GetHashCode(), Y.GetHashCode(), Z.GetHashCode(),Id.GetHashCode());
+    }
+
+    public override string ToString()
+    {
+        return string.Format("({0},{1},{2})(World Id:{3})", X, Y, Z, Id);
+    }
 }
 
 [MessagePackObject]
@@ -99,4 +157,23 @@ public readonly struct FlatPositionWithId
     }
 
     public FlatPosition ToFlat() => new(X, Y);
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if (obj is FlatPositionWithId position)
+        {
+            return position.X == X && position.Y == Y && position.Id == Id;
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X.GetHashCode(), Y.GetHashCode(), Id.GetHashCode());
+    }
+
+    public override string ToString()
+    {
+        return string.Format("({0},{1})(World Id:{2})", X, Y, Id);
+    }
 }

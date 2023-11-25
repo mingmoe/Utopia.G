@@ -17,7 +17,7 @@ namespace Utopia.Core;
 /// And this should be call manually and only once.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public struct SynchronizedHanlder<T> : IDisposable
+public struct SynchronizedHandle<T> : IDisposable
 {
     private volatile int _disposed = 0;
     private readonly object _lock;
@@ -30,22 +30,17 @@ public struct SynchronizedHanlder<T> : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public SynchronizedHanlder(ISynchronizable obj)
+    public SynchronizedHandle(ISynchronizable obj)
     {
         ArgumentNullException.ThrowIfNull(obj);
         _lock = obj.@lock;
-        Value = (T)obj;
     }
 
-    public SynchronizedHanlder(T obj,object @lock)
+    public SynchronizedHandle(object @lock)
     {
-        ArgumentNullException.ThrowIfNull(obj);
         ArgumentNullException.ThrowIfNull(@lock);
         _lock = @lock;
-        Value = obj;
     }
-
-    public readonly T Value;
 }
 
 public readonly struct SynchronizedGuard<T> : ISynchronizedOperation<T> where T : ISynchronizable
@@ -58,10 +53,10 @@ public readonly struct SynchronizedGuard<T> : ISynchronizedOperation<T> where T 
         _object = obj;
     }
 
-    public SynchronizedHanlder<T> EnterLock()
+    public SynchronizedHandle<T> EnterLock()
     {
         Monitor.Enter(_object.@lock);
-        return new SynchronizedHanlder<T>(_object, _object.@lock);
+        return new SynchronizedHandle<T>(_object.@lock);
     }
 
     public void EnterSync(Action<T> action) => EnterThenExit(action);
@@ -70,7 +65,7 @@ public readonly struct SynchronizedGuard<T> : ISynchronizedOperation<T> where T 
     {
         using var @lock = EnterLock();
 
-        action.Invoke(@lock.Value);
+        action.Invoke(_object);
     }
 }
 
@@ -78,7 +73,7 @@ public readonly struct SynchronizedGuard<T> : ISynchronizedOperation<T> where T 
 /// You MUST call <see cref="IDisposable.Dispose"/> to release the lock.
 /// And this should be call manually and only once.
 /// </summary>
-public struct ReaderWriterSynchronizedHanlder<T> : IDisposable
+public struct ReaderWriterSynchronizedHandle<T> : IDisposable
 {
     private volatile int _disposed = 0;
     private readonly ReaderWriterLockSlim _lock;
@@ -96,7 +91,7 @@ public struct ReaderWriterSynchronizedHanlder<T> : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public ReaderWriterSynchronizedHanlder(T obj,ReaderWriterLockSlim @lock,bool exitWrite)
+    public ReaderWriterSynchronizedHandle(T obj,ReaderWriterLockSlim @lock,bool exitWrite)
     {
         ArgumentNullException.ThrowIfNull(obj);
         ArgumentNullException.ThrowIfNull(@lock);
@@ -118,16 +113,16 @@ public readonly struct ReaderWriterSynchronizedGuard<T> : ISynchronizedOperation
         _object = obj;
     }
 
-    public ReaderWriterSynchronizedHanlder<T> EnterWriteLock()
+    public ReaderWriterSynchronizedHandle<T> EnterWriteLock()
     {
         _object.@lock.EnterWriteLock();
-        return new ReaderWriterSynchronizedHanlder<T>(_object, _object.@lock,true);
+        return new ReaderWriterSynchronizedHandle<T>(_object, _object.@lock,true);
     }
 
-    public ReaderWriterSynchronizedHanlder<T> EnterReadLock()
+    public ReaderWriterSynchronizedHandle<T> EnterReadLock()
     {
         _object.@lock.EnterReadLock();
-        return new ReaderWriterSynchronizedHanlder<T>(_object,_object.@lock,false);
+        return new ReaderWriterSynchronizedHandle<T>(_object,_object.@lock,false);
     }
 
     public void EnterWriteThenExit(Action<T> action)
@@ -149,21 +144,21 @@ public readonly struct ReaderWriterSynchronizedGuard<T> : ISynchronizedOperation
 
 public static class SynchronizedUtils
 {
-    public static ReaderWriterSynchronizedHanlder<T> EnterWriteLock<T>(this T obj) where T : IRWSynchronizable
+    public static ReaderWriterSynchronizedHandle<T> EnterWriteLock<T>(this T obj) where T : IRWSynchronizable
     {
         obj.@lock.EnterWriteLock();
-        return new ReaderWriterSynchronizedHanlder<T>(obj, obj.@lock, true);
+        return new ReaderWriterSynchronizedHandle<T>(obj, obj.@lock, true);
     }
 
-    public static ReaderWriterSynchronizedHanlder<T> EnterReadLock<T>(this T obj) where T : IRWSynchronizable
+    public static ReaderWriterSynchronizedHandle<T> EnterReadLock<T>(this T obj) where T : IRWSynchronizable
     {
         obj.@lock.EnterReadLock();
-        return new ReaderWriterSynchronizedHanlder<T>(obj, obj.@lock, false);
+        return new ReaderWriterSynchronizedHandle<T>(obj, obj.@lock, false);
     }
 
-    public static SynchronizedHanlder<T> EnterLock<T>(this T obj) where T : ISynchronizable
+    public static SynchronizedHandle<T> EnterLock<T>(this T obj) where T : ISynchronizable
     {
-        Monitor.Enter(obj);
-        return new SynchronizedHanlder<T>(obj,obj.@lock);
+        Monitor.Enter(obj.@lock);
+        return new SynchronizedHandle<T>(obj.@lock);
     }
 }

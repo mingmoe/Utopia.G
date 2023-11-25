@@ -30,7 +30,7 @@ public class GeneratorTemplate {
 
             protected readonly EventManager<LifeCycleEvent<PluginLifeCycle>> _lifecycleEvent = new();
 
-            private PluginLifeCycle _lifeCycle = PluginLifeCycle.Unactivated;
+            private PluginLifeCycle _lifeCycle = PluginLifeCycle.Created;
 
             public PluginLifeCycle CurrentCycle
             {

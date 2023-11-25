@@ -73,7 +73,7 @@ public class World : IWorld
         {
             originIndex = Math.Abs(originIndex);
             areaIndex = (int)-Math.Ceiling((double)originIndex / split);
-            posInArea = originIndex % split == 0 ? 0 : split - originIndex % split;
+            posInArea = originIndex % split == 0 ? 0 : split - (originIndex % split);
         }
         return new(areaIndex, posInArea);
     }

@@ -8,10 +8,10 @@ using Utopia.Core.Utilities.IO;
 
 namespace Utopia.Server.Map;
 
-public struct Area : IArea
+public class Area : IArea
 {
-    private readonly object _lock = new();
-    private readonly SafeDictionary<int, AreaLayer> _floors = new();
+    private readonly AreaLayer _ground;
+    private readonly Dictionary<int, AreaLayer> _floors = new();
 
     public FlatPositionWithId Position { get; init; }
 
@@ -21,17 +21,11 @@ public struct Area : IArea
     {
         get
         {
-            lock (_lock)
-            {
-                return _temperature;
-            }
+            return _temperature;
         }
         set
         {
-            lock (_lock)
-            {
                 _temperature = value;
-            }
         }
     }
 
@@ -41,17 +35,11 @@ public struct Area : IArea
     {
         get
         {
-            lock (_lock)
-            {
-                return _biome;
-            }
+            return _biome;
         }
         set
         {
-            lock (_lock)
-            {
-                _biome = value;
-            }
+            _biome = value;     
         }
     }
 
@@ -61,17 +49,12 @@ public struct Area : IArea
     {
         get
         {
-            lock (_lock)
-            {
+
                 return _precipitation;
-            }
         }
         set
         {
-            lock (_lock)
-            {
                 _precipitation = value;
-            }
         }
     }
 
@@ -81,17 +64,11 @@ public struct Area : IArea
     {
         get
         {
-            lock (_lock)
-            {
                 return _elevation;
-            }
         }
         set
         {
-            lock (_lock)
-            {
                 _elevation = value;
-            }
         }
     }
 
@@ -101,55 +78,68 @@ public struct Area : IArea
     {
         get
         {
-            lock (_lock)
-            {
                 return _construction;
-            }
         }
         set
         {
-            lock (_lock)
-            {
                 _construction = value;
-            }
         }
     }
 
-    public Area(FlatPositionWithId worldPosition) => Position = worldPosition;
+    public ReaderWriterLockSlim @lock { get; init; } = new();
+
+    public Area(FlatPositionWithId worldPosition)
+    {
+        _ground = new(new WorldPosition(
+            worldPosition.X,
+            worldPosition.Y,
+            IArea.GroundZ,
+            worldPosition.Id));
+        Position = worldPosition;
+    }
 
     public bool TryGetBlock(Position position, out IBlock? block)
     {
-        var pos = Position;
-        AreaLayer floor = _floors.GetOrAdd(position.Z, (k) =>
+        if(position.Z == IArea.GroundZ)
         {
-            return new AreaLayer(
-                    new WorldPosition(pos.X,
-                    pos.Y,
-                    k,
-                    pos.Id
-                ));
-        });
+            return _ground.TryGetBlock(position.ToFlat(), out block);
+        }
 
-        return floor.TryGetBlock(position.ToFlat(), out block);
+        var layer = GetLayer(position.Z);
+
+        return layer.TryGetBlock(position.ToFlat(), out block);
     }
 
     public IAreaLayer GetLayer(int z)
     {
+        if(z == IArea.GroundZ)
+        {
+            return _ground;
+        }
+
         var pos = Position;
-        return _floors.GetOrAdd(
-            z, (k) =>
-            {
-                return new AreaLayer(
-                    new WorldPosition(pos.X,
-                    pos.Y,
-                    k,
-                    pos.Id
+
+        if (!_floors.TryGetValue(z, out AreaLayer? value))
+        {
+            value = new AreaLayer(
+                    new WorldPosition(
+                        pos.X,
+                        pos.Y,
+                        z,
+                        pos.Id
                 ));
-            });
+            _floors.Add(
+            z,
+            value);
+        }
+
+        return value;
     }
 
     public void Update(Logic.IUpdater updater)
     {
+        _ground.Update(updater);
+
         KeyValuePair<int, AreaLayer>[] floor = _floors.ToArray();
 
         foreach (KeyValuePair<int, AreaLayer> z in floor)

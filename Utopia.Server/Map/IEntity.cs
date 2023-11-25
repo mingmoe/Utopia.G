@@ -30,7 +30,7 @@ public interface IEntity : ISaveable
     /// <summary>
     /// 实体是否可和其他可碰撞的实体进行碰撞。
     /// </summary>
-    bool Collidable { get; }
+    bool CanCollide { get; }
 
     /// <summary>
     /// 对于每一种实体，都需要一种Id与其对应，作为唯一标识符。

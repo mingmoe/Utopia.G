@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
-using Utopia.Core.Transition;
+using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools;

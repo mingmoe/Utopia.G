@@ -17,11 +17,13 @@ public abstract class FileSystem : IFileSystem
 
     public string CharactersDirectory => Path.Join(RootDirectory, IFileSystem.DefaultCharactersDirectoryName);
 
-    public string PluginsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultPluginsDirectoryName);
+    public string PackedPluginsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultPackedPluginsDirectoryName);
 
     public string ConfigurationsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultConfigurationsDirectoryName);
 
-    public string UtiltiesDirectory => Path.Join(RootDirectory, IFileSystem.DefaultUtiltiesDirectoryName);
+    public string UtilitiesDirectory => Path.Join(RootDirectory, IFileSystem.DefaultUtilitiesDirectoryName);
+
+    public string ExtractedPluginsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultExtractedPluginDirectory);
 
     public abstract string? ServerDirectory { get; }
 }

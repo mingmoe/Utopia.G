@@ -4,7 +4,7 @@
 
 using Utopia.Core;
 using Utopia.Core.Map;
-using Utopia.Core.Transition;
+using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Server.Map;

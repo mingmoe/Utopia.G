@@ -18,7 +18,7 @@ namespace Utopia.Server.Plugin;
 
 public class Plugin : PluginForServer
 {
-    public Plugin(Core.IServiceProvider provider) : base(provider)
+    public Plugin(IContainer container) : base(container)
     {
     }
 

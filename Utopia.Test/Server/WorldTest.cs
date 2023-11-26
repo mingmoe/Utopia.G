@@ -15,7 +15,6 @@ using Utopia.Server.Map;
 namespace Utopia.Test.Server;
 public class WorldTest
 {
-
     [Fact]
     public void WorldAccessTest()
     {

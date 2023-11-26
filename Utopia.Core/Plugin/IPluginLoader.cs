@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Reflection;
 using Autofac;
 using CommunityToolkit.Diagnostics;
-using NLog;
+using Microsoft.Extensions.Logging;
 using Utopia.Core.Events;
 
 namespace Utopia.Core.Plugin;
@@ -28,7 +28,7 @@ public interface IPluginLoader<PluginT> : IDisposable
     ImmutableArray<(Type, PluginT)> ActivatedPlugins { get; }
 
     /// <summary>
-    /// Unresolverd plugins. Call <see cref="IPluginLoader{PluginT}.Active(IContainer)"/>
+    /// Unsolved plugins. Call <see cref="IPluginLoader{PluginT}.Active(IContainer)"/>
     /// should remove all of them,and create instances of each them,add them into
     /// <see cref="PluginLoader{PluginT}.ActivatedPlugins"/>.
     /// </summary>
@@ -74,17 +74,16 @@ public interface IPluginLoader<PluginT> : IDisposable
     /// Register plugin from dll file。将会注册所有实现了<see cref="PluginT"/>的类型。
     /// </summary>
     /// <param name="dllFile">dll文件</param>
-    void RegisterPluginFromDll(ContainerBuilder builder, string dllFile)
+    void RegisterPluginFromDll(string dllFile)
     {
         ArgumentNullException.ThrowIfNull(dllFile, nameof(dllFile));
-        ArgumentNullException.ThrowIfNull(builder, nameof(builder));
 
         var loaded = Assembly.LoadFrom(dllFile);
         IEnumerable<Type> types = loaded.ExportedTypes;
 
         foreach (Type type in types)
         {
-            Register(builder, type);
+            Register(type);
         }
     }
 
@@ -121,9 +120,8 @@ public interface IPluginLoader<PluginT> : IDisposable
     /// </summary>
     /// <param name="builder"></param>
     /// <param name="type"></param>
-    void Register(ContainerBuilder builder, Type type)
+    void Register(Type type)
     {
-        _ = builder.RegisterType(type);
         AddUnresolved(type);
     }
 }
@@ -138,14 +136,13 @@ public static class PluginLoadHelper
     /// <param name="dir"></param>
     /// <param name="container"></param>
     /// <param name="logger"></param>
-    public static void LoadFromDirectory<T>(this IPluginLoader<T> loader, string dir,
-        ContainerBuilder builder, ILogger logger)
+    public static void LoadFromDirectory<T>(this IPluginLoader<T> loader, string dir,ILogger logger)
     {
         foreach (string f in Directory.GetFiles(dir, "*.dll", SearchOption.AllDirectories))
         {
             string file = Path.GetFullPath(f);
-            logger.Info("loading plugin from dll:{plugin}", file);
-            loader.RegisterPluginFromDll(builder, file);
+            logger.LogInformation("Load plugin from dll:{dll}", file);
+            loader.RegisterPluginFromDll(file);
         }
     }
 }

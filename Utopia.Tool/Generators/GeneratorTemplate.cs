@@ -6,27 +6,22 @@ public class GeneratorTemplate {
 
     public const string ServerPluginClassTemplate =
         """
-        ﻿using Autofac;
-        using NLog;
+        using Autofac;
         using Utopia.Core;
         using Utopia.Core.Events;
         using Utopia.Core.Plugin;
-        using Utopia.Core.Transition;
         using System.CodeDom.Compiler;
         $PluginInformationNamespace$
         namespace Utopia.Server.Plugin;
-                
+
         [GeneratedCode("$GENERATOR_NAME$","$GENERATOR_VERSION$")]
         public abstract class PluginForServer : PluginInformation, IPlugin
         {
-
             private readonly object _lock = new();
 
-            protected readonly Logger _logger = LogManager.GetCurrentClassLogger();
+            public required ILogger Logger { get; init; }
 
-            protected readonly Core.IServiceProvider _serviceProvider;
-
-            protected readonly TranslateManager _translateManager;
+            public required TranslateManager TranslateManager { get; init; }
 
             protected readonly EventManager<LifeCycleEvent<PluginLifeCycle>> _lifecycleEvent = new();
 
@@ -46,13 +41,10 @@ public class GeneratorTemplate {
 
             protected readonly ILifetimeScope _container;
 
-            public PluginForServer(Core.IServiceProvider provider)
+            public PluginForServer(IContainer container)
             {
                 // set up service provider and other managers
-                ArgumentNullException.ThrowIfNull(provider);
-                _serviceProvider = provider;
-                _translateManager = provider.GetService<TranslateManager>();
-                IContainer container = provider.GetService<IContainer>();
+                ArgumentNullException.ThrowIfNull(container);
 
                 // build container
                 System.Reflection.MethodInfo[] methods = GetType().GetMethods(
@@ -71,20 +63,6 @@ public class GeneratorTemplate {
                 });
 
                 _container = scope;
-            }
-
-            public ITranslatedString GetTranslation(TranslateKey key, object? data = null)
-            {
-                TranslateIdentifence? id = null;
-
-                _serviceProvider.GetEventBusForService<TranslateIdentifence>().Register((e) =>
-                {
-                    id = e.Target;
-                });
-
-                id = _serviceProvider.GetService<TranslateIdentifence>();
-
-                return new ICUTranslatedString(key, _translateManager, id.Value, data ?? new object());
             }
 
             private void _SwitchLifecycle(PluginLifeCycle cycle)
@@ -122,7 +100,7 @@ public class GeneratorTemplate {
 
                 void lifecycleCode() => _CallLifecycleHandlers(PluginLifeCycle.Activated);
 
-                LifeCycleEvent<PluginLifeCycle>.EnterCycle(PluginLifeCycle.Activated, lifecycleCode, _logger, _lifecycleEvent, @switch);
+                LifeCycleEvent<PluginLifeCycle>.EnterCycle(PluginLifeCycle.Activated, lifecycleCode, Logger, _lifecycleEvent, @switch);
             }
 
             public void Deactivate()
@@ -131,7 +109,7 @@ public class GeneratorTemplate {
 
                 void lifecycleCode() => _CallLifecycleHandlers(PluginLifeCycle.Deactivated);
 
-                LifeCycleEvent<PluginLifeCycle>.EnterCycle(PluginLifeCycle.Deactivated, lifecycleCode, _logger, _lifecycleEvent, @switch);
+                LifeCycleEvent<PluginLifeCycle>.EnterCycle(PluginLifeCycle.Deactivated, lifecycleCode, Logger, _lifecycleEvent, @switch);
             }
         }
         

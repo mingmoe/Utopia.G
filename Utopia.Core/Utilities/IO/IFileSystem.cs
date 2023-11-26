@@ -22,13 +22,15 @@ public interface IFileSystem
 
     public const string DefaultCharactersDirectoryName = "Characters";
 
-    public const string DefaultPluginsDirectoryName = "Plugins";
+    public const string DefaultPackedPluginsDirectoryName = "PackedPlugins";
 
     public const string DefaultConfigurationsDirectoryName = "Configurations";
 
     public const string DefaultServerDirectoryName = "Server";
 
-    public const string DefaultUtiltiesDirectoryName = "Utilities";
+    public const string DefaultUtilitiesDirectoryName = "Utilities";
+
+    public const string DefaultExtractedPluginDirectory = "ExtractedPlugins";
 
     /// <summary>
     /// 游戏/server所在位置的根目录
@@ -51,9 +53,14 @@ public interface IFileSystem
     string CharactersDirectory { get; }
 
     /// <summary>
-    /// 游戏的插件目录
+    /// 游戏的插件目录,where the plugins are packed
     /// </summary>
-    string PluginsDirectory { get; }
+    string PackedPluginsDirectory { get; }
+
+    /// <summary>
+    /// Put the extracted plugins in it.
+    /// </summary>
+    string ExtractedPluginsDirectory { get; }
 
     /// <summary>
     /// 游戏的配置文件目录
@@ -69,7 +76,7 @@ public interface IFileSystem
     /// <summary>
     /// 游戏的工具目录。用于存放一些其他东西。
     /// </summary>
-    string UtiltiesDirectory { get; }
+    string UtilitiesDirectory { get; }
 
     /// <summary>
     /// 对于不存在的目录，则创建一个
@@ -80,9 +87,9 @@ public interface IFileSystem
         _ = Directory.CreateDirectory(AssetsDirectory);
         _ = Directory.CreateDirectory(WorldsDirectory);
         _ = Directory.CreateDirectory(CharactersDirectory);
-        _ = Directory.CreateDirectory(PluginsDirectory);
+        _ = Directory.CreateDirectory(PackedPluginsDirectory);
         _ = Directory.CreateDirectory(ConfigurationsDirectory);
-        _ = Directory.CreateDirectory(UtiltiesDirectory);
+        _ = Directory.CreateDirectory(UtilitiesDirectory);
         if (ServerDirectory != null)
         {
             _ = Directory.CreateDirectory(ServerDirectory);

@@ -6,7 +6,7 @@ using Utopia.Core.Collections;
 using Utopia.Core.Events;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Core.Transition;
+namespace Utopia.Core.Translation;
 
 /// <summary>
 /// 翻译管理器，可以通过此接口获取翻译。要求线程安全.

@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Utopia.ResourcePack. If not, see <https://www.gnu.org/licenses/>.
 #endregion
 
-using Utopia.Core.Transition;
+using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 
 namespace Utopia.ResourcePack.Entity;

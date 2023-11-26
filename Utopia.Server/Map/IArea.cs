@@ -13,8 +13,8 @@ namespace Utopia.Server.Map;
 /// </summary>
 public interface IArea : Logic.IUpdatable, ISaveable,IRWSynchronizable
 {
-    const int XSize = 32;
-    const int YSize = 32;
+    const int XSize = AreaInformation.XSize;
+    const int YSize = AreaInformation.YSize;
 
     /// <summary>
     /// 地面的Z坐标。

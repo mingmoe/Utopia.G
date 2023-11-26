@@ -3,15 +3,18 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Autofac;
 using CommunityToolkit.Diagnostics;
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 using Npgsql;
 using Utopia.Core;
 using Utopia.Core.Collections;
 using Utopia.Core.Events;
 using Utopia.Core.Logging;
 using Utopia.Core.Plugin;
-using Utopia.Core.Transition;
+using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 using Utopia.Core.Utilities.IO;
 using Utopia.Server.Entity;
@@ -26,23 +29,42 @@ namespace Utopia.Server;
 /// </summary>
 public static class Launcher
 {
-    private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
+    public interface ILauncherOption {
+        /// <summary>
+        /// 服务器端口
+        /// </summary>
+        public int Port { get; }
 
-    public static void WaitForStart(object locker)
-    {
-        ArgumentNullException.ThrowIfNull(locker);
-        _ = Thread.Yield();
-        Thread.Sleep(100);
-        lock (locker)
-        {
-            return;
-        }
+        /// <summary>
+        /// 是否跳过初始化log系统
+        /// </summary>
+        public bool SkipInitLog { get; }
+
+        /// <summary>
+        /// If it's null,skip set up logging system
+        /// </summary>
+        public LogManager.LogOption? LogOption { get; }
+
+        /// <summary>
+        /// 文件系统
+        /// </summary>
+        public IFileSystem? FileSystem { get; }
+
+        /// <summary>
+        /// 数据库链接，must not be null
+        /// </summary>
+        public NpgsqlDataSource DatabaseSource { get; }
+
+        /// <summary>
+        /// What language we want to use.
+        /// </summary>
+        public TranslateIdentifence GlobalLanguage { get; }
     }
 
     /// <summary>
     /// 启动参数
     /// </summary>
-    public class LauncherOption
+    public class LauncherOption : ILauncherOption
     {
         /// <summary>
         /// 服务器端口
@@ -54,7 +76,10 @@ public static class Launcher
         /// </summary>
         public bool SkipInitLog { get; set; } = false;
 
-        public LogManager.LogOption LogOption { get; set; } = LogManager.LogOption.CreateDefault();
+        /// <summary>
+        /// If it's null,skip set up logging system
+        /// </summary>
+        public LogManager.LogOption? LogOption { get; set; } = LogManager.LogOption.CreateDefault();
 
         /// <summary>
         /// 文件系统
@@ -67,18 +92,18 @@ public static class Launcher
         public NpgsqlDataSource DatabaseSource { get; set; } = null!;
 
         /// <summary>
-        /// 用于设置全局语言标识符
+        /// What language we want to use.
         /// </summary>
         public TranslateIdentifence GlobalLanguage { get; set; } =
-            new(CultureInfo.CurrentCulture.ThreeLetterISOLanguageName,
-            RegionInfo.CurrentRegion.ThreeLetterISORegionName);
+            new(CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
+            RegionInfo.CurrentRegion.TwoLetterISORegionName);
     }
 
     /// <summary>
     /// 使用字符串参数启动服务器
     /// </summary>
     /// <param name="args">命令行参数</param>
-    public static void LaunchWithArguments(string[] args, object? locker)
+    public static Headquarters LaunchWithArguments(string[] args)
     {
         ArgumentNullException.ThrowIfNull(args, nameof(args));
 
@@ -123,194 +148,105 @@ public static class Launcher
             }
         }
 
-        Launch(option, locker);
+        return Launch(option);
     }
 
-    /// <summary>
-    /// 使用参数启动服务器
-    /// </summary>
-    /// <param name="option">参数</param>
-    public static void Launch(LauncherOption option, object? locker)
+    private class ContainerHolder
     {
-        locker ??= new object();
-        lock (locker)
-        {
-            ArgumentNullException.ThrowIfNull(option);
-
-            Thread.CurrentThread.Name = "Server Initialization Thread";
-
-            ServiceProvider provider = _InitSystem(option);
-
-            IEventBus bus = provider.GetService<IEventBus>();
-
-            try
-            {
-                _ = provider.TryRegisterService(LifeCycle.InitializedSystem);
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.InitializedSystem, () =>
-                {
-                    // do nothing
-                }, s_logger, bus, provider);
-
-                // 加载插件
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadPlugin, () =>
-                {
-                    provider.GetService<IPluginLoader<IPlugin>>().Register(
-                            provider.GetService<ContainerBuilder>(),
-                            typeof(Plugin.Plugin)
-                        );
-                    provider.GetService<IPluginLoader<IPlugin>>().LoadFromDirectory(
-                        provider.GetService<IFileSystem>().PluginsDirectory,
-                        provider.GetService<ContainerBuilder>(),
-                        s_logger
-                    );
-                    IContainer container = provider.GetService<ContainerBuilder>().Build();
-                    provider.RemoveService<ContainerBuilder>();
-                    _ = provider.TryRegisterService(container);
-                    provider.GetService<IPluginLoader<IPlugin>>().Active(container);
-
-                }, s_logger, bus, provider);
-
-                // 创建世界
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadSavings, () => { _LoadSave(provider); }, s_logger, bus, provider);
-
-                // 设置逻辑线程
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.StartLogicThread, () => { _StartLogicThread(provider); }, s_logger, bus, provider);
-
-                // 设置网络线程
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.StartNetThread, () => { _StartNetworkThread(provider, option.Port); }, s_logger, bus, provider);
-            }
-            catch (Exception ex)
-            {
-                s_logger.Error(ex, "the server initlize failed");
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Crash, () => { }, s_logger, bus, provider);
-                LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Stop, () => { }, s_logger, bus, provider);
-            }
-        }
+        public IContainer Container { get; set; } = null!;
     }
 
-    /// <summary>
-    /// 初始化系统
-    /// </summary>
-    private static ServiceProvider _InitSystem(LauncherOption option)
+    private static IContainer _CreateContainer(LauncherOption option)
     {
         Guard.IsNotNull(option);
-        // 初始化日志系统
-        if (!option.SkipInitLog)
+
+        ContainerHolder holder = new();
+
+        ContainerBuilder builder = new();
+        builder
+            .Register<IContainer>(context =>
+        {
+            ContainerHolder container = holder;
+            return container.Container;
+        })
+            .SingleInstance();
+        builder
+            .RegisterInstance(option)
+            .SingleInstance()
+            .As<ILauncherOption>();
+        builder
+            .RegisterInstance(option.FileSystem ?? new FileSystem())
+            .SingleInstance()
+            .As<IFileSystem>();
+        builder
+            .RegisterType<NLogLoggerFactory>()
+            .SingleInstance()
+            .As<ILoggerFactory>();
+        builder
+            .RegisterGeneric(typeof(Logger<>))
+            .As(typeof(ILogger<>))
+            .SingleInstance();
+        builder
+            .RegisterType<PluginLoader<IPlugin>>()
+            .SingleInstance()
+            .As<IPluginLoader<IPlugin>>();
+        builder.
+            RegisterType<TranslateManager>()
+            .SingleInstance()
+            .As<ITranslateManager>();
+        builder
+            .RegisterType<StandardLogicThread>()
+            .SingleInstance()
+            .As<ILogicThread>();
+        builder
+            .RegisterType<EventBus>()
+            .SingleInstance()
+            .As<IEventBus>();
+        builder
+            .RegisterType<EntityManager>()
+            .SingleInstance()
+            .As<IEntityManager>();
+        builder
+            .RegisterType<InternetMain>()
+            .SingleInstance()
+            .As<IInternetMain>();
+        builder
+            .RegisterType<InternetListener>()
+            .SingleInstance()
+            .As<IInternetListener>();
+        builder
+            .RegisterType<SafeDictionary<long, IWorld>>()
+            .SingleInstance()
+            .As<ISafeDictionary<long, IWorld>>();
+        builder
+            .RegisterType<SafeDictionary<Guuid, IWorldFactory>>()
+            .SingleInstance()
+            .As<ISafeDictionary<Guuid, IWorldFactory>>();
+        builder
+            .RegisterType<Headquarters>()
+            .SingleInstance();
+
+        holder.Container = builder.Build();
+
+        return holder.Container;
+    }
+
+    public static Headquarters Launch(LauncherOption option)
+    {
+        ArgumentNullException.ThrowIfNull(option);
+        if(option.LogOption != null)
         {
             LogManager.Init(option.LogOption);
         }
 
-        // 初始化依赖注入和服务提供者
-        ServiceProvider provider = new();
-        ContainerBuilder builder = new();
+        var container = _CreateContainer(option);
 
-        register<IFileSystem>(option.FileSystem ?? new FileSystem());
-        register<Microsoft.Extensions.Logging.ILoggerFactory>(new NLog.Extensions.Logging.NLogLoggerFactory());
-        register<Core.IServiceProvider>(provider);
-        register<IPluginLoader<IPlugin>>(new PluginLoader<IPlugin>());
-        register<ITranslateManager>(new TranslateManager());
-        register<TranslateIdentifence>(option.GlobalLanguage);
-        register<ILogicThread>(new StandardLogicThread());
-        register<IEventBus>(new EventBus());
-        register<IEntityManager>(new EntityManager());
-        register<IInternetMain>(new InternetMain(provider));
-        // init filesystem
-        provider.GetService<IFileSystem>().CreateIfNotExist();
+        var headquarters = container.Resolve<Headquarters>();
 
-        // as world manager
-        register<SafeDictionary<long, IWorld>>(new SafeDictionary<long, Map.IWorld>());
-        register<SafeDictionary<Guuid, IWorldFactory>>(new SafeDictionary<Guuid, IWorldFactory>());
+        headquarters.Launch();
 
-        _ = provider.TryRegisterService(builder);
-
-        if (option.DatabaseSource == null)
-        {
-            // throw new ArgumentException("Database Source option need to be set");
-        }
-        // TODO:ADD PGSQL
-
-        return provider;
-
-        void register<T>(object instance) where T : notnull
-        {
-            _ = provider.TryRegisterService<T>((T)instance);
-            _ = builder.RegisterInstance(instance).As<T>().ExternallyOwned();
-        }
+        return headquarters;
     }
 
-    /// <summary>
-    /// 加载存档
-    /// </summary>
-    /// <param name="provider"></param>
-    private static void _LoadSave(Core.IServiceProvider provider)
-    {
-        KeyValuePair<Guuid, IWorldFactory>[] array = provider.GetService<SafeDictionary<Guuid, IWorldFactory>>().ToArray();
-
-        // TODO: Load saves from file
-        if (array.Length == 1)
-        {
-            _ = provider.GetService<SafeDictionary<long, IWorld>>().TryAdd(0, array[0].Value.GenerateNewWorld());
-        }
-    }
-
-    /// <summary>
-    /// 启动
-    /// </summary>
-    /// <param name="provider"></param>
-    private static void _StartLogicThread(Core.IServiceProvider provider)
-    {
-        var logicT = new Thread(() =>
-        {
-            ILogicThread t = provider.GetService<ILogicThread>();
-            KeyValuePair<long, IWorld>[] worlds = provider.GetService<SafeDictionary<long, IWorld>>().ToArray();
-            foreach (KeyValuePair<long, IWorld> world in worlds)
-            {
-                t.Add(world.Value);
-            }
-            // 注册关闭事件
-            provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((cycle) =>
-            {
-                if (cycle.Cycle == LifeCycle.Stop && cycle.Order == LifeCycleOrder.After)
-                {
-                    t.StopTokenSource.Cancel();
-                }
-            });
-            ((StandardLogicThread)t).Run();
-        })
-        {
-            Name = "Server Logic Thread"
-        };
-        logicT.Start();
-    }
-
-    /// <summary>
-    /// 启动网络线程
-    /// </summary>
-    private static void _StartNetworkThread(Core.IServiceProvider provider, int port)
-    {
-        IInternetListener netServer = provider.GetService<IInternetListener>();
-        _ = provider.TryRegisterService(netServer);
-        netServer.Listen(port);
-        s_logger.Info("listen to {port}", port);
-
-        InternetMain netThread = (InternetMain)provider.GetService<IInternetMain>();
-        var thread = new Thread(() =>
-        {
-            // 注册关闭事件
-            provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((cycle) =>
-            {
-                if (cycle.Cycle == LifeCycle.Stop && cycle.Order == LifeCycleOrder.After)
-                {
-                    netThread.StopTokenSource.Cancel();
-                }
-            });
-            netThread.Run();
-        })
-        {
-            Name = "Server Networking Thread"
-        };
-        thread.Start();
-    }
-
-    private static void Main(string[] args) => LaunchWithArguments(args, null);
+    private static void Main(string[] args) => LaunchWithArguments(args);
 }

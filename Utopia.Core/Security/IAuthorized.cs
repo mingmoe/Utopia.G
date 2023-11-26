@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Core.Secret;
+namespace Utopia.Core.Security;
 
 /// <summary>
 /// This class stands for a account.

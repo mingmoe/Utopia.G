@@ -8,7 +8,7 @@ using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Core.Transition;
+namespace Utopia.Core.Translation;
 
 /// <summary>
 /// A formatted,translated and thread-safe string for human.

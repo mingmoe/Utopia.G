@@ -3,23 +3,43 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using System.Collections.Frozen;
+using System.Xml.Serialization;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Core.Transition;
+namespace Utopia.Core.Translation;
 
 /// <summary>
 /// This class was used for code generated and human edit.
 /// </summary>
 public sealed class TranslationItem
 {
-    public Guuid Provider { get; set; } = Guuid.Empty;
+    /// <summary>
+    /// The translation id of this item.
+    /// </summary>
+    [XmlElement]
+    public XmlGuuid Id { get; set; } = new();
 
+    /// <summary>
+    /// The translation comment of this id.
+    /// </summary>
+    [XmlElement]
     public string Comment { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The translated of this id.
+    /// </summary>
+    [XmlElement]
     public string Translated { get; set; } = string.Empty;
 }
 
-public sealed class TranslationProject(IDictionary<Guuid,string> items)
+public class TranslationDeclares
+{
+    [XmlArray("Translations")]
+    [XmlArrayItem("Translation")]
+    public List<TranslationItem> Translations { get; set; } = [];
+}
+
+public sealed class TranslationProject(IDictionary<Guuid, string> items)
 {
     public TranslateIdentifence Identification { get; set; } = new();
 

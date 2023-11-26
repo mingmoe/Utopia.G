@@ -2,7 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-using NLog;
+using Microsoft.Extensions.Logging;
 using Utopia.Core.Events;
 
 namespace Utopia.Core;
@@ -36,23 +36,18 @@ public class LifeCycleEvent<CycleT> : Event
     }
 
     /// <summary>
-    /// Abhout how we will fire the event,see <see cref="LifeCycleOrder"/>
+    /// About how we will fire the event,see <see cref="LifeCycleOrder"/>
     /// </summary>
-    public static void EnterCycle(CycleT cycle, Action action, ILogger logger, IEventBus bus, IServiceProvider provider)
+    public static void EnterCycle(CycleT cycle, Action action, ILogger logger, Action<LifeCycleEvent<CycleT>> fireEventAction, Action switchAction)
     {
-        if (!provider.HasService<CycleT>())
-        {
-            _ = provider.TryRegisterService(cycle);
-        }
-
         ArgumentNullException.ThrowIfNull(cycle);
-        logger.Info("enter pre-{lifecycle} lifecycle", cycle);
-        bus!.Fire(new LifeCycleEvent<CycleT>(LifeCycleOrder.Before, cycle));
-        logger.Info("enter {lifecycle} lifecycle", cycle);
-        _ = provider.TryUpdate(provider.GetService<CycleT>(), cycle);
+        logger.LogInformation("enter pre-{lifecycle} lifecycle", cycle);
+        fireEventAction.Invoke(new LifeCycleEvent<CycleT>(LifeCycleOrder.Before, cycle));
+        logger.LogInformation("enter {lifecycle} lifecycle", cycle);
+        switchAction.Invoke();
         action.Invoke();
-        logger.Info("enter post-{lifecycle} lifecycle", cycle);
-        bus!.Fire(new LifeCycleEvent<CycleT>(LifeCycleOrder.After, cycle));
+        logger.LogInformation("enter post-{lifecycle} lifecycle", cycle);
+        fireEventAction.Invoke(new LifeCycleEvent<CycleT>(LifeCycleOrder.After, cycle));
     }
 
     /// <summary>
@@ -60,13 +55,30 @@ public class LifeCycleEvent<CycleT> : Event
     /// </summary>
     public static void EnterCycle(CycleT cycle, Action action, ILogger logger, IEventManager<LifeCycleEvent<CycleT>> bus, Action switchAction)
     {
-        ArgumentNullException.ThrowIfNull(cycle);
-        logger.Info("enter pre-{lifecycle} lifecycle", cycle);
-        bus!.Fire(new LifeCycleEvent<CycleT>(LifeCycleOrder.Before, cycle));
-        logger.Info("enter {lifecycle} lifecycle", cycle);
-        switchAction.Invoke();
-        action.Invoke();
-        logger.Info("enter post-{lifecycle} lifecycle", cycle);
-        bus!.Fire(new LifeCycleEvent<CycleT>(LifeCycleOrder.After, cycle));
+        EnterCycle(
+            cycle,
+            action,
+            logger,
+            (e) =>
+            {
+                bus.Fire(e);
+            },
+            switchAction);
+    }
+
+    /// <summary>
+    /// About how we will fire the event,see <see cref="LifeCycleOrder"/>
+    /// </summary>
+    public static void EnterCycle(CycleT cycle, Action action, ILogger logger, IEventBus bus, Action switchAction)
+    {
+        EnterCycle(
+            cycle,
+            action,
+            logger,
+            (e) =>
+            {
+                bus.Fire(e);
+            },
+            switchAction);
     }
 }

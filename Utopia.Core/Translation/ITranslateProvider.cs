@@ -4,7 +4,7 @@
 
 using Utopia.Core.Utilities;
 
-namespace Utopia.Core.Transition;
+namespace Utopia.Core.Translation;
 
 /// <summary>
 /// 负责提供翻译的类.应该确保线程安全.

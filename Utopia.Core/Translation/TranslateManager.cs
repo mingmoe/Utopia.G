@@ -7,7 +7,7 @@ using Utopia.Core.Collections;
 using Utopia.Core.Events;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Core.Transition;
+namespace Utopia.Core.Translation;
 
 /// <summary>
 /// 默认翻译管理器，线程安全。

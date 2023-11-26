@@ -7,7 +7,8 @@ using Utopia.Core.Events;
 
 namespace Utopia.Core;
 
-public class ServiceProvider : IServiceProvider
+/*
+ * public class ServiceProvider : IServiceProvider
 {
     private readonly SafeDictionary<Type, object> _services = new();
     private readonly SafeDictionary<Type, object> _managers = new();
@@ -125,3 +126,4 @@ public class ServiceProvider : IServiceProvider
         GC.SuppressFinalize(this);
     }
 }
+*/

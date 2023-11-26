@@ -11,7 +11,7 @@ using Godot;
 using Utopia.Core;
 using Utopia.Core.Events;
 using Utopia.Core.Plugin;
-using Utopia.Core.Transition;
+using Utopia.Core.Translation;
 using Utopia.Core.Utilities.IO;
 using Utopia.G.Game.Entity;
 using Utopia.G.Graphy;
@@ -120,7 +120,7 @@ public static class Client
                     provider.GetService<ContainerBuilder>(),
                     typeof(Plugin.CorePlugin));
                 provider.GetService<IPluginLoader<IPlugin>>().LoadFromDirectory(
-                    provider.GetService<IFileSystem>().PluginsDirectory,
+                    provider.GetService<IFileSystem>().PackedPluginsDirectory,
                     provider.GetService<ContainerBuilder>(),
                     s_logger
                     );

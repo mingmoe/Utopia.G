@@ -4,7 +4,7 @@
 
 using System.Globalization;
 
-namespace Utopia.Core.Transition;
+namespace Utopia.Core.Translation;
 
 /// <summary>
 /// 翻译唯一标识符号，用于标识一个翻译。

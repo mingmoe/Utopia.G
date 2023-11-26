@@ -25,22 +25,22 @@ namespace Utopia.Core.Utilities;
 /// guuid的字符串形式类似于：root:namespaces1:namespaces2...
 /// </summary>
 [MessagePackObject]
-public struct Guuid : IEnumerable<string>
+public readonly struct Guuid : IEnumerable<string>
 {
     /// <summary>
-    /// Use this to check the guuid string
+    /// Use this regex pattern to check the guuid string
     /// </summary>
     public const string Pattern = @"^[a-zA-Z]{1}[a-zA-Z0-9]*(\.[a-zA-Z]{1}[a-zA-Z0-9]*)+$";
 
     /// <summary>
     /// utopia游戏所使用的GUUID的root.
     /// </summary>
-    public const string UTOPIA_ROOT = "Utopia";
+    public const string UtopiaRoot = "Utopia";
 
     /// <summary>
     /// Will use this to separate root and each namespaces when use the string of Guuid.
     /// </summary>
-    public const string SEPARATOR = ".";
+    public const string Separator = ":";
 
     public static readonly Guuid Empty = new("Empty", "Empty");
 
@@ -65,7 +65,7 @@ public struct Guuid : IEnumerable<string>
             return false;
         }
 
-        string[] strs = guuid.Split(SEPARATOR);
+        string[] strs = guuid.Split(Separator);
 
         // 至少要存在一个root和一个node
         return strs.Length >= 2 && CheckGuuid(strs.First(), strs[1..]);
@@ -112,20 +112,20 @@ public struct Guuid : IEnumerable<string>
     }
 
     [Key(0)]
-    public string Root { get; }
+    public string Root { get; init; }
 
     [Key(1)]
-    public string[] Nodes { get; }
+    public string[] Nodes { get; init; }
 
     public static bool operator ==(Guuid c1, Guuid c2) => c1.Root == c2.Root && c1.Nodes.SequenceEqual(c2.Nodes);
 
     public static bool operator !=(Guuid c1, Guuid c2) => (c1.Root != c2.Root) || (!c1.Nodes.SequenceEqual(c2.Nodes));
 
     /// <summary>
-    /// 把guuid转换为字符串形式. Will use <see cref="SEPARATOR"/> to separate root and each namespaces.
+    /// 把guuid转换为字符串形式. Will use <see cref="Separator"/> to separate root and each namespaces.
     /// For example,
-    /// a guuid with root `r` and namespaces `a` and `b` will have a string form as `r.a.b`
-    /// (If <see cref="SEPARATOR"/> is `.`)
+    /// a guuid with root `r` and namespaces `a` and `b` will have a string form as `r:a:b`
+    /// (If <see cref="Separator"/> is `.`)
     /// </summary>
     public override string ToString()
     {
@@ -135,7 +135,7 @@ public struct Guuid : IEnumerable<string>
         foreach (string node in Nodes)
         {
 #pragma warning disable CA1834 // Consider using 'StringBuilder.Append(char)' when applicable
-            _ = builder.Append(SEPARATOR).Append(node);
+            _ = builder.Append(Separator).Append(node);
 #pragma warning restore CA1834 // Consider using 'StringBuilder.Append(char)' when applicable
         }
         return builder.ToString();
@@ -165,7 +165,7 @@ public struct Guuid : IEnumerable<string>
         result = null;
         errorMessage = null;
 
-        string[] strs = s.Split(SEPARATOR);
+        string[] strs = s.Split(Separator);
 
         if (strs.Length < 2)
         {
@@ -240,7 +240,7 @@ public struct Guuid : IEnumerable<string>
                                                return result + "_" + value;
                                            });
 
-    public static Guuid NewUtopiaGuuid(params string[] nodes) => new(UTOPIA_ROOT, nodes);
+    public static Guuid NewUtopiaGuuid(params string[] nodes) => new(UtopiaRoot, nodes);
 
     public IEnumerator<string> GetEnumerator()
     {
@@ -288,8 +288,8 @@ public struct Guuid : IEnumerable<string>
 /// This class was used for xml.
 /// Do not use it in other code.
 /// </summary>
-[XmlSchemaProvider("GetGuuidSchemaOfType")]
-public class XmlGuuid : IXmlSerializable
+[XmlSchemaProvider(nameof(GetGuuidSchemaOfType))]
+public sealed class XmlGuuid : IXmlSerializable
 {
     public Guuid Guuid { get; set; } = Guuid.Empty;
 
@@ -300,7 +300,7 @@ public class XmlGuuid : IXmlSerializable
 
     public XmlGuuid(Guuid guuid)
     {
-        this.Guuid = guuid;
+        Guuid = guuid;
     }
 
     public override bool Equals(object? obj) => Guuid.Equals(obj);

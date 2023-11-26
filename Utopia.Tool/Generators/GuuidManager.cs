@@ -26,7 +26,7 @@ public static class GuuidManager
     /// <summary>
     /// Get the translate provider of the plugin.
     /// </summary>
-    public static Guuid GetTranslateProviderGuuidOf(Guuid pluginId) => pluginId.EnterGeneratedSpace().Append("TransitionsProvider");
+    public static Guuid GetDefaultTranslateProviderGuuidOf(Guuid pluginId) => pluginId.EnterGeneratedSpace().Append("TransitionsProvider");
 
     public static Guuid GetPluginNameTranslateId(Guuid pluginId) => GetTranslationGuuidOf(pluginId,"PluginInformation","Name");
 

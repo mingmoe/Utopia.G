@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utopia.Core.Secret;
 
 namespace Utopia.Core.Security;
 /// <summary>

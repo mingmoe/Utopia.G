@@ -23,7 +23,7 @@ public static class GenerationCommand
     {
         try
         {
-            XmlSchemas schemas = new();
+            XmlSchemas schemas = [];
             XmlSchemaExporter exporter = new(schemas);
 
             XmlTypeMapping mapping = new XmlReflectionImporter().ImportTypeMapping(typeof(Configuration));

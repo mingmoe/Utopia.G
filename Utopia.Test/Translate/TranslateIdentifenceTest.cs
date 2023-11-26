@@ -2,7 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-using Utopia.Core.Transition;
+using Utopia.Core.Translation;
 
 namespace Utopia.Test.Translate;
 

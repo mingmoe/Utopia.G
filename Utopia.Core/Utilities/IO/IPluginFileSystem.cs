@@ -14,7 +14,13 @@ public interface IPluginFileSystem
     public const string DefaultAssetsDirectoryName = IFileSystem.DefaultAssetsDirectoryName;
 
     /// <summary>
-    /// The directory path of the plugin.
+    /// If this plugins was extracted from the packed file,it refer to the packed file.
+    /// </summary>
+    string? PackedFile { get; }
+
+    /// <summary>
+    /// The directory path of the (extracted) plugin.
+    /// You should not write anything under the directory.
     /// </summary>
     string RootDirectory { get; }
 
@@ -30,7 +36,7 @@ public interface IPluginFileSystem
     string TranslationDirectory => Path.Join(RootDirectory, DefaultTranslationDirectoryName);
 
     /// <summary>
-    /// Asset files path.
+    /// Assets files path.
     /// </summary>
     string AssetsDirectory => Path.Join(RootDirectory, DefaultAssetsDirectoryName);
 }

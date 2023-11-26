@@ -92,7 +92,6 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
         {
             _ActivePlugins.Add((args.PluginType, plugin));
         }
-
     }
 
     public void Active(IContainer container)
@@ -101,16 +100,22 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
 
         lock (_locker)
         {
-            foreach (Type type in _UnresolvedPlugins)
+            using (var scope = container.BeginLifetimeScope((config) =>
             {
-                if (!type.IsAssignableTo(typeof(PluginT)))
+                config.RegisterTypes([.. _UnresolvedPlugins]);
+            }))
+            {
+                foreach (Type type in _UnresolvedPlugins)
                 {
-                    throw new ArgumentException($"try to active a type without implementing {typeof(PluginT)} interafce");
+                    if (!type.IsAssignableTo(typeof(PluginT)))
+                    {
+                        throw new ArgumentException($"try to active a type without implementing {typeof(PluginT)} interface");
+                    }
+                    var p = (PluginT)scope.Resolve(type);
+                    _AddPlugin(p, type, container);
                 }
-                var p = (PluginT)container.Resolve(type);
-                _AddPlugin(p, type, container);
+                _UnresolvedPlugins.Clear();
             }
-            _UnresolvedPlugins.Clear();
         }
     }
 

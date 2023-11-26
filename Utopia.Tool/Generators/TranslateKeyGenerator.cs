@@ -6,7 +6,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using NLog;
-using Utopia.Core.Transition;
+using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators;
@@ -18,6 +18,9 @@ public class TranslationConfiguration
 
     [XmlElement]
     public string TargetClass { get; set; } = "TranslationKeys";
+
+    [XmlElement]
+    public XmlGuuid? DefaultTranslationProviderId { get; set; } = null;
 }
 
 public class TranslateKeyGenerator : IGenerator
@@ -32,9 +35,21 @@ public class TranslateKeyGenerator : IGenerator
     private static string _GenerateFor(string source, TranslationDeclares items
         , GeneratorOption option,ref bool addGeneratedCodeAttribute)
     {
+        // set translation provider
+        string providerId =
+            GuuidManager.GetDefaultTranslateProviderGuuidOf(
+                option.Configuration.PluginInformation.Id.Guuid)
+            .ToString();
+
+        if (option.Configuration.TranslationConfiguration.DefaultTranslationProviderId != null)
+        {
+            providerId = option.Configuration.TranslationConfiguration.DefaultTranslationProviderId.Guuid.ToString();
+        }
+
+        // set builder
         CsBuilder builder = new(null,source);
 
-        builder.Using.Add("Utopia.Core.Transition");
+        builder.Using.Add("Utopia.Core.Translation");
         builder.Namespace = option.Configuration.TranslationConfiguration.TargetNamespace;
 
         builder.EmitClass(option.Configuration.TranslationConfiguration.TargetClass,
@@ -47,7 +62,7 @@ public class TranslateKeyGenerator : IGenerator
         {
             builder.EmitField("public", "TranslateKey",
                 item.Id.Guuid.ToCsIdentifier(),
-                defaultValue: $"TranslateKey.Create(\"{item.Id.Guuid}\",\"{item.Comment}\",\"{item.ProviderId.Guuid}\")",
+                defaultValue: $"TranslateKey.Create(\"{item.Id.Guuid}\",\"{item.Comment}\",\"{providerId}\")",
                 isReadonly: true, isStatic: true);
         }
 

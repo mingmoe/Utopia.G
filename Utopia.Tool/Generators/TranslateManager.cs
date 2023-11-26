@@ -5,6 +5,7 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Tools.Generators;
@@ -14,28 +15,6 @@ public enum TranslateItemType
     PluginInformation,
     Entity,
     Other
-}
-
-/// <summary>
-/// Only declare a existence of a transition item,no any translated content.
-/// </summary>
-public class TranslationDeclareItem
-{
-    [XmlElement]
-    public XmlGuuid Id { get; set; } = new();
-
-    [XmlElement]
-    public XmlGuuid ProviderId { get; set; } = new();
-
-    [XmlElement]
-    public string Comment { get; set; } = string.Empty;
-}
-
-public class TranslationDeclares
-{
-    [XmlArray("Translations")]
-    [XmlArrayItem("Translation")]
-    public List<TranslationDeclareItem> Translations { get; set; } = [];
 }
 
 /// <summary>
@@ -50,7 +29,7 @@ public sealed class TranslateManager : IDisposable
 
     private readonly Configuration _configuration;
 
-    private readonly Dictionary<TranslateItemType, Dictionary<Guuid, TranslationDeclareItem>?> _translates = new();
+    private readonly Dictionary<TranslateItemType, Dictionary<Guuid, TranslationItem>?> _translates = new();
 
     private readonly TranslateItemType[] _keys;
 
@@ -59,7 +38,7 @@ public sealed class TranslateManager : IDisposable
     /// </summary>
     private void _Read()
     {
-        Dictionary<Guuid, TranslationDeclareItem> read(TranslateItemType type)
+        Dictionary<Guuid, TranslationItem> read(TranslateItemType type)
         {
             string path = _fileSystem.GetTranslatedXmlFilePath(type);
 
@@ -91,7 +70,7 @@ public sealed class TranslateManager : IDisposable
 
     private void _Write()
     {
-        void write(TranslateItemType type, Dictionary<Guuid, TranslationDeclareItem> model)
+        void write(TranslateItemType type, Dictionary<Guuid, TranslationItem> model)
         {
             string path = _fileSystem.GetTranslatedXmlFilePath(type);
 
@@ -104,7 +83,7 @@ public sealed class TranslateManager : IDisposable
             using var fs = new FileStream(path, FileMode.Open);
 
             var declares = new TranslationDeclares();
-            foreach(KeyValuePair<Guuid, TranslationDeclareItem> item in model)
+            foreach(KeyValuePair<Guuid, TranslationItem> item in model)
             {
                 declares.Translations.Add(item.Value);
             }
@@ -162,17 +141,16 @@ public sealed class TranslateManager : IDisposable
     /// Ensure the translate item exists in the toml table.
     /// Otherwise create it.
     /// </summary>
-    private static void _EnsureTranslateKey(IDictionary<Guuid, TranslationDeclareItem> model, Guuid id, Guuid provider, string comment)
+    private static void _EnsureTranslateKey(IDictionary<Guuid, TranslationItem> model, Guuid id, string comment)
     {
         if (model.ContainsKey(id))
         {
             return;
         }
 
-        model.Add(id, new TranslationDeclareItem
+        model.Add(id, new TranslationItem
         {
             Id = new(id),
-            ProviderId = new(provider),
             Comment = comment
         });
     }
@@ -206,9 +184,8 @@ public sealed class TranslateManager : IDisposable
         _Read();
 
         Guuid id = _configuration.PluginInformation.Id.Guuid;
-        Guuid provider = GuuidManager.GetTranslateProviderGuuidOf(id);
 
-        _EnsureTranslateKey(_translates[type]!, transitionKey, provider, comment);
+        _EnsureTranslateKey(_translates[type]!, transitionKey, comment);
     }
 
     public void Dispose()

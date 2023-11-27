@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using Autofac;
 using Godot;
 using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
@@ -54,9 +55,10 @@ public partial class Main : Node
         TileMapHelper.CreateTileMapLayer(_map);
         _set.TileSize = new Vector2I(32, 32);
 
-        System.Uri server = Client.CreateLocalServer();
-        Service = Client.Initlize(this);
-        Client.Start(server, Service);
+        var container = Client.Initialize(this);
+        var client = container.Resolve<Client>();
+        Uri server = client.CreateLocalServer();
+        client.Start(server, container);
 
         // this.Player = this.Service.GetService<Game.Player.IPlayer>();
 

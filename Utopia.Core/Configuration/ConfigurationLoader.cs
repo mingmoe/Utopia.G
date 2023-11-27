@@ -10,7 +10,8 @@ using Utopia.Core.Plugin;
 using Utopia.Core.Utilities.IO;
 
 namespace Utopia.Core.Configuration;
-public static class ConfigurationLoader
+
+public class ConfigurationLoader
 {
 
     private static string _GetFile<T>(IPluginInformation plugin, IFileSystem system)

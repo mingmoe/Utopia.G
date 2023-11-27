@@ -39,4 +39,6 @@ public interface IPluginFileSystem
     /// Assets files path.
     /// </summary>
     string AssetsDirectory => Path.Join(RootDirectory, DefaultAssetsDirectoryName);
+
+    string ConfigurationDirectory { get; }
 }

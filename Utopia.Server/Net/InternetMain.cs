@@ -23,28 +23,23 @@ public interface IInternetMain
 /// </summary>
 public sealed class InternetMain : IInternetMain
 {
+    public required IInternetListener InternetListener { get; init; }
+
     private readonly SafeList<IConnectHandler> _clients = new();
-    private readonly Core.IServiceProvider _serviceProvider;
 
     public IEventManager<IEventWithParamAndResult<Socket, IConnectHandler>> ClientCreatedEvent { get; } =
         new EventManager<IEventWithParamAndResult<Socket, IConnectHandler>>();
 
     public CancellationTokenSource StopTokenSource { get; } = new();
 
-    public InternetMain(Core.IServiceProvider serviceProvider)
-    {
-        Guard.IsNotNull(serviceProvider);
-        _serviceProvider = serviceProvider;
-    }
-
-    public void Run()
+    public void Run(CancellationTokenSource startTokenSource)
     {
         while (!StopTokenSource.IsCancellationRequested)
         {
             // wait for accept
-            IInternetListener net = _serviceProvider.GetService<IInternetListener>();
+            startTokenSource.CancelAfter(100/* wait for fun :-) */);
 
-            Task<Socket> accept = net.Accept();
+            Task<Socket> accept = InternetListener.Accept();
             while (!StopTokenSource.IsCancellationRequested && !accept.IsCompleted)
             {
                 _ = Thread.Yield();

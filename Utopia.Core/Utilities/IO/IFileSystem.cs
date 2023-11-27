@@ -62,6 +62,19 @@ public interface IFileSystem
     /// </summary>
     string ExtractedPluginsDirectory { get; }
 
+    string GetExtractedDirectoryOfPacketPlugin(string pathToPacketPlugin)
+    {
+        pathToPacketPlugin = Path.GetFullPath(Path.GetFileNameWithoutExtension(pathToPacketPlugin));
+        return Path.Join(ExtractedPluginsDirectory, pathToPacketPlugin + "/");
+    }
+
+    string GetExtractedPluginLockFileOfPacketPlugin(string pathToPacketPlugin)
+    {
+        pathToPacketPlugin = Path.GetFullPath(Path.GetFileNameWithoutExtension(pathToPacketPlugin));
+        pathToPacketPlugin += ".lock";
+        return Path.Join(ExtractedPluginsDirectory, pathToPacketPlugin);
+    }
+
     /// <summary>
     /// 游戏的配置文件目录
     /// </summary>

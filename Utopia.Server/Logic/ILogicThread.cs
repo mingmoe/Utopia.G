@@ -43,7 +43,7 @@ public class StandardLogicThread : SafeList<IUpdatable>,ILogicThread
 
     public CancellationTokenSource StopTokenSource { get; } = new();
 
-    public void Run()
+    public void Run(CancellationTokenSource startTokenSource)
     {
         CancellationToken token = StopTokenSource.Token;
 
@@ -51,6 +51,8 @@ public class StandardLogicThread : SafeList<IUpdatable>,ILogicThread
 
         while (true)
         {
+            startTokenSource.CancelAfter(100/* wait for fun :-) */);
+
             while (!token.IsCancellationRequested)
             {
                 IUpdatable[] todos;

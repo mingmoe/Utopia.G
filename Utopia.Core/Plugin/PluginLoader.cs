@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Autofac;
+using Microsoft.Extensions.Logging;
 using NLog;
 using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
@@ -15,109 +16,26 @@ namespace Utopia.Core.Plugin;
 /// </summary>
 public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPluginBase
 {
+    public required ILogger<PluginLoader<PluginT>> Logger { get; init; }
+
     private bool _disposed = false;
     private readonly object _locker = new();
 
-    private List<(Type, PluginT)> _ActivePlugins { get; } = new();
+    private List<PluginContext<PluginT>> _LoadedPlugins { get; } = new();
 
-    private List<Type> _UnresolvedPlugins { get; } = new();
-
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
-    public ImmutableArray<(Type, PluginT)> ActivatedPlugins
+    public ImmutableArray<PluginContext<PluginT>> LoadedPlugins
     {
         get
         {
             lock (_locker)
             {
-                return _ActivePlugins.ToImmutableArray();
+                return _LoadedPlugins.ToImmutableArray();
             }
-        }
-    }
-
-    public ImmutableArray<Type> UnresolvePlugins
-    {
-        get
-        {
-            lock (_locker)
-            {
-                return _UnresolvedPlugins.ToImmutableArray();
-            }
-        }
-    }
-
-    public void AddUnresolved(Type type)
-    {
-        ArgumentNullException.ThrowIfNull(type, nameof(type));
-        lock (_locker)
-        {
-            _UnresolvedPlugins.Add(type);
         }
     }
 
     public IEventManager<IPluginLoader<PluginT>.ActivePluginEventArgs> ActivePluginEvent { get; }
     = new EventManager<IPluginLoader<PluginT>.ActivePluginEventArgs>();
-
-    private void _AddPlugin(PluginT plugin, Type type, IContainer? container)
-    {
-        var args = new IPluginLoader<PluginT>.ActivePluginEventArgs(plugin, type, container);
-        ActivePluginEvent.Fire(args);
-
-        if (args.PluginInstance == null)
-        {
-            return;
-        }
-        if (args.PluginType == null)
-        {
-            throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
-        }
-
-        plugin = args.PluginInstance;
-
-        try
-        {
-            plugin.Activate();
-        }
-        catch (Exception e)
-        {
-            _logger.Error(e,
-                "failed to active plugin:`{pluginName}`(ID {pluginId}) try to access {pluginHomepage} for help",
-                plugin.Name,
-                plugin.Id,
-                plugin.Homepage);
-            return;
-        }
-
-        lock (_locker)
-        {
-            _ActivePlugins.Add((args.PluginType, plugin));
-        }
-    }
-
-    public void Active(IContainer container)
-    {
-        ArgumentNullException.ThrowIfNull(container, nameof(container));
-
-        lock (_locker)
-        {
-            using (var scope = container.BeginLifetimeScope((config) =>
-            {
-                config.RegisterTypes([.. _UnresolvedPlugins]);
-            }))
-            {
-                foreach (Type type in _UnresolvedPlugins)
-                {
-                    if (!type.IsAssignableTo(typeof(PluginT)))
-                    {
-                        throw new ArgumentException($"try to active a type without implementing {typeof(PluginT)} interface");
-                    }
-                    var p = (PluginT)scope.Resolve(type);
-                    _AddPlugin(p, type, container);
-                }
-                _UnresolvedPlugins.Clear();
-            }
-        }
-    }
 
     public void Dispose()
     {
@@ -136,21 +54,41 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
         {
             lock (_locker)
             {
-                foreach ((Type, PluginT) plugin in _ActivePlugins)
+                foreach (var plugin in _LoadedPlugins)
                 {
-                    plugin.Item2.Deactivate();
+                    plugin.Instance.Deactivate();
                 }
-                _ActivePlugins.Clear();
-                _UnresolvedPlugins.Clear();
+                _LoadedPlugins.Clear();
             }
         }
 
         _disposed = true;
     }
 
-    public void AddResolved(PluginT plugin, Type? typed = null)
+    public void ActiveAllPlugins()
     {
-        ArgumentNullException.ThrowIfNull(plugin);
-        _AddPlugin(plugin, typed ?? plugin.GetType(), null);
+        PluginContext<PluginT>[] plugins;
+        lock (_locker)
+        {
+            plugins = this._LoadedPlugins.ToArray();
+        }
+        foreach(var plugin in plugins)
+        {
+            if(plugin.Instance.CurrentCycle == PluginLifeCycle.Created)
+            {
+                plugin.Instance.Activate();
+            }
+        }
+    }
+    public void AddPlugin(PluginContext<PluginT> loadedPlugin)
+    {
+        lock (_locker)
+        {
+            if (_LoadedPlugins.Contains(loadedPlugin))
+            {
+                return;
+            }
+            _LoadedPlugins.Add(loadedPlugin);
+        }
     }
 }

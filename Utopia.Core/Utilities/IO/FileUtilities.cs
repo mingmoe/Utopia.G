@@ -5,10 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Utopia.Core.Utilities.IO;
 public static class FileUtilities
 {
+    public static byte[] GetFileMd5(string filename)
+    {
+        using (var md5 = MD5.Create())
+        {
+            using (var stream = File.OpenRead(filename))
+            {
+                return md5.ComputeHash(stream);
+            }
+        }
+    }
 }

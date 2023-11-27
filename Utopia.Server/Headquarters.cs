@@ -21,11 +21,17 @@ using Utopia.Core.Utilities.IO;
 using Utopia.Core.Utilities;
 using System.ComponentModel;
 using Autofac;
+using SharpCompress;
+using System.Reflection;
 
 namespace Utopia.Server;
 
 public sealed class Headquarters
 {
+    private readonly CancellationTokenSource LogicThreadStartWaitTokenSource = new();
+
+    private readonly CancellationTokenSource InternetThreadStartWaitTokenSource = new();
+
     public required ILogger<Headquarters> Logger { get; init; }
 
     public required IEventBus EventBus { get; init; }
@@ -48,6 +54,8 @@ public sealed class Headquarters
 
     public required ISafeDictionary<Guuid, IWorldFactory> WorldFactories { get; init; }
 
+    public required PluginSearcher<IPlugin> PluginSearcher { get; init; }
+
     public LifeCycle CurrentLifeCycle { get; private set; }
 
     private void _StartLogicThread()
@@ -69,7 +77,7 @@ public sealed class Headquarters
             });
             try
             {
-                ((StandardLogicThread)LogicThread).Run();
+                ((StandardLogicThread)LogicThread).Run(LogicThreadStartWaitTokenSource);
             }
             catch(Exception ex)
             {
@@ -107,7 +115,7 @@ public sealed class Headquarters
             });
             try
             {
-                netThread.Run();
+                netThread.Run(InternetThreadStartWaitTokenSource);
             }
             catch (Exception ex)
             {
@@ -138,9 +146,11 @@ public sealed class Headquarters
     /// <summary>
     /// 使用参数启动服务器
     /// </summary>
-    /// <param name="option">参数</param>
-    public void Launch()
+    /// <param name="startTokenSource">when the server started,cancel the token</param>
+    public void Launch(CancellationTokenSource startTokenSource)
     {
+        ArgumentNullException.ThrowIfNull(startTokenSource);
+
         Thread.CurrentThread.Name = "Server Headquarters Thread";
 
         void changeLifecycle(LifeCycle lifeCycle, Action action)
@@ -163,17 +173,24 @@ public sealed class Headquarters
             // 加载插件
             changeLifecycle(LifeCycle.LoadPlugin, () =>
             {
-                PluginLoader.Register(
-                        typeof(Plugin.Plugin)
-                    );
-                PluginLoader.LoadFromDirectory(
-                    FileSystem.PackedPluginsDirectory,
-                    Logger
-                );
-                PluginLoader.Active(
-                    Container
-                );
+                PluginLoader.AddPlugin(PluginSearcher.CreatePluginContext(
+                    Container.Resolve<Plugin.Plugin>(),
+                    new PackedPluginManifest(),
+                    Container.BeginLifetimeScope(),
+                    FileSystem.RootDirectory,
+                    null,
+                    string.IsNullOrWhiteSpace(Assembly.GetExecutingAssembly().Location)
+                        ? null
+                        : Assembly.GetExecutingAssembly().Location,
+                    FileSystem.GetConfigurationDirectoryOfPlugin(Container.Resolve<Plugin.Plugin>())));
 
+                foreach(var plugin in
+                    PluginSearcher.LoadAllPackedPluginsFromDirectory(
+                        FileSystem.PackedPluginsDirectory))
+                {
+                    PluginLoader.AddPlugin(plugin);
+                }
+                PluginLoader.ActiveAllPlugins();
             });
 
             // 创建世界
@@ -185,14 +202,29 @@ public sealed class Headquarters
             // 设置网络线程
             changeLifecycle(LifeCycle.StartNetThread, () => { _StartNetworkThread(); });
 
-            // enter check mode
-            var netToken = InternetMain.StopTokenSource;
-            var logicToken = LogicThread.StopTokenSource;
             var wait = new SpinWait();
 
-            using var source = CancellationTokenSource.CreateLinkedTokenSource(netToken.Token, logicToken.Token);
+            var netToken = InternetMain.StopTokenSource;
+            var logicToken = LogicThread.StopTokenSource;
 
-            while (!source.IsCancellationRequested)
+            using var stopTokenSource = CancellationTokenSource.CreateLinkedTokenSource(netToken.Token, logicToken.Token);
+
+            // wait for starting
+            while (!(InternetThreadStartWaitTokenSource.IsCancellationRequested
+                && LogicThreadStartWaitTokenSource.IsCancellationRequested))
+            {
+                wait.SpinOnce();
+
+                // 出师未捷身先死
+                if (stopTokenSource.IsCancellationRequested)
+                {
+                    return;
+                }
+            };
+            startTokenSource.CancelAfter(100/* wait for fun :-) */);
+
+            // stop when any of threads stop
+            while (!stopTokenSource.IsCancellationRequested)
             {
                 wait.SpinOnce();
             }

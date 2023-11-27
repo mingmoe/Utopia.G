@@ -31,6 +31,7 @@
 		<PackageReference Include="System.Data.SQLite" Version="1.0.118" />
     <PackageReference Include="Npgsql" Version="7.0.6" />
 		<PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
+    <PackageReference Include="SharpCompress" Version="0.34.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Utopia_I18nModlue)' == 'enable'">

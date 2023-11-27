@@ -5,9 +5,11 @@
 using System;
 using System.IO;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Threading;
 using Autofac;
 using Godot;
+using Microsoft.Extensions.Logging;
 using Utopia.Core;
 using Utopia.Core.Events;
 using Utopia.Core.Plugin;
@@ -15,24 +17,35 @@ using Utopia.Core.Translation;
 using Utopia.Core.Utilities.IO;
 using Utopia.G.Game.Entity;
 using Utopia.G.Graphy;
+using Utopia.G.Net;
 using Utopia.Server;
 
 namespace Utopia.G.Game;
 
-public static class Client
+public class Client
 {
-    private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
+    public required ILogger Logger { get; init; }
+
+    public required IEventBus EventBus { get; init; }
+
+    public required IPluginLoader<IPlugin> PluginLoader { get; init; }
+
+    public required IFileSystem FileSystem { get; init; }
+
+    public required ISocketConnecter SocketConnecter { get;init; }
+
+    public required PluginSearcher<IPlugin> PluginSearcher { get; init; }
 
     /// <summary>
     /// 创建本地服务器
     /// </summary>
     /// <returns>连接到本地服务器的地址</returns>
-    public static Uri CreateLocalServer()
+    public Uri CreateLocalServer()
     {
         Launcher.LauncherOption option = new();
 
         // 查找可用端口
-        bool portAvailable = true; // unkown
+        bool portAvailable = true; // unknown
         do
         {
             var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
@@ -56,19 +69,24 @@ public static class Client
         }
         while (!portAvailable);
 
+        // start the server
         int port = option.Port;
-        object locker = new();
+        CancellationTokenSource source = new();
 
         Thread thread = new(() =>
         {
-            Launcher.Launch(option, locker);
+            Launcher.Launch(option, source);
         })
         {
             Name = "Server Thread"
         };
         thread.Start();
 
-        Launcher.WaitForStart(locker);
+        SpinWait wait = new();
+        while (!source.IsCancellationRequested)
+        {
+            wait.SpinOnce();
+        }
 
         return new Uri("localhsot:" + port);
     }
@@ -76,76 +94,102 @@ public static class Client
     /// <summary>
     /// 初始化客户端.
     /// </summary>
-    public static Core.IServiceProvider Initlize(Node root)
+    public static IContainer Initialize(Node root)
     {
-        ServiceProvider provider = new();
         ContainerBuilder builder = new();
 
         // register
-        register<IFileSystem>(new FileSystem());
-        register<IEventBus>(new EventBus());
-        register<IPluginLoader<IPlugin>>(new PluginLoader<IPlugin>());
-        register<Net.ISocketConnecter>(new Net.SocketConnecter());
-        register<ITranslateManager>(new TranslateManager());
-        register<IEntityManager>(new EntityManager());
-        register<Node>(root);
-        register<TileManager>(new TileManager());
-        // end
-        _ = provider.TryRegisterService(builder);
+        builder
+            .RegisterType<FileSystem>()
+            .SingleInstance()
+            .As<IFileSystem>();
+        builder
+            .RegisterType<EventBus>()
+            .SingleInstance()
+            .As<IEventBus>();
+        builder
+            .RegisterType<PluginLoader<IPlugin>>()
+            .SingleInstance()
+            .As<IPluginLoader<IPlugin>>();
+        builder
+            .RegisterType<SocketConnecter>()
+            .SingleInstance()
+            .As<ISocketConnecter>();
+        builder
+            .RegisterType<TranslateManager>()
+            .SingleInstance()
+            .As<ITranslateManager>();
+        builder
+            .RegisterType<EntityManager>()
+            .SingleInstance()
+            .As<IEntityManager>();
+        builder
+            .RegisterInstance(root);
+        builder
+            .RegisterType<TileManager>()
+            .SingleInstance()
+            .AsSelf();
+        builder.RegisterType<PluginSearcher<IPlugin>>()
+            .AsSelf()
+            .SingleInstance();
+        builder.RegisterType<Client>()
+            .SingleInstance()
+            .AsSelf();
+        builder.RegisterType<Plugin.CorePlugin>()
+            .SingleInstance()
+            .AsSelf();
 
-        // init filesystem
-        provider.GetService<IFileSystem>().CreateIfNotExist();
-
-        return provider;
-
-        void register<T>(object instance) where T : notnull
-        {
-            _ = provider.TryRegisterService<T>((T)instance);
-            _ = builder.RegisterInstance(instance).As<T>().ExternallyOwned();
-        }
+        return builder.Build();
     }
 
-    public static void Start(Uri server, Core.IServiceProvider provider)
+    public void Start(Uri server, IContainer container)
     {
-        IEventBus bus = provider.GetService<IEventBus>();
-
         try
         {
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.InitializedSystem, () => { },
-                s_logger, bus, provider);
+                Logger, EventBus, () => { });
 
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadPlugin, () =>
             {
-                provider.GetService<IPluginLoader<IPlugin>>().Register(
-                    provider.GetService<ContainerBuilder>(),
-                    typeof(Plugin.CorePlugin));
-                provider.GetService<IPluginLoader<IPlugin>>().LoadFromDirectory(
-                    provider.GetService<IFileSystem>().PackedPluginsDirectory,
-                    provider.GetService<ContainerBuilder>(),
-                    s_logger
-                    );
-                IContainer container = provider.GetService<ContainerBuilder>().Build();
-                provider.RemoveService<ContainerBuilder>();
-                _ = provider.TryRegisterService(container);
-                provider.GetService<IPluginLoader<IPlugin>>().Active(container);
+                PluginLoader.AddPlugin(PluginSearcher.CreatePluginContext(
+                    container.Resolve<Plugin.CorePlugin>(),
+                    new PackedPluginManifest(),
+                    container.BeginLifetimeScope(),
+                    FileSystem.RootDirectory,
+                    null,
+                    string.IsNullOrWhiteSpace(Assembly.GetExecutingAssembly().Location)
+                        ? null
+                        : Assembly.GetExecutingAssembly().Location,
+                    FileSystem.GetConfigurationDirectoryOfPlugin(container.Resolve<Plugin.CorePlugin>())
+                    ));
+
+                foreach(var plugin in
+                    PluginSearcher.LoadAllPackedPluginsFromDirectory(FileSystem.PackedPluginsDirectory))
+                {
+                    PluginLoader.AddPlugin(plugin);
+                }
+                PluginLoader.ActiveAllPlugins();
             },
-                s_logger, bus, provider);
+                Logger, EventBus, () => { });
 
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.ConnectToServer, () =>
             {
-                Net.ISocketConnecter connect = provider.GetService<Net.ISocketConnecter>();
+                Core.Net.IConnectHandler socket = SocketConnecter.Connect(server);
 
-                Core.Net.IConnectHandler socket = connect.Connect(server);
+                // TODO
             },
-                s_logger, bus, provider);
+                Logger, EventBus, () => { });
         }
         catch (Exception ex)
         {
-            s_logger.Error(ex, "the client initlize failed");
+            Logger.LogError(ex, "the client initialize failed");
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Crash, () => { },
-                s_logger, bus, provider);
+                Logger, EventBus, () => { });
+        }
+        finally
+        {
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.Stop, () => { },
-                s_logger, bus, provider);
+                Logger, EventBus, () => { });
         }
     }
 }

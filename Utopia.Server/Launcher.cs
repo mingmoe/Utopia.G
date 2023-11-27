@@ -224,14 +224,28 @@ public static class Launcher
             .As<ISafeDictionary<Guuid, IWorldFactory>>();
         builder
             .RegisterType<Headquarters>()
+            .AsSelf()
+            .SingleInstance();
+        builder
+            .RegisterType<PluginSearcher<IPlugin>>()
+            .AsSelf()
+            .SingleInstance();
+        builder
+            .RegisterType<Plugin.Plugin>()
+            .AsSelf()
             .SingleInstance();
 
         holder.Container = builder.Build();
 
         return holder.Container;
     }
-
-    public static Headquarters Launch(LauncherOption option)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="option"></param>
+    /// <param name="startTokenSource">when the server started,cancel the token</param>
+    /// <returns></returns>
+    public static Headquarters Launch(LauncherOption option,CancellationTokenSource? startTokenSource = null)
     {
         ArgumentNullException.ThrowIfNull(option);
         if(option.LogOption != null)
@@ -243,7 +257,7 @@ public static class Launcher
 
         var headquarters = container.Resolve<Headquarters>();
 
-        headquarters.Launch();
+        headquarters.Launch(startTokenSource ?? new());
 
         return headquarters;
     }

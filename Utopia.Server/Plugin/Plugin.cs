@@ -18,6 +18,14 @@ namespace Utopia.Server.Plugin;
 
 public class Plugin : PluginForServer
 {
+    public required ISafeDictionary<Guuid, IWorldFactory> WorldFactories { get; init; }
+
+    public required ISafeDictionary<long,World> Worlds { get; set; }
+
+    public required IEntityManager EntityManager { get; init; }
+
+    public required IInternetMain InternetMain { get; init; }
+
     public Plugin(IContainer container) : base(container)
     {
     }
@@ -33,21 +41,18 @@ public class Plugin : PluginForServer
     [LifecycleHandler(PluginLifeCycle.Activated)]
     public void ActivateEventHandler(ContainerBuilder builder)
     {
-        _ = _serviceProvider.GetService<SafeDictionary<Guuid, IWorldFactory>>().TryAdd(
+        WorldFactories.TryAdd(
                    IDs.WorldType,
                    _container.Resolve<WorldFactory>());
 
-        _ = _serviceProvider.TryRegisterService<IInternetListener>(
-            new InternetListener());
-
         var factory = new EmptyEntityFactory();
-        _ = factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID, _container.Resolve<GrassEntity>());
+        factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID, _container.Resolve<GrassEntity>());
 
-        _ = _serviceProvider.GetService<IEntityManager>().TryAdd(ResourcePack.Entity.GrassEntity.ID,
+        EntityManager.TryAdd(ResourcePack.Entity.GrassEntity.ID,
             factory);
 
         // process query_map packet
-        _serviceProvider.GetService<InternetMain>().ClientCreatedEvent.Register(
+        InternetMain.ClientCreatedEvent.Register(
                 (e) =>
                 {
                     Core.Net.IConnectHandler handler = e.Result!;
@@ -64,9 +69,14 @@ public class Plugin : PluginForServer
                         {
                             var query = (QueryBlockPacket)packet;
 
-                            _ = Task.Run(() =>
+                            Task.Run(() =>
                             {
-                                if (_serviceProvider.TryGetBlock(query.QueryPosition, out IBlock? block))
+                                if(!Worlds.TryGetValue(query.QueryPosition.Id,out World? world))
+                                {
+                                    return;
+                                }
+
+                                if (world!.TryGetBlock(query.QueryPosition.ToPos(), out IBlock? block))
                                 {
                                     using var _ = block!.EnterWriteLock();
 

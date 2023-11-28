@@ -23,23 +23,23 @@ namespace Utopia.G.Plugin;
 /// </summary>
 public class CorePlugin : PluginInformation, IPlugin
 {
-    private Core.IServiceProvider _Provider { get; init; }
+
+    public required IEntityManager EntityManager { get; init; }
+
+    public required IEventBus EventBus { get; init; }
+
+    public required ISocketConnecter SocketConnecter { get; init; }
+
+    public required Node Node { get; init; }
 
     public PluginLifeCycle CurrentCycle => throw new NotImplementedException();
 
     public IEventManager<LifeCycleEvent<PluginLifeCycle>> LifecycleEvent => throw new NotImplementedException();
 
-    public CorePlugin(Core.IServiceProvider provider)
-    {
-        ArgumentNullException.ThrowIfNull(provider);
-        _Provider = provider;
-    }
-
     public void Activate()
     {
-        IEntityManager manager = _Provider.GetService<IEntityManager>();
         var factory = new EmptyEntityFactory();
-        Node node = _Provider.GetService<Node>();
+        Node node = Node;
 
         Texture2D grass = ResourceLoader.Load<Texture2D>("res://images/textures/grass.png");
 
@@ -55,17 +55,17 @@ public class CorePlugin : PluginInformation, IPlugin
         _ = factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID,
             new GrassEntity(new Tile((int)TileLayer.Floor, 1, id)));
 
-        _ = manager.TryAdd(
+        _ = EntityManager.TryAdd(
                 ResourcePack.Entity.GrassEntity.ID,
                 factory
             );
 
-        _Provider.GetService<IEventBus>().Register<LifeCycleEvent<LifeCycle>>((e) =>
+        EventBus.Register<LifeCycleEvent<LifeCycle>>((e) =>
         {
             if (e.Order == LifeCycleOrder.After && e.Cycle == LifeCycle.ConnectToServer)
             {
                 // process
-                ISocketConnecter connecter = _Provider.GetService<ISocketConnecter>();
+                ISocketConnecter connecter = SocketConnecter;
 
                 connecter.ConnectHandler!.Packetizer.EnterSync(
                     (list) =>
@@ -85,7 +85,7 @@ public class CorePlugin : PluginInformation, IPlugin
                             Core.Utilities.Guuid entity = pack.Entities[index];
                             byte[] data = pack.EntityData[index];
 
-                            IGodotEntity got = manager.Create(entity, data);
+                            IGodotEntity got = EntityManager.Create(entity, data);
 
                             Node? tile = got.Render(pack.Position, ((Main)node).Map);
 

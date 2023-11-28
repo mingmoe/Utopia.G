@@ -2,7 +2,12 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-namespace Utopia.Core.Utilities.IO;
+
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
+namespace Utopia.Core.IO;
 
 /// <summary>
 /// Like <see cref="IFileSystem"/>,but it is used for plugins in runtime.
@@ -41,4 +46,9 @@ public interface IPluginFileSystem
     string AssetsDirectory => Path.Join(RootDirectory, DefaultAssetsDirectoryName);
 
     string ConfigurationDirectory { get; }
+
+    string GetConfigurationFilePathOfPlugin(string relativePathToConfig)
+    {
+        return Path.GetFullPath(Path.Join(ConfigurationDirectory, relativePathToConfig));
+    }
 }

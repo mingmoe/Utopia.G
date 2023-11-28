@@ -3,8 +3,8 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using System.Text;
+using Utopia.Core.IO;
 using Utopia.Core.Utilities;
-using Utopia.Core.Utilities.IO;
 
 namespace Utopia.Tools.Generators;
 

@@ -15,11 +15,10 @@ public static class WorldUtility
     /// <param name=""></param>
     /// <param name="position"></param>
     /// <returns></returns>
-    public static bool TryGetBlock(this Utopia.Core.IServiceProvider provider, WorldPosition position, out Map.IBlock? block)
+    public static bool TryGetBlock(this ISafeDictionary<long,IWorld> worlds, WorldPosition position, out IBlock? block)
     {
         block = null;
-        return provider.TryGetService<SafeDictionary<long, Map.IWorld>>(out SafeDictionary<long, IWorld>? world)
-&& world!.TryGetValue(position.Id, out Map.IWorld? w) && w!.TryGetBlock(position.ToPos(), out block);
+        return worlds.TryGetValue(position.Id, out IWorld? w) && w!.TryGetBlock(position.ToPos(), out block);
     }
 
 }

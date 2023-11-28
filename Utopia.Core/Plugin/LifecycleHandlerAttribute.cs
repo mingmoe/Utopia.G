@@ -16,10 +16,5 @@ public sealed class LifecycleHandlerAttribute : Attribute
     public LifecycleHandlerAttribute(PluginLifeCycle value)
     {
         Lifecycle = value;
-
-        if (value == PluginLifeCycle.Created)
-        {
-            throw new NotImplementedException("see documents");
-        }
     }
 }

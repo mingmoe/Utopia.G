@@ -18,10 +18,10 @@ public class GeneratorTemplate {
         public abstract class PluginForServer : PluginInformation, IPlugin
         {
             private readonly object _lock = new();
+                
+            public required ILogger<PluginForServer> Logger { private get; init; }
 
-            public required ILogger Logger { get; init; }
-
-            public required TranslateManager TranslateManager { get; init; }
+            public required TranslateManager TranslateManager { private get; init; }
 
             protected readonly EventManager<LifeCycleEvent<PluginLifeCycle>> _lifecycleEvent = new();
 
@@ -37,32 +37,12 @@ public class GeneratorTemplate {
                     }
                 }
             }
+
             public IEventManager<LifeCycleEvent<PluginLifeCycle>> LifecycleEvent => _lifecycleEvent;
-
-            protected readonly ILifetimeScope _container;
-
-            public PluginForServer(IContainer container)
+            
+            public PluginForServer()
             {
-                // set up service provider and other managers
-                ArgumentNullException.ThrowIfNull(container);
-
-                // build container
-                System.Reflection.MethodInfo[] methods = GetType().GetMethods(
-                    System.Reflection.BindingFlags.Public
-                    | System.Reflection.BindingFlags.Static);
-
-                ILifetimeScope scope = container.BeginLifetimeScope((builder) =>
-                {
-                    foreach (System.Reflection.MethodInfo method in methods)
-                    {
-                        if (method.GetCustomAttributes(typeof(ContainerBuilderAttribute), true).Length != 0)
-                        {
-                            _ = method.Invoke(this, new object[] { builder });
-                        }
-                    }
-                });
-
-                _container = scope;
+                Created();
             }
 
             private void _SwitchLifecycle(PluginLifeCycle cycle)
@@ -110,6 +90,19 @@ public class GeneratorTemplate {
                 void lifecycleCode() => _CallLifecycleHandlers(PluginLifeCycle.Deactivated);
 
                 LifeCycleEvent<PluginLifeCycle>.EnterCycle(PluginLifeCycle.Deactivated, lifecycleCode, Logger, _lifecycleEvent, @switch);
+            }
+
+                
+            /// <summary>
+            /// Fire <see cref="PluginLifeCycle.Created"/> events and call handler methods(with <see cref="LifecycleHandlerAttribute"/>).
+            /// </summary>
+            protected void Created()
+            {
+                void @switch() => _SwitchLifecycle(PluginLifeCycle.Created);
+
+                void lifecycleCode() => _CallLifecycleHandlers(PluginLifeCycle.Created);
+
+                LifeCycleEvent<PluginLifeCycle>.EnterCycle(PluginLifeCycle.Created, lifecycleCode, Logger, _lifecycleEvent, @switch);
             }
         }
         

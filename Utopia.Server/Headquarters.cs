@@ -17,20 +17,20 @@ using Utopia.Server.Net;
 using Microsoft.Extensions.DependencyInjection;
 using static Utopia.Server.Launcher;
 using Utopia.Core.Plugin;
-using Utopia.Core.Utilities.IO;
 using Utopia.Core.Utilities;
 using System.ComponentModel;
 using Autofac;
 using SharpCompress;
 using System.Reflection;
+using Utopia.Core.IO;
 
 namespace Utopia.Server;
 
 public sealed class Headquarters
 {
-    private readonly CancellationTokenSource LogicThreadStartWaitTokenSource = new();
+    private readonly CancellationTokenSource _logicThreadStartWaitTokenSource = new();
 
-    private readonly CancellationTokenSource InternetThreadStartWaitTokenSource = new();
+    private readonly CancellationTokenSource _internetThreadStartWaitTokenSource = new();
 
     public required ILogger<Headquarters> Logger { get; init; }
 
@@ -54,7 +54,7 @@ public sealed class Headquarters
 
     public required ISafeDictionary<Guuid, IWorldFactory> WorldFactories { get; init; }
 
-    public required PluginSearcher<IPlugin> PluginSearcher { get; init; }
+    public required PluginHelper<IPlugin> PluginSearcher { get; init; }
 
     public LifeCycle CurrentLifeCycle { get; private set; }
 
@@ -77,7 +77,7 @@ public sealed class Headquarters
             });
             try
             {
-                ((StandardLogicThread)LogicThread).Run(LogicThreadStartWaitTokenSource);
+                ((StandardLogicThread)LogicThread).Run(_logicThreadStartWaitTokenSource);
             }
             catch(Exception ex)
             {
@@ -115,7 +115,7 @@ public sealed class Headquarters
             });
             try
             {
-                netThread.Run(InternetThreadStartWaitTokenSource);
+                netThread.Run(_internetThreadStartWaitTokenSource);
             }
             catch (Exception ex)
             {
@@ -173,16 +173,15 @@ public sealed class Headquarters
             // 加载插件
             changeLifecycle(LifeCycle.LoadPlugin, () =>
             {
-                PluginLoader.AddPlugin(PluginSearcher.CreatePluginContext(
-                    Container.Resolve<Plugin.Plugin>(),
-                    new PackedPluginManifest(),
-                    Container.BeginLifetimeScope(),
-                    FileSystem.RootDirectory,
-                    null,
-                    string.IsNullOrWhiteSpace(Assembly.GetExecutingAssembly().Location)
-                        ? null
-                        : Assembly.GetExecutingAssembly().Location,
-                    FileSystem.GetConfigurationDirectoryOfPlugin(Container.Resolve<Plugin.Plugin>())));
+                PluginLoader.AddPlugin(
+                    PluginSearcher.BuildPluginFromType(
+                        typeof(Plugin.Plugin),
+                        FileSystem.RootDirectory,
+                        null,
+                        string.IsNullOrWhiteSpace(Assembly.GetExecutingAssembly().Location)
+                            ? null
+                            : Assembly.GetExecutingAssembly().Location,
+                        new()));
 
                 foreach(var plugin in
                     PluginSearcher.LoadAllPackedPluginsFromDirectory(
@@ -194,13 +193,13 @@ public sealed class Headquarters
             });
 
             // 创建世界
-            changeLifecycle(LifeCycle.LoadSavings, () => { _LoadSave(); });
+            changeLifecycle(LifeCycle.LoadSavings, _LoadSave);
 
             // 设置逻辑线程
-            changeLifecycle(LifeCycle.StartLogicThread, () => { _StartLogicThread(); });
+            changeLifecycle(LifeCycle.StartLogicThread, _StartLogicThread);
 
             // 设置网络线程
-            changeLifecycle(LifeCycle.StartNetThread, () => { _StartNetworkThread(); });
+            changeLifecycle(LifeCycle.StartNetThread, _StartNetworkThread);
 
             var wait = new SpinWait();
 
@@ -210,8 +209,8 @@ public sealed class Headquarters
             using var stopTokenSource = CancellationTokenSource.CreateLinkedTokenSource(netToken.Token, logicToken.Token);
 
             // wait for starting
-            while (!(InternetThreadStartWaitTokenSource.IsCancellationRequested
-                && LogicThreadStartWaitTokenSource.IsCancellationRequested))
+            while (!(_internetThreadStartWaitTokenSource.IsCancellationRequested
+                && _logicThreadStartWaitTokenSource.IsCancellationRequested))
             {
                 wait.SpinOnce();
 
@@ -231,12 +230,12 @@ public sealed class Headquarters
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "the server initialize failed");
+            Logger.LogError(ex, "the server crash");
             changeLifecycle(LifeCycle.Crash, () => { });
         }
         finally
         {
-            Logger.LogError("stop");
+            Logger.LogInformation("stop");
             changeLifecycle(LifeCycle.Stop, () => { });
         }
     }

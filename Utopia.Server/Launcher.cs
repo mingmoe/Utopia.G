@@ -12,11 +12,11 @@ using Npgsql;
 using Utopia.Core;
 using Utopia.Core.Collections;
 using Utopia.Core.Events;
+using Utopia.Core.IO;
 using Utopia.Core.Logging;
 using Utopia.Core.Plugin;
 using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
-using Utopia.Core.Utilities.IO;
 using Utopia.Server.Entity;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
@@ -164,7 +164,7 @@ public static class Launcher
 
         ContainerBuilder builder = new();
         builder
-            .Register<IContainer>(context =>
+            .Register(context =>
         {
             ContainerHolder container = holder;
             return container.Container;
@@ -227,11 +227,7 @@ public static class Launcher
             .AsSelf()
             .SingleInstance();
         builder
-            .RegisterType<PluginSearcher<IPlugin>>()
-            .AsSelf()
-            .SingleInstance();
-        builder
-            .RegisterType<Plugin.Plugin>()
+            .RegisterType<PluginHelper<IPlugin>>()
             .AsSelf()
             .SingleInstance();
 

@@ -7,16 +7,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utopia.Core.IO;
 
 namespace Utopia.Core.Configuration;
+
+/// <summary>
+/// This configuration usually using <see cref="IPluginFileSystem"/> to read.
+/// </summary>
 public interface IConfigurationLoader
 {
-    T Load<T>();
+    /// <summary>
+    /// Load configuration,if path is null,
+    /// read path from <see cref="PluginConfigurationAttribute"/> from type.
+    /// </summary>
+    T Load<T>(string? path = null);
 
-    void Store<T>(T configuration);
-}
-
-public interface IConfigurationLoader<T> : IConfigurationLoader
-{
-
+    /// <summary>
+    /// Store configuration,if path is null,
+    /// read path from <see cref="PluginConfigurationAttribute"/> from type.
+    /// </summary>
+    void Store<T>(T configuration,string? path = null);
 }

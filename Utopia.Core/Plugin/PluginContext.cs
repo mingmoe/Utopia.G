@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Autofac;
-using Utopia.Core.Utilities.IO;
+using Utopia.Core.IO;
 
 namespace Utopia.Core.Plugin;
 

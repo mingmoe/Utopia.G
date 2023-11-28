@@ -2,7 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-namespace Utopia.Core.Utilities.IO;
+namespace Utopia.Core.IO;
 
 /// <summary>
 /// 文件系统
@@ -19,7 +19,7 @@ public abstract class FileSystem : IFileSystem
 
     public string PackedPluginsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultPackedPluginsDirectoryName);
 
-    public string ConfigurationsDirectory => Path.Join(RootDirectory, IFileSystem.DefaultConfigurationsDirectoryName);
+    public string ConfigurationDirectory => Path.Join(RootDirectory, IFileSystem.DefaultConfigurationsDirectoryName);
 
     public string UtilitiesDirectory => Path.Join(RootDirectory, IFileSystem.DefaultUtilitiesDirectoryName);
 

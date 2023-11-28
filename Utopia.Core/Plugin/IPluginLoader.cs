@@ -9,7 +9,6 @@ using Autofac;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Utopia.Core.Events;
-using Utopia.Core.Utilities.IO;
 
 namespace Utopia.Core.Plugin;
 

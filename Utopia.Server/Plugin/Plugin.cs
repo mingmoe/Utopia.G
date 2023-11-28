@@ -18,19 +18,17 @@ namespace Utopia.Server.Plugin;
 
 public class Plugin : PluginForServer
 {
-    public required ISafeDictionary<Guuid, IWorldFactory> WorldFactories { get; init; }
+    public required ISafeDictionary<Guuid, IWorldFactory> WorldFactories { private get; init; }
 
-    public required ISafeDictionary<long,World> Worlds { get; set; }
+    public required ISafeDictionary<long,World> Worlds { private get; init; }
 
-    public required IEntityManager EntityManager { get; init; }
+    public required IEntityManager EntityManager { private get; init; }
 
-    public required IInternetMain InternetMain { get; init; }
+    public required IInternetMain InternetMain { private get; init; }
 
-    public Plugin(IContainer container) : base(container)
-    {
-    }
+    public required ILifetimeScope Container { private get; init; }
 
-    [ContainerBuilder]
+    [ContainerBuild]
     public static void SetupContainer(ContainerBuilder builder)
     {
         builder.RegisterType<Generator>();
@@ -43,10 +41,10 @@ public class Plugin : PluginForServer
     {
         WorldFactories.TryAdd(
                    IDs.WorldType,
-                   _container.Resolve<WorldFactory>());
+                   Container.Resolve<WorldFactory>());
 
         var factory = new EmptyEntityFactory();
-        factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID, _container.Resolve<GrassEntity>());
+        factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID, Container.Resolve<GrassEntity>());
 
         EntityManager.TryAdd(ResourcePack.Entity.GrassEntity.ID,
             factory);

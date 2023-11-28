@@ -78,7 +78,7 @@ public interface IFileSystem
     /// <summary>
     /// 游戏的配置文件目录
     /// </summary>
-    string ConfigurationsDirectory { get; }
+    string ConfigurationDirectory { get; }
 
     /// <summary>
     /// 对于游戏的客户端，这是服务器的<see cref="RootDirectory"/>。
@@ -101,7 +101,7 @@ public interface IFileSystem
         _ = Directory.CreateDirectory(WorldsDirectory);
         _ = Directory.CreateDirectory(CharactersDirectory);
         _ = Directory.CreateDirectory(PackedPluginsDirectory);
-        _ = Directory.CreateDirectory(ConfigurationsDirectory);
+        _ = Directory.CreateDirectory(ConfigurationDirectory);
         _ = Directory.CreateDirectory(UtilitiesDirectory);
         if (ServerDirectory != null)
         {
@@ -111,7 +111,7 @@ public interface IFileSystem
 
     string GetConfigurationDirectoryOfPlugin(IPluginInformation plugin)
     {
-        string path = Path.Join(ConfigurationsDirectory, plugin.Id.ToCsIdentifier());
+        string path = Path.Join(ConfigurationDirectory, plugin.Id.ToCsIdentifier());
         _ = Directory.CreateDirectory(path);
         return path;
     }

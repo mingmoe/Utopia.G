@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using Utopia.Core.Utilities;
+using Utopia.Core;
 using Utopia.Tools.Generators;
 using Utopia.Tools.Generators.Server;
 

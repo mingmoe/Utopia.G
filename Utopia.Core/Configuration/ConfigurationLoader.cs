@@ -2,62 +2,91 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Configuration;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using Utopia.Core.Collections;
+using Utopia.Core.IO;
 using Utopia.Core.Plugin;
-using Utopia.Core.Utilities.IO;
 
 namespace Utopia.Core.Configuration;
 
-public class ConfigurationLoader
+public class ConfigurationLoader : IConfigurationLoader
 {
+    private SafeDictionary<Type, XmlSerializer> _serializers = new();
 
-    private static string _GetFile<T>(IPluginInformation plugin, IFileSystem system)
+    private SafeDictionary<Type, XmlSchemas> _schemas = new();
+
+    private SafeDictionary<string, byte> _lastWrite = new();
+
+    public required IPluginFileSystem PluginFileSystem { protected get; init; }
+
+    private void GenerateXsd(Type type, PluginConfigurationAttribute attribute)
     {
-        // get path
-        string path = system.GetConfigurationDirectoryOfPlugin(plugin);
+        if (!attribute.GenerateXsdFile)
+        {
+            return;
+        }
 
-        _ = Directory.CreateDirectory(path);
+        var xsd = PluginFileSystem.GetConfigurationFilePathOfPlugin(attribute.XsdFilePath);
 
-        // get attribute
-        Type type = typeof(T);
+        var schemas =  _schemas.GetOrAdd(type, Xml.GetXmlSchema);
 
-        ConfigurationAttribute config = type.GetCustomAttribute<ConfigurationAttribute>() ??
-            throw new ArgumentException("the configuration type has no " + nameof(ConfigurationAttribute) + " attribute");
+        var isNotCreated = _lastWrite.TryAdd(xsd, 0);
 
-        string file = Path.Join(path, config.FileName);
+        if (!isNotCreated)
+        {
+            return;
+        }
 
-        return file;
+        using var fs = File.OpenWrite(xsd);
+        Xml.WriteXmlSchemas(schemas, fs);
     }
 
-    /// <summary>
-    /// Load config for a type,which has <see cref="ConfigurationAttribute"/>.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="plugin"></param>
-    /// <param name="system"></param>
-    /// <returns></returns>
-    public static T Load<T>(IPluginInformation plugin, IFileSystem system) where T : class, new()
+    public T Load<T>(string? path)
     {
-        string xml = _GetFile<T>(plugin, system);
-        XmlSerializer serializer = new(typeof(T));
+        var serializer = _serializers.GetOrAdd(typeof(T), (t) =>
+        {
+            return new XmlSerializer(t);
+        });
 
-        using var fs = File.OpenRead(xml);
+        if (path == null)
+        {
+            var attribute = typeof(T).GetCustomAttribute<PluginConfigurationAttribute>()
+                ?? throw new ArgumentException("the type has no ConfigurationAttribute and pass a null path");
 
-        return (T?)serializer.Deserialize(fs) ?? throw new XmlException("XmlSerializer.Deserialize return null");
+            GenerateXsd(typeof(T), attribute);
+
+            path = PluginFileSystem.GetConfigurationFilePathOfPlugin(attribute.FilePath);
+        }
+
+        using var fs = File.OpenText(path);
+
+        return (T?)serializer.Deserialize(fs)
+            ?? throw new XmlException("XmlSerializer.Deserialize() returns null");
     }
 
-    public static void Store<T>(IPluginInformation plugin, IFileSystem system, T config)
+    public void Store<T>(T configuration,string? path)
     {
-        ArgumentNullException.ThrowIfNull(config);
-        string xml = _GetFile<T>(plugin, system);
+        var serializer = _serializers.GetOrAdd(typeof(T), (t) =>
+        {
+            return new XmlSerializer(t);
+        });
 
-        XmlSerializer serializer = new(typeof(T));
+        if(path == null)
+        {
+            var attribute = typeof(T).GetCustomAttribute<PluginConfigurationAttribute>()
+                ?? throw new ArgumentException("the type has no ConfigurationAttribute and pass a null path");
 
-        using var fs = File.OpenWrite(xml);
+            GenerateXsd(typeof(T), attribute);
 
-        serializer.Serialize(fs,config);
+            path = PluginFileSystem.GetConfigurationFilePathOfPlugin(attribute.FilePath);
+        }
+
+        using var fs = File.OpenWrite(path);
+        serializer.Serialize(fs, configuration);
     }
 }

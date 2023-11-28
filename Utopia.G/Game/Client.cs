@@ -12,9 +12,9 @@ using Godot;
 using Microsoft.Extensions.Logging;
 using Utopia.Core;
 using Utopia.Core.Events;
+using Utopia.Core.IO;
 using Utopia.Core.Plugin;
 using Utopia.Core.Translation;
-using Utopia.Core.Utilities.IO;
 using Utopia.G.Game.Entity;
 using Utopia.G.Graphy;
 using Utopia.G.Net;
@@ -34,7 +34,7 @@ public class Client
 
     public required ISocketConnecter SocketConnecter { get;init; }
 
-    public required PluginSearcher<IPlugin> PluginSearcher { get; init; }
+    public required PluginHelper<IPlugin> PluginSearcher { get; init; }
 
     /// <summary>
     /// 创建本地服务器
@@ -129,13 +129,10 @@ public class Client
             .RegisterType<TileManager>()
             .SingleInstance()
             .AsSelf();
-        builder.RegisterType<PluginSearcher<IPlugin>>()
+        builder.RegisterType<PluginHelper<IPlugin>>()
             .AsSelf()
             .SingleInstance();
         builder.RegisterType<Client>()
-            .SingleInstance()
-            .AsSelf();
-        builder.RegisterType<Plugin.CorePlugin>()
             .SingleInstance()
             .AsSelf();
 
@@ -151,17 +148,15 @@ public class Client
 
             LifeCycleEvent<LifeCycle>.EnterCycle(LifeCycle.LoadPlugin, () =>
             {
-                PluginLoader.AddPlugin(PluginSearcher.CreatePluginContext(
-                    container.Resolve<Plugin.CorePlugin>(),
-                    new PackedPluginManifest(),
-                    container.BeginLifetimeScope(),
-                    FileSystem.RootDirectory,
-                    null,
-                    string.IsNullOrWhiteSpace(Assembly.GetExecutingAssembly().Location)
-                        ? null
-                        : Assembly.GetExecutingAssembly().Location,
-                    FileSystem.GetConfigurationDirectoryOfPlugin(container.Resolve<Plugin.CorePlugin>())
-                    ));
+                PluginLoader.AddPlugin(
+                    PluginSearcher.BuildPluginFromType(
+                        typeof(Plugin.CorePlugin),
+                        FileSystem.RootDirectory,
+                        null,
+                        string.IsNullOrWhiteSpace(Assembly.GetExecutingAssembly().Location)
+                            ? null
+                            : Assembly.GetExecutingAssembly().Location,
+                        new()));
 
                 foreach(var plugin in
                     PluginSearcher.LoadAllPackedPluginsFromDirectory(FileSystem.PackedPluginsDirectory))

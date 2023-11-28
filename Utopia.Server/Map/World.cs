@@ -3,9 +3,9 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using CommunityToolkit.Diagnostics;
+using Utopia.Core.IO;
 using Utopia.Core.Map;
 using Utopia.Core.Utilities;
-using Utopia.Core.Utilities.IO;
 using Utopia.Server.Logic;
 using Utopia.Server.Plugin;
 

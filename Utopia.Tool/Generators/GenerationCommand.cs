@@ -10,6 +10,7 @@ using Json.Schema;
 using McMaster.Extensions.CommandLineUtils;
 using NLog;
 using NLog.Fluent;
+using Utopia.Core;
 using Utopia.Tool.Generators;
 using Utopia.Tools.Generators.Server;
 
@@ -23,18 +24,11 @@ public static class GenerationCommand
     {
         try
         {
-            XmlSchemas schemas = [];
-            XmlSchemaExporter exporter = new(schemas);
-
-            XmlTypeMapping mapping = new XmlReflectionImporter().ImportTypeMapping(typeof(Configuration));
-            exporter.ExportTypeMapping(mapping);
+            var schemas = Xml.GetXmlSchema<Configuration>();
 
             using (FileStream writer = File.Open(path,FileMode.OpenOrCreate | FileMode.Truncate))
             {
-                foreach (XmlSchema schema in schemas)
-                {
-                    schema.Write(writer);
-                }
+                Xml.WriteXmlSchemas(schemas, writer);
             }
 
             s_logger.Info("XSD generated successfully");

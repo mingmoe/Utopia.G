@@ -4,10 +4,10 @@
 
 namespace Utopia.Core.Plugin;
 
-[AttributeUsage(AttributeTargets.Method)]
-public sealed class ContainerBuilderAttribute : Attribute
+[AttributeUsage(AttributeTargets.Method,AllowMultiple = false,Inherited = true)]
+public sealed class ContainerBuildAttribute : Attribute
 {
-    public ContainerBuilderAttribute()
+    public ContainerBuildAttribute()
     {
     }
 }

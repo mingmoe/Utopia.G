@@ -38,11 +38,6 @@ public partial class Main : Node
     public IEventManager<IEventWithParamAndResult<Vector2, Vector2>> CameraEvent
     { get; init; } = new EventManager<IEventWithParamAndResult<Vector2, Vector2>>();
 
-    /// <summary>
-    /// 在启动后被设置为非null
-    /// </summary>
-    public Core.IServiceProvider Service { get; private set; } = null!;
-
     public Game.Player.IPlayer Player { get; private set; } = null!;
 
     public TileMap Map => _map;

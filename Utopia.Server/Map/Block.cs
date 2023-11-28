@@ -2,9 +2,9 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using Utopia.Core.IO;
 using Utopia.Core.Map;
 using Utopia.Core.Utilities;
-using Utopia.Core.Utilities.IO;
 
 namespace Utopia.Server.Map;
 

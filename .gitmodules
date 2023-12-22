@@ -1,0 +1,6 @@
+[submodule "Utopia.Kcp/kcp"]
+	path = Utopia.Kcp/kcp
+	url = https://github.com/skywind3000/kcp
+[submodule "Utopia.FastNoise/fastnoise"]
+	path = Utopia.FastNoise/fastnoise
+	url = https://github.com/Auburn/FastNoise2

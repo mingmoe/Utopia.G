@@ -5,7 +5,6 @@
 using Utopia.Core.Collections;
 using Utopia.Core.Exceptions;
 using Utopia.Core.Utilities;
-using Utopia.Server.Map;
 
 namespace Utopia.Server.Entity;
 
@@ -23,18 +22,16 @@ public interface IEntityFactory
     /// 这个函数也可能被客户端调用,用于在客户端创建一些不需要服务端数据的实体.
     /// </param>
     /// <returns>实体</returns>
-    IEntity Create(Guuid guuid, byte[]? data);
+    IEntity Create(Guuid entityId, byte[]? data);
 }
 
 public class EmptyEntityFactory : IEntityFactory
 {
-    public static readonly EmptyEntityFactory INSTANCE = new();
-
     public ISafeDictionary<Guuid, IEntity> Entities { get; }
         = new SafeDictionary<Guuid, IEntity>();
 
-    public IEntity Create(Guuid guuid, byte[]? data)
+    public IEntity Create(Guuid entityId, byte[]? data)
     {
-        return Entities.TryGetValue(guuid, out IEntity? entity) ? entity! : throw new EntityNotFoundException(guuid);
+        return Entities.TryGetValue(entityId, out IEntity? entity) ? entity! : throw new EntityNotFoundException(entityId);
     }
 }

@@ -4,12 +4,13 @@
 
 using System.Net;
 using System.Net.Sockets;
+using Autofac.Core;
 using Utopia.Core.Events;
 
 namespace Utopia.Server.Net;
-public class InternetListener : IInternetListener
+internal class InternetListener : IInternetListener
 {
-
+    private bool _disposed = false;
     private Socket? _socket = null;
     private int? _port = null;
     private readonly object _lock = new();
@@ -103,7 +104,22 @@ public class InternetListener : IInternetListener
 
     public void Dispose()
     {
-        Shutdown();
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    protected void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            Shutdown();
+        }
+
+        _disposed = true;
     }
 }

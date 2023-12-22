@@ -67,13 +67,12 @@ public class CorePlugin : PluginInformation, IPlugin
                 // process
                 ISocketConnecter connecter = SocketConnecter;
 
-                connecter.ConnectHandler!.Packetizer.EnterSync(
-                    (list) =>
-                    {
-                        list.Add(new LoginPacketFormatter());
-                        list.Add(new BlockInfoPacketFormatter());
-                        list.Add(new QueryBlockPacketFormatter());
-                    });
+                connecter.ConnectHandler!.Packetizer.TryAdd(QueryBlockPacketFormatter.PacketTypeId,
+                    new QueryBlockPacketFormatter());
+                connecter.ConnectHandler!.Packetizer.TryAdd(LoginPacketFormatter.PacketTypeId,
+                    new LoginPacketFormatter());
+                connecter.ConnectHandler!.Packetizer.TryAdd(BlockInfoPacketFormatter.PacketTypeId,
+                    new BlockInfoPacketFormatter());
 
                 connecter.ConnectHandler!.Dispatcher.RegisterHandler(
                     BlockInfoPacketFormatter.PacketTypeId, (packet) =>

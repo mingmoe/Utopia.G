@@ -46,8 +46,8 @@ public class Plugin : PluginForServer
         var factory = new EmptyEntityFactory();
         factory.Entities.TryAdd(ResourcePack.Entity.GrassEntity.ID, Container.Resolve<GrassEntity>());
 
-        EntityManager.TryAdd(ResourcePack.Entity.GrassEntity.ID,
-            factory);
+        // EntityManager.TryAdd(ResourcePack.Entity.GrassEntity.ID,
+        //    factory);
 
         // process query_map packet
         InternetMain.ClientCreatedEvent.Register(
@@ -55,12 +55,12 @@ public class Plugin : PluginForServer
                 {
                     Core.Net.IConnectHandler handler = e.Result!;
 
-                    handler.Packetizer.EnterSync((list) =>
-                    {
-                        list.Add(new QueryBlockPacketFormatter());
-                        list.Add(new LoginPacketFormatter());
-                        list.Add(new BlockInfoPacketFormatter());
-                    });
+                    handler.Packetizer.TryAdd(QueryBlockPacketFormatter.PacketTypeId,
+                        new QueryBlockPacketFormatter());
+                    handler.Packetizer.TryAdd(LoginPacketFormatter.PacketTypeId,
+                        new LoginPacketFormatter());
+                    handler.Packetizer.TryAdd(BlockInfoPacketFormatter.PacketTypeId,
+                        new BlockInfoPacketFormatter());
 
                     handler.Dispatcher.RegisterHandler(QueryBlockPacketFormatter.PacketTypeId,
                         (object packet) =>

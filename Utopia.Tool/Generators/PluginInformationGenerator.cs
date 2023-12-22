@@ -62,14 +62,14 @@ public class PluginInformationGenerator : IGenerator
 
         builder.EmitClass("PluginInformation", isPublic: true, addGeneratedCodeAttribute: true,parentClass: ["IPluginInformation"]);
         builder.EmitField("public", "Guuid", "ID", $"Guuid.Parse(\"{info.Id}\")", true, true);
-        builder.EmitField("public", "TranslatedString", "NAME", $"new(\"{info.Name}\")", true, true);
-        builder.EmitField("public", "TranslatedString", "DESC", $"new(\"{info.Description}\")", true, true);
+        builder.EmitField("public", "string", "NAME", $"\"{info.Name}\"", true, true);
+        builder.EmitField("public", "string", "DESC", $"\"{info.Description}\"", true, true);
         builder.EmitField("public", "System.Version", "VER", $"Version.Parse(\"{version}\")", true, true);
         builder.EmitField("public", "string", "HOMEPAGE", $"\"{info.Homepage}\"", true, true);
         builder.EmitField("public", "string", "LICENSE", $"\"{info.License}\"", true, true);
         builder.EmitField("public", "Guuid[]", "DEPENDENCES", $"[{deps}]",true,true);
-        builder.EmitLine($"ITranslatedString IPluginInformation.Name => NAME;");
-        builder.EmitLine($"ITranslatedString IPluginInformation.Description => DESC;");
+        builder.EmitLine($"string IPluginInformation.Name => NAME;");
+        builder.EmitLine($"string IPluginInformation.Description => DESC;");
         builder.EmitLine($"Guuid IPluginInformation.Id => ID;");
         builder.EmitLine($"Version IPluginInformation.Version => VER;");
         builder.EmitLine($"string IPluginInformation.License => LICENSE;");

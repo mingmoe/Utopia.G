@@ -24,10 +24,21 @@ public struct SynchronizedHandle<T> : IDisposable
 
     public void Dispose()
     {
-        int read = Interlocked.Exchange(ref _disposed, 1);
-        if(read == 1) return;
-        Monitor.Exit(_lock);
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+
+        int read = Interlocked.Exchange(ref _disposed, 1);
+        if (read == 1)
+            return;
+
+        if (disposing)
+        {
+            Monitor.Exit(_lock);
+        }
     }
 
     public SynchronizedHandle(ISynchronizable obj)
@@ -81,14 +92,23 @@ public struct ReaderWriterSynchronizedHandle<T> : IDisposable
 
     public void Dispose()
     {
-        int read = Interlocked.Exchange(ref _disposed, 1);
-        if (read == 1) return;
-
-        if (_exitWrite)
-            _lock.ExitWriteLock();
-        else
-            _lock.ExitReadLock();
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        int read = Interlocked.Exchange(ref _disposed, 1);
+        if (read == 1)
+            return;
+
+        if (disposing)
+        {
+            if (_exitWrite)
+                _lock.ExitWriteLock();
+            else
+                _lock.ExitReadLock();
+        }
     }
 
     public ReaderWriterSynchronizedHandle(T obj,ReaderWriterLockSlim @lock,bool exitWrite)

@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
 using McMaster.Extensions.CommandLineUtils;
@@ -9,6 +10,7 @@ using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using NLog;
 using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
@@ -18,14 +20,16 @@ namespace Utopia.Tools;
 /// <summary>
 /// 翻译寻找器
 /// </summary>
-public class TranslateFinder
+public class TranslationFinder
 {
 
-    private static readonly Lazy<Logger> s_logger = new(() => { return LogManager.GetLogger(typeof(TranslateFinder).FullName); });
+    private static readonly Lazy<Logger> s_logger = new(() => { return LogManager.GetLogger(typeof(TranslationFinder).FullName); });
 
     private static Logger _Logger => s_logger.Value;
 
-    public record Item(in string SlnFilePath, in string ProjectGuid, in string SourceFilePath, in string SourceSpan,
+    public record Item(
+        in string SlnFilePath,
+        in string ProjectGuid, in string SourceFilePath, in string SourceSpan,
         in string TranslateGuuid,
         in string? TranslateProviderGuuid,
         in string TranslateComment)
@@ -51,22 +55,23 @@ public class TranslateFinder
             _Logger.Info("skip file {file} because there is no syntax tree", file.FilePath);
             return Array.Empty<Item>();
         }
-
+        /*
         CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
 
         SemanticModel model = compilation.GetSemanticModel(tree);
 
         // find syntax
-        IEnumerable<ObjectCreationExpressionSyntax> nodes = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>();
+        // TODO:FIX THIS
+        IEnumerable<CallStatementSyntax> nodes = root.DescendantNodes().OfType<CallStatementSyntax>();
 
         // look up the name we want
-        foreach (ObjectCreationExpressionSyntax node in nodes)
+        foreach (CallStatementSyntax node in nodes)
         {
             SymbolInfo sym = model.GetSymbolInfo(node);
             string? symName = sym.Symbol?.ContainingType.ToString();
 
             // check name
-            if (symName == typeof(TranslateKey).FullName)
+            if (symName == typeof().FullName)
             {
                 // find strings
                 LiteralExpressionSyntax[] translate = node.DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
@@ -113,7 +118,7 @@ public class TranslateFinder
                     typeof(TranslateKey).FullName, symName,
                     file.FilePath, node.Span);
             }
-        }
+        }*/
 
         return items.ToArray();
     }
@@ -162,7 +167,7 @@ public class TranslateFinder
             Project[] projects = Utility.OpenSlnToProject(sln!, projectOpt);
             _ = await Utility.GetCompilation(projects);
 
-            var finder = new TranslateFinder();
+            var finder = new TranslationFinder();
 
             List<Task<Item[]>> tasks = new();
             foreach (Project item in projects)

@@ -2,25 +2,20 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Collections.Generic;
+
 namespace Utopia.Core.Collections;
 
 /// <summary>
 /// 一个比<see cref="System.Collections.Concurrent.ConcurrentDictionary{TKey, TValue}"/>更加安全的Dictionary，保证任何调用都处在线程安全的范围内。
 /// 文档见<see cref="System.Collections.Concurrent.ConcurrentDictionary{TKey, TValue}"/>
 /// </summary>
-public interface ISafeDictionary<KeyT, ValueT> where KeyT : notnull
+public interface ISafeDictionary<KeyT, ValueT> : IReadOnlyDictionary<KeyT,ValueT> where KeyT : notnull
 {
     /// <summary>
     /// 清除所有字典
     /// </summary>
     void Clear();
-
-    /// <summary>
-    /// 检查是否包含某个键
-    /// </summary>
-    /// <param name="key">要检查的键，必须为非null</param>
-    /// <returns>如果键存在，则返回true</returns>
-    bool ContainsKey(KeyT key);
 
     KeyValuePair<KeyT, ValueT>[] ToArray();
 
@@ -35,8 +30,6 @@ public interface ISafeDictionary<KeyT, ValueT> where KeyT : notnull
     ValueT GetOrAdd(KeyT key, Func<KeyT, ValueT> valueFactory);
 
     bool TryAdd(KeyT key, ValueT value);
-
-    bool TryGetValue(KeyT key, out ValueT? value);
 
     bool TryRemove(KeyT key, out ValueT? value);
 

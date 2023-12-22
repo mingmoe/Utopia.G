@@ -17,7 +17,7 @@ public sealed class TranslationItem
     /// The translation id of this item.
     /// </summary>
     [XmlElement]
-    public XmlGuuid Id { get; set; } = new();
+    public string Text { get; set; } = "";
 
     /// <summary>
     /// The translation comment of this id.
@@ -39,11 +39,11 @@ public class TranslationDeclares
     public List<TranslationItem> Translations { get; set; } = [];
 }
 
-public sealed class TranslationProject(IDictionary<Guuid, string> items)
+public sealed class TranslationProject(IDictionary<string, string> items)
 {
     public TranslateIdentifence Identification { get; set; } = new();
 
-    public FrozenDictionary<Guuid, string> Items { get; set; } = items.ToFrozenDictionary();
+    public FrozenDictionary<string, string> Items { get; set; } = items.ToFrozenDictionary();
 }
 
 internal class TranslationProvider : ITranslateProvider
@@ -56,9 +56,9 @@ internal class TranslationProvider : ITranslateProvider
         _Project = project;
     }
 
-    public bool Contain(TranslateIdentifence language, Guuid id) => _Project.Identification.Equals(language) && _Project.Items.ContainsKey(id);
+    public bool Contain(TranslateIdentifence language, string item) => _Project.Identification.Equals(language) && _Project.Items.ContainsKey(item);
 
-    public bool TryGetItem(TranslateIdentifence language, Guuid id, out string? result)
+    public bool TryGetItem(TranslateIdentifence language, string item, out string? result)
     {
         if (!_Project.Identification.Equals(language))
         {
@@ -66,7 +66,7 @@ internal class TranslationProvider : ITranslateProvider
             return false;
         }
 
-        if (_Project.Items.TryGetValue(id, out result))
+        if (_Project.Items.TryGetValue(item, out result))
         {
             result = null;
             return true;

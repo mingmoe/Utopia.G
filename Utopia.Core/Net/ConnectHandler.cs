@@ -9,26 +9,42 @@ using System.Net.Sockets;
 using System.Text;
 using CommunityToolkit.Diagnostics;
 using CommunityToolkit.HighPerformance;
+using Microsoft.Extensions.Logging;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Net;
 
 public class ConnectHandler : IConnectHandler
 {
+    public required ILogger<ConnectHandler> logger { protected get; init; }
+
+    private volatile bool _disposed = false;
+
     private volatile bool _running = false;
 
     private readonly object _lock = new();
 
-    private readonly Socket _socket;
+    private readonly ISocket _socket;
 
     private readonly Pipe _pipe = new();
 
-    public ConnectHandler(Socket socket)
+    public bool Running
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _running;
+            }
+        }
+    }
+
+    public ConnectHandler(ISocket socket)
     {
         Guard.IsNotNull(socket);
         _socket = socket;
 
-        if (!_socket.Connected)
+        if (!_socket.Alive)
         {
             throw new ArgumentException("the socket haven't connect yet");
         }
@@ -38,72 +54,111 @@ public class ConnectHandler : IConnectHandler
 
     public IPacketizer Packetizer { get; } = new Packetizer();
 
-    private async Task _ReadLoop()
+    private async Task _ReadLoop(CancellationToken token)
     {
         PipeWriter writer = _pipe.Writer;
 
-        while (_running)
+        // true for continue
+        bool check()
         {
-            Memory<byte> memory = writer.GetMemory(512);
-            int bytesRead = await _socket.ReceiveAsync(memory, SocketFlags.None);
+            return !token.IsCancellationRequested;
+        }
+
+        while (check())
+        {
+            Memory<byte> memory = writer.GetMemory(256);
+
+            int bytesRead = await _socket.Read(memory);
 
             writer.Advance(bytesRead);
 
+            await writer.FlushAsync();
             await Task.Yield();
         }
         await writer.CompleteAsync();
     }
 
-    private async Task _ProcessLoop()
+    private async Task _ProcessLoop(CancellationToken token)
     {
-        static async Task<int> readInt(PipeReader reader)
+        PipeReader reader = _pipe.Reader;
+        byte[] fourBytesBuf = new byte[4];
+
+        // true for continue
+        bool check()
         {
-            ReadResult got = await reader.ReadAtLeastAsync(4);
+            return !token.IsCancellationRequested;
+        }
+
+        async Task<int?> readInt()
+        {
+            ReadResult got;
+            while (true)
+            {
+                try
+                {
+                    got = await reader.ReadAtLeastAsync(4, token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // canceled
+                    return null;
+                }
+
+                if (!got.IsCompleted && !got.IsCanceled)
+                {
+                    // read all
+                    break;
+                }
+
+                if (!check())
+                {
+                    return null;
+                }
+            }
 
             ReadOnlySequence<byte> buf = got.Buffer.Slice(0, 4);
 
-            byte[] span = new byte[4];
-            buf.CopyTo(span);
+            buf.CopyTo(fourBytesBuf);
 
-            int num = BitConverter.ToInt32(span);
+            int num = BitConverter.ToInt32(fourBytesBuf);
             // 从网络端序转换过来
             num = IPAddress.NetworkToHostOrder(num);
 
-            reader.AdvanceTo(got.Buffer.GetPosition(4));
+            reader.AdvanceTo(buf.End);
 
             return num;
         }
 
-        PipeReader reader = _pipe.Reader;
-
-        while (_running)
+        while (check())
         {
-            int length = await readInt(reader);
-            int strLength = await readInt(reader);
+            // check we have packet to read
+            var hasPacket = await readInt();
+
+            if (!hasPacket.HasValue)
+            {
+                if (check())
+                {
+                    continue;
+                }
+                break;
+            }
+
+            int length = hasPacket.Value;
+            int strLength = (await readInt()).Value;
 
             // read id
             ReadResult got = await reader.ReadAtLeastAsync(strLength);
 
-            byte[] data = new byte[strLength];
+            var id = Guuid.Parse(Encoding.UTF8.GetString(got.Buffer.Slice(0, strLength)));
 
-            got.Buffer.CopyTo(data);
-
-            reader.AdvanceTo(got.Buffer.GetPosition(strLength));
-
-            var id = Guuid.Parse(Encoding.UTF8.GetString(data));
-
+            reader.AdvanceTo(got.Buffer.Slice(0, strLength).End);
             // read packet
             got = await reader.ReadAtLeastAsync(length);
 
-            data = new byte[length];
-
-            got.Buffer.CopyTo(data);
+            object packet = Packetizer.ConvertPacket(id, got.Buffer.Slice(0, length));
 
             reader.AdvanceTo(got.Buffer.GetPosition(length));
-
             // release
-            object packet = Packetizer.ConvertPacket(id, data);
-
             _ = Dispatcher.DispatchPacket(id, packet);
         }
     }
@@ -120,9 +175,27 @@ public class ConnectHandler : IConnectHandler
         }
 
         // wait for shutdown sign
-        while (_socket.Connected && _running)
+        using CancellationTokenSource source = new();
+        Task all = Task.WhenAll(_ReadLoop(source.Token), _ProcessLoop(source.Token));
+
+        while (_socket.Alive)
         {
+            if (all.IsCompleted)
+            {
+                break;
+            }
             await Task.Yield();
+        }
+
+        source.Cancel();
+
+        try
+        {
+            await all;
+        }
+        catch(Exception e)
+        {
+            logger.LogError(e, "Socket Connection Error");
         }
 
         // shutdown
@@ -130,22 +203,14 @@ public class ConnectHandler : IConnectHandler
         {
             _running = false;
         }
-
-        await Task.WhenAll(_ReadLoop(), _ProcessLoop());
     }
 
-    private void _Write(byte[] bytes) => _socket.Send(bytes);
+    private void _UnlockWrite(Memory<byte> bytes) => _socket.Write(bytes);
 
-    public void Write(byte[] bytes)
+    public void WritePacket(Guuid packetTypeId, object obj)
     {
-        lock (_lock)
-        {
-            _Write(bytes);
-        }
-    }
+        var data = Packetizer.WritePacket(packetTypeId, obj);
 
-    public void WritePacket(Guuid packetTypeId, byte[] data)
-    {
         lock (_lock)
         {
             byte[] encoderedId = Encoding.UTF8.GetBytes(packetTypeId.ToString());
@@ -159,25 +224,38 @@ public class ConnectHandler : IConnectHandler
                     IPAddress.HostToNetworkOrder(encoderedId.Length)
                 );
 
-            _Write(length);
-            _Write(idLength);
-            _Write(encoderedId);
-            _Write(data);
+            _UnlockWrite(length);
+            _UnlockWrite(idLength);
+            _UnlockWrite(encoderedId);
+            _UnlockWrite(data);
         }
     }
 
     public void Disconnect()
     {
-        _socket.Shutdown(SocketShutdown.Both);
-        _socket.Close();
-        _pipe.Reset();
+        _socket.Shutdown();
     }
 
     public void Dispose()
     {
-        Disconnect();
-        _socket.Dispose();
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            _socket.Shutdown();
+            _socket.Dispose();
+        }
+
+        _disposed = true;
     }
 }
 

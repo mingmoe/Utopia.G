@@ -107,7 +107,7 @@ public class Program
         };
 
         // build command
-        _ = app.Command("extract-translate", TranslateFinder.Command);
+        _ = app.Command("extract-translate", TranslationFinder.Command);
         _ = app.Command("docs", GenerateDocs.Command);
         _ = app.Command("generate", GenerationCommand.Command);
 

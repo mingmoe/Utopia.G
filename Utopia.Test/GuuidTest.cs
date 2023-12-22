@@ -42,12 +42,12 @@ public class GuuidTest
     [InlineData("a", new string[] {"b"})]
     [InlineData("a", new string[] { "b", "c" })]
     [InlineData("a", new string[] { "b", "c", "d" })]
-    public void TestGuuidChildCheckFailureMethod(string root,params string[] childNodes)
+    public void TestGuuidChildCheckFailureMethod(string root,params string[] fatherNodes)
     {
-        var father = new Guuid(root,childNodes);
+        var father = new Guuid(root,fatherNodes);
         var child = new Guuid("a", "b", "c", "d");
 
-        var success = father.IsChild(child);
+        var success = father.HasChild(child);
 
         Assert.True(success);
     }
@@ -55,13 +55,23 @@ public class GuuidTest
     [Theory]
     [InlineData("a", new string[] { "b" })]
     [InlineData("a", new string[] { "b", "c" })]
-    public void TestGuuidChildCheckMethod(string root, params string[] childNodes)
+    public void TestGuuidChildCheckMethod(string root, params string[] fatherNodes)
     {
-        var father = new Guuid(root, childNodes);
+        var father = new Guuid(root, fatherNodes);
         var child = new Guuid("a", "b", "c", "d");
 
-        var failure = child.IsChild(father);
+        var failure = child.HasChild(father);
 
         Assert.False(failure);
+    }
+
+    [Fact]
+    public void TestGuuidGetParent()
+    {
+        var guuid = new Guuid("a", "b", "c", "d");
+
+        Assert.Equal(new Guuid("a", "b", "c"), guuid.GetParent());
+        Assert.Equal(new Guuid("a", "b"), guuid.GetParent()!.Value.GetParent());
+        Assert.Null(guuid.GetParent()!.Value.GetParent()!.Value.GetParent());
     }
 }

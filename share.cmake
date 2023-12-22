@@ -1,0 +1,15 @@
+
+# force release
+set(CMAKE_BUILD_TYPE "Release")
+
+# read version
+file(READ "${CMAKE_CURRENT_LIST_DIR}/version.txt" U_READ_VERSION_TEXT)
+string(STRIP "${U_READ_VERSION_TEXT}" U_READ_VERSION_TEXT)
+
+set(READ_UTOPIA_VERSION "${U_READ_VERSION_TEXT}")
+
+unset(U_READ_VERSION_TEXT)
+
+# set output directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/precompiled-library")
+file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})

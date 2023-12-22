@@ -15,12 +15,12 @@ public interface IPluginInformation
     /// <summary>
     /// 人类可读的名称
     /// </summary>
-    ITranslatedString Name { get; }
+    string Name { get; }
 
     /// <summary>
     /// 人类可读的描述
     /// </summary>
-    ITranslatedString Description { get; }
+    string Description { get; }
 
     /// <summary>
     /// 许可协议

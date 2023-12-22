@@ -60,9 +60,9 @@ public class TranslateKeyGenerator : IGenerator
 
         foreach (var item in items.Translations)
         {
-            builder.EmitField("public", "TranslateKey",
-                item.Id.Guuid.ToCsIdentifier(),
-                defaultValue: $"TranslateKey.Create(\"{item.Id.Guuid}\",\"{item.Comment}\",\"{providerId}\")",
+            builder.EmitField("public", "(string Text,string Comment,string Provider)",
+                item.Text,
+                defaultValue: $"new(\"{item.Text}\",\"{item.Comment}\",\"{providerId}\")",
                 isReadonly: true, isStatic: true);
         }
 

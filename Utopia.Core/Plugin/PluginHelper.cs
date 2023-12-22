@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Utopia.Core.Configuration;
 using Utopia.Core.IO;
+using Utopia.Core.Translation;
 
 namespace Utopia.Core.Plugin;
 
@@ -176,6 +177,12 @@ public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBa
             .RegisterType<PluginContext<PluginT>>()
             .SingleInstance()
             .AsSelf();
+
+        // ITranslationGetter
+        builder
+            .RegisterType<TranslationGetter>()
+            .SingleInstance()
+            .As<ITranslationGetter>();
     }
 
     public PluginContext<PluginT> CreatePluginContext(

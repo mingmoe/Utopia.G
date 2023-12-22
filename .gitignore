@@ -404,3 +404,7 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Ignore compiled native library
+precompiled-library/
+

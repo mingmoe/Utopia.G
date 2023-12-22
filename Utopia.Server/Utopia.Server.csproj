@@ -13,7 +13,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />
-		<ProjectReference Include="..\Utopia.FastNoise\Utopia.FastNoise.csproj" />
+		<ProjectReference Include="..\Utopia.FastNoise.Wrapper\Utopia.FastNoise.Wrapper.csproj" />
 		<ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
 	</ItemGroup>
 

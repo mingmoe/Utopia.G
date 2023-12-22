@@ -21,7 +21,7 @@ public interface IInternetMain
 /// <summary>
 /// 网络线程
 /// </summary>
-public sealed class InternetMain : IInternetMain
+internal sealed class InternetMain : IInternetMain
 {
     public required IInternetListener InternetListener { get; init; }
 

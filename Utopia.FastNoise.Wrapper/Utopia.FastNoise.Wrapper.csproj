@@ -1,0 +1,19 @@
+<Project Sdk="Kawayi.Utopia.Sdk">
+
+  <Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseUtopiaBuild>false</UseUtopiaBuild>
+    <UseUtopiaSdk>false</UseUtopiaSdk>
+  </PropertyGroup>
+
+  <Target Name="CopyNoiseNativeLibraries" BeforeTargets="Compile">
+      <Copy Condition="'$(OS)' == 'Windows_NT'" SourceFiles="$(MSBuildThisFileDirectory)/../precompiled-library/FastNoise.dll" DestinationFolder="$(OutputPath)" />
+      <Copy Condition="'$(OS)' == 'Unix'" SourceFiles="$(MSBuildThisFileDirectory)/../precompiled-library/libFastNoise.so" DestinationFolder="$(OutputPath)" />
+  </Target>
+
+</Project>

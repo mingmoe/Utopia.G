@@ -19,9 +19,9 @@ public sealed class PluginContext<PluginT>(
     IPluginFileSystem fileSystem,
     PluginT instance,
     PackedPluginManifest manifest,
-    ILifetimeScope lifetimeScope) : IDisposable where PluginT : IPluginInformation,IPluginBase
+    ILifetimeScope lifetimeScope) : IDisposable where PluginT : IPluginInformation, IPluginBase
 {
-    private int _disposed = 0;
+    private bool _disposed = false;
 
     public IPluginFileSystem FileSystem { get; init; } = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
@@ -33,13 +33,23 @@ public sealed class PluginContext<PluginT>(
 
     public void Dispose()
     {
-        var got = Interlocked.Exchange(ref _disposed, 1);
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
-        if(got == 1)
+    private void Dispose(bool disposing)
+    {
+        if (_disposed)
         {
             return;
         }
-        Instance.Deactivate();
-        LifetimeScope.Dispose();
+
+        if (disposing)
+        {
+            Instance.Deactivate();
+            LifetimeScope.Dispose();
+        }
+
+        _disposed = true;
     }
 }

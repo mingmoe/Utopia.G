@@ -26,13 +26,13 @@ using Utopia.Core.IO;
 
 namespace Utopia.Server;
 
-public sealed class Headquarters
+public sealed class MainThread
 {
     private readonly CancellationTokenSource _logicThreadStartWaitTokenSource = new();
 
     private readonly CancellationTokenSource _internetThreadStartWaitTokenSource = new();
 
-    public required ILogger<Headquarters> Logger { get; init; }
+    public required ILogger<MainThread> Logger { get; init; }
 
     public required IEventBus EventBus { get; init; }
 
@@ -54,7 +54,7 @@ public sealed class Headquarters
 
     public required ISafeDictionary<Guuid, IWorldFactory> WorldFactories { get; init; }
 
-    public required PluginHelper<IPlugin> PluginSearcher { get; init; }
+    public required PluginHelper<IPlugin> PluginHelper { get; init; }
 
     public LifeCycle CurrentLifeCycle { get; private set; }
 
@@ -151,11 +151,10 @@ public sealed class Headquarters
     {
         ArgumentNullException.ThrowIfNull(startTokenSource);
 
-        Thread.CurrentThread.Name = "Server Headquarters Thread";
+        Thread.CurrentThread.Name = "Server Main Thread";
 
         void changeLifecycle(LifeCycle lifeCycle, Action action)
         {
-
             LifeCycleEvent<LifeCycle>.EnterCycle(
                 lifeCycle,
                 action,
@@ -174,7 +173,7 @@ public sealed class Headquarters
             changeLifecycle(LifeCycle.LoadPlugin, () =>
             {
                 PluginLoader.AddPlugin(
-                    PluginSearcher.BuildPluginFromType(
+                    PluginHelper.BuildPluginFromType(
                         typeof(Plugin.Plugin),
                         FileSystem.RootDirectory,
                         null,
@@ -184,7 +183,7 @@ public sealed class Headquarters
                         new()));
 
                 foreach(var plugin in
-                    PluginSearcher.LoadAllPackedPluginsFromDirectory(
+                    PluginHelper.LoadAllPackedPluginsFromDirectory(
                         FileSystem.PackedPluginsDirectory))
                 {
                     PluginLoader.AddPlugin(plugin);

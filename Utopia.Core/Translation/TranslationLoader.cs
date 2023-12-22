@@ -13,12 +13,12 @@ using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Translation;
 
-public class TranslationLoader
+public static class TranslationLoader
 {
     /// <summary>
     /// Load a .xml translation file,its type as <see cref="TranslationDeclares"/>
     /// </summary>
-    public Dictionary<Guuid, string> LoadFromFile(string file)
+    public static Dictionary<string, string> LoadFromFile(string file)
     {
         XmlSerializer serializer = new(typeof(TranslationDeclares));
 
@@ -30,11 +30,11 @@ public class TranslationLoader
                 ?? throw new XmlException("XmlSerializer.Deserialize return null");
         }
 
-        Dictionary<Guuid, string> items = [];
+        Dictionary<string, string> items = [];
 
         foreach (var item in declares.Translations)
         {
-            items.Add(item.Id.Guuid, item.Translated);
+            items.Add(item.Text, item.Translated);
         }
 
         return items;
@@ -44,9 +44,9 @@ public class TranslationLoader
     /// Load all .xml files and union them into one.
     /// It use <see cref="LoadFromFile(string)"/> to read from file.
     /// </summary>
-    public Dictionary<Guuid, string> LoadFromDirectory(string directory)
+    public static Dictionary<string, string> LoadFromDirectory(string directory)
     {
-        Dictionary<Guuid, string> items = [];
+        Dictionary<string, string> items = [];
         foreach (var files in Directory.GetFiles(Path.GetFullPath(directory), "*", SearchOption.AllDirectories))
         {
             if (files.EndsWith(".xml"))

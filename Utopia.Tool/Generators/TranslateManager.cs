@@ -5,6 +5,7 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using Autofac.Core;
 using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 
@@ -23,13 +24,15 @@ public enum TranslateItemType
 /// </summary>
 public sealed class TranslateManager : IDisposable
 {
+    private bool _disposed = false;
+
     private readonly XmlSerializer _serializer = new(typeof(TranslationDeclares));
 
     private readonly IPluginDevFileSystem _fileSystem;
 
     private readonly Configuration _configuration;
 
-    private readonly Dictionary<TranslateItemType, Dictionary<Guuid, TranslationItem>?> _translates = new();
+    private readonly Dictionary<TranslateItemType, Dictionary<string, TranslationItem>?> _translates = new();
 
     private readonly TranslateItemType[] _keys;
 
@@ -38,7 +41,7 @@ public sealed class TranslateManager : IDisposable
     /// </summary>
     private void _Read()
     {
-        Dictionary<Guuid, TranslationItem> read(TranslateItemType type)
+        Dictionary<string, TranslationItem> read(TranslateItemType type)
         {
             string path = _fileSystem.GetTranslatedXmlFilePath(type);
 
@@ -56,7 +59,7 @@ public sealed class TranslateManager : IDisposable
 
             var obj = (TranslationDeclares)(_serializer.Deserialize(fs) ?? throw new XmlException("XmlSerializer.Deserialize returns null"));
 
-            return obj.Translations.ToDictionary((item) => { return item.Id.Guuid; });
+            return obj.Translations.ToDictionary((item) => { return item.Text; });
         }
 
         foreach (TranslateItemType key in _keys)
@@ -70,7 +73,7 @@ public sealed class TranslateManager : IDisposable
 
     private void _Write()
     {
-        void write(TranslateItemType type, Dictionary<Guuid, TranslationItem> model)
+        void write(TranslateItemType type, Dictionary<string, TranslationItem> model)
         {
             string path = _fileSystem.GetTranslatedXmlFilePath(type);
 
@@ -83,7 +86,7 @@ public sealed class TranslateManager : IDisposable
             using var fs = new FileStream(path, FileMode.Open);
 
             var declares = new TranslationDeclares();
-            foreach(KeyValuePair<Guuid, TranslationItem> item in model)
+            foreach(KeyValuePair<string, TranslationItem> item in model)
             {
                 declares.Translations.Add(item.Value);
             }
@@ -141,25 +144,25 @@ public sealed class TranslateManager : IDisposable
     /// Ensure the translate item exists in the toml table.
     /// Otherwise create it.
     /// </summary>
-    private static void _EnsureTranslateKey(IDictionary<Guuid, TranslationItem> model, Guuid id, string comment)
+    private static void _EnsureTranslateKey(IDictionary<string, TranslationItem> model, string item, string comment)
     {
-        if (model.ContainsKey(id))
+        if (model.ContainsKey(item))
         {
             return;
         }
 
-        model.Add(id, new TranslationItem
+        model.Add(item, new TranslationItem
         {
-            Id = new(id),
+            Text = item,
             Comment = comment
         });
     }
 
-    public Action<Guuid, string> GetTransitionAdder(TranslateItemType type)
+    public Action<string, string> GetTransitionAdder(TranslateItemType type)
     {
         _Read();
 
-        return (Guuid id, string comment) =>
+        return (string id, string comment) =>
         {
             EnsureTranslate(type, id, comment);
         };
@@ -167,30 +170,43 @@ public sealed class TranslateManager : IDisposable
 
     public void EnsurePluginInformationTransition()
     {
-        Action<Guuid, string> adder = GetTransitionAdder(TranslateItemType.PluginInformation);
+        Action<string, string> adder = GetTransitionAdder(TranslateItemType.PluginInformation);
 
-        Guuid id = _configuration.PluginInformation.Id.Guuid;
-
-        adder.Invoke(GuuidManager.GetPluginNameTranslateId(id), "the translation of the name");
-        adder.Invoke(GuuidManager.GetPluginDescriptionTranslateId(id), "the translation of the description");
+        adder.Invoke(_configuration.PluginInformation.Name, "the translation of the name");
+        adder.Invoke(_configuration.PluginInformation.Description, "the translation of the description");
         Save();
     }
 
-    public void EnsureTranslate(TranslateItemType type, Guuid transitionKey, string comment)
+    public void EnsureTranslate(TranslateItemType type, string item, string comment)
     {
-        ArgumentNullException.ThrowIfNull(transitionKey);
+        ArgumentNullException.ThrowIfNull(item);
         ArgumentNullException.ThrowIfNull(comment);
 
         _Read();
 
         Guuid id = _configuration.PluginInformation.Id.Guuid;
 
-        _EnsureTranslateKey(_translates[type]!, transitionKey, comment);
+        _EnsureTranslateKey(_translates[type]!, item, comment);
     }
 
     public void Dispose()
     {
-        Save();
+        Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            Save();
+        }
+
+        _disposed = true;
     }
 }

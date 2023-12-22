@@ -11,12 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Core", "Utopia.Core\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Server", "Utopia.Server\Utopia.Server.csproj", "{1076BBC5-F8F7-426F-A2A2-1E92B6340032}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{50CDA250-6B5B-45A1-A552-95CC9A5E07FC}"
-	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-		docfx.json = docfx.json
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Tool", "Utopia.Tool\Utopia.Tool.csproj", "{5C8A38C5-2098-408C-A733-D6E0E0C81AF8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.ResourcePack", "Utopia.ResourcePack\Utopia.ResourcePack.csproj", "{A082E1E8-9CCA-4792-ABF6-07F7A75B7CEE}"
@@ -25,13 +19,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Benchmark", "Utopia.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Build", "Utopia.Build\Utopia.Build.csproj", "{0F286ADC-3885-48D4-8687-B57448F47414}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.FastNoise", "Utopia.FastNoise\Utopia.FastNoise.csproj", "{58F1E3D7-FC6F-43C0-AC47-008DD8DC35B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.FastNoise.Wrapper", "Utopia.FastNoise.Wrapper\Utopia.FastNoise.Wrapper.csproj", "{58F1E3D7-FC6F-43C0-AC47-008DD8DC35B2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F1E708FC-EB03-4723-A455-10E00E4D71E0}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		definition.targets = definition.targets
 		dependencies.targets = dependencies.targets
+		docfx.json = docfx.json
 		.config\dotnet-tools.json = .config\dotnet-tools.json
 		global.json = global.json
 		utopia.xml = utopia.xml
@@ -43,6 +39,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Sdk", "Utopia.Sdk\Utopia.Sdk.csproj", "{3CFD815A-E4E5-4010-9EB0-F6E4659B3B79}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.G.Plugin", "Utopia.G.Plugin\Utopia.G.Plugin.csproj", "{491FE769-7394-4401-AAE8-960A3531F1A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Kcp.Wrapper", "Utopia.Kcp.Wrapper\Utopia.Kcp.Wrapper.csproj", "{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -140,6 +138,14 @@ Global
 		{491FE769-7394-4401-AAE8-960A3531F1A1}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{491FE769-7394-4401-AAE8-960A3531F1A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{491FE769-7394-4401-AAE8-960A3531F1A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

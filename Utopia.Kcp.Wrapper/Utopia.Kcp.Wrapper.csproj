@@ -1,0 +1,19 @@
+<Project Sdk="Kawayi.Utopia.Sdk">
+
+  <Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseUtopiaBuild>false</UseUtopiaBuild>
+    <UseUtopiaSdk>false</UseUtopiaSdk>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <Target Name="CopyNoiseNativeLibraries" BeforeTargets="Compile">
+    <Copy Condition="'$(OS)' == 'Windows_NT'" SourceFiles="$(MSBuildThisFileDirectory)/../precompiled-library/Utopia.Kcp.dll" DestinationFolder="$(OutputPath)" />
+    <Copy Condition="'$(OS)' == 'Unix'" SourceFiles="$(MSBuildThisFileDirectory)/../precompiled-library/libUtopia.Kcp.so" DestinationFolder="$(OutputPath)" />
+  </Target>
+
+</Project>

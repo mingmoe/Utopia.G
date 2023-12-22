@@ -12,6 +12,8 @@ namespace Utopia.Core.Net;
 /// </summary>
 public interface IConnectHandler : IDisposable
 {
+    bool Running { get; }
+
     /// <summary>
     /// 包分发器
     /// </summary>
@@ -22,28 +24,13 @@ public interface IConnectHandler : IDisposable
     /// </summary>
     IPacketizer Packetizer { get; }
 
-    void Write(byte[] bytes);
-
     /// <summary>
     /// Write a packet,but it wont covert the packet to bytes.You should do it first.
     /// Or see <see cref="WritePacket(Guuid, object)"/>.
     /// </summary>
     /// <param name="packetTypeId"></param>
     /// <param name="obj"></param>
-    void WritePacket(Guuid packetTypeId, byte[] obj);
-
-    void WritePacket(Guuid packetTypeId, object packetObject)
-    {
-        if (Packetizer.TryGetFormatter(packetTypeId, out IPacketFormatter? formatter))
-        {
-            byte[] bytes = formatter!.ToPacket(packetObject);
-
-            WritePacket(packetTypeId, bytes);
-
-            return;
-        }
-        throw new FormatterNotFoundExceptiom(packetTypeId);
-    }
+    void WritePacket(Guuid packetTypeId, object obj);
 
     /// <summary>
     /// 服务端进行信息循环

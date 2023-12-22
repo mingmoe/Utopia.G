@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Moq;
 using Utopia.Core.Map;
 using Utopia.Core.Utilities;
+using Utopia.Server.Entity;
 using Utopia.Server.Map;
 
 namespace Utopia.Test.Server;

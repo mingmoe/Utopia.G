@@ -2,82 +2,52 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Buffers;
 using Utopia.Core.Collections;
 using Utopia.Core.Utilities;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Utopia.Core.Net;
 
 /// <summary>
 /// 分包器,要求是线程安全的.
 /// </summary>
-public interface IPacketizer : ISynchronizedOperation<IList<IPacketFormatter>>
+public interface IPacketizer : ISafeDictionary<Guuid,IPacketFormatter>
 {
-    public bool TryGetFormatter(Guuid id, out IPacketFormatter? formatter);
-
     /// <summary>
     /// 把字节序列转换为包.
     /// </summary>
-    public object ConvertPacket(Guuid packetTypeId, byte[] data);
+    public object ConvertPacket(Guuid packetTypeId, ReadOnlySequence<byte> data);
 
     /// <summary>
     /// 把包转化为字节序列
     /// </summary>
-    public byte[] WritePacket(Guuid packetTypeId, object obj);
+    public Memory<byte> WritePacket(Guuid packetTypeId, object obj);
 }
 
 /// <summary>
 /// 分包器,是线程安全的.
 /// </summary>
-public class Packetizer : SafeList<IPacketFormatter>,IPacketizer
+public class Packetizer : SafeDictionary<Guuid,IPacketFormatter>, IPacketizer
 {
-    /// <summary>
-    /// without locking
-    /// </summary>
-    private bool _TryGetFormatter(Guuid id, out IPacketFormatter? formatter)
+
+    public object ConvertPacket(Guuid packetTypeId, ReadOnlySequence<byte> data)
     {
-        IPacketFormatter? result = null;
-        foreach (IPacketFormatter f in this)
+        if(!TryGetValue(packetTypeId,out var formatter))
         {
-            if (f.Id.Equals(id))
-            {
-                result = f;
-            }
+            throw new InvalidOperationException("unknown packet type id");
         }
-    
 
-        formatter = result;
-
-        return result != null;
+        return formatter.GetValue(packetTypeId,data);
     }
 
-    public bool TryGetFormatter(Guuid id, out IPacketFormatter? formatter)
+    public Memory<byte> WritePacket(Guuid packetTypeId, object obj)
     {
-        @lock.EnterReadLock();
-        try
+        if (!TryGetValue(packetTypeId, out var formatter))
         {
-            return _TryGetFormatter(id, out formatter);
+            throw new InvalidOperationException("unknown packet type id");
         }
-        finally
-        {
-            @lock.ExitReadLock();
-        }
-    }
 
-    public object ConvertPacket(Guuid packetTypeId, byte[] data)
-    {
-        return TryGetFormatter(packetTypeId, out IPacketFormatter? formatter)
-            ? formatter!.GetValue(data)
-            : throw new InvalidOperationException("unknown packet type id");
-    }
-
-    public byte[] WritePacket(Guuid packetTypeId, object obj)
-    {
-        if (TryGetFormatter(packetTypeId, out IPacketFormatter? formatter))
-        {
-            byte[] data = formatter!.ToPacket(obj);
-
-            return data;
-        }
-        throw new InvalidOperationException("unknown packet type id");
+        return formatter.ToPacket(packetTypeId,obj);
     }
 }

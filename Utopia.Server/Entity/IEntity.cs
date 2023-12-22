@@ -7,20 +7,19 @@ using Utopia.Core.Map;
 using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Server.Map;
+namespace Utopia.Server.Entity;
 
-/// <summary>
-/// 游戏实体接口。
-/// 游戏实体是任何出现在地图上的可互动的“东西”。
-/// 一些视角特效等不算实体。
-/// 典型实体如：生物，玩家，掉落物，建筑。
-/// </summary>
-public interface IEntity : ISaveable
+public interface IEntityInformation
 {
     /// <summary>
     /// 实体名称，用于显示给玩家。
     /// </summary>
-    ITranslatedString Name { get; }
+    string Name { get; }
+
+    /// <summary>
+    /// The description of the entity
+    /// </summary>
+    string Description { get; }
 
     /// <summary>
     /// 实体是否可供生物等其他实体通过。
@@ -36,7 +35,16 @@ public interface IEntity : ISaveable
     /// 对于每一种实体，都需要一种Id与其对应，作为唯一标识符。
     /// </summary>
     Guuid Id { get; }
+}
 
+/// <summary>
+/// 游戏实体接口。
+/// 游戏实体是任何出现在地图上的可互动的“东西”。
+/// 一些视角特效等不算实体。
+/// 典型实体如：生物，玩家，掉落物，建筑。
+/// </summary>
+public interface IEntity : ISaveable, IEntityInformation
+{
     /// <summary>
     /// 每个逻辑帧调用。一秒20个逻辑帧，可能从不同线程发起调用。
     /// </summary>

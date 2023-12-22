@@ -4,6 +4,7 @@
 
 using Utopia.Core;
 using Utopia.Core.Map;
+using Utopia.Server.Entity;
 
 namespace Utopia.Server.Map;
 

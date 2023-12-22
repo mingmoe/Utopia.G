@@ -25,6 +25,4 @@ public static class GrassEntity
 {
     public static readonly Guuid ID = new("utopia", "core", "entity", "grass");
 
-    public static readonly TranslateKey TranslateKey = new(
-        "utopia:core:translate:entity:grass", "the name of the entity `grass`");
 }

@@ -103,7 +103,7 @@ public static class Launcher
     /// 使用字符串参数启动服务器
     /// </summary>
     /// <param name="args">命令行参数</param>
-    public static Headquarters LaunchWithArguments(string[] args)
+    public static MainThread LaunchWithArguments(string[] args)
     {
         ArgumentNullException.ThrowIfNull(args, nameof(args));
 
@@ -223,7 +223,7 @@ public static class Launcher
             .SingleInstance()
             .As<ISafeDictionary<Guuid, IWorldFactory>>();
         builder
-            .RegisterType<Headquarters>()
+            .RegisterType<MainThread>()
             .AsSelf()
             .SingleInstance();
         builder
@@ -241,7 +241,7 @@ public static class Launcher
     /// <param name="option"></param>
     /// <param name="startTokenSource">when the server started,cancel the token</param>
     /// <returns></returns>
-    public static Headquarters Launch(LauncherOption option,CancellationTokenSource? startTokenSource = null)
+    public static MainThread Launch(LauncherOption option,CancellationTokenSource? startTokenSource = null)
     {
         ArgumentNullException.ThrowIfNull(option);
         if(option.LogOption != null)
@@ -251,7 +251,7 @@ public static class Launcher
 
         var container = _CreateContainer(option);
 
-        var headquarters = container.Resolve<Headquarters>();
+        var headquarters = container.Resolve<MainThread>();
 
         headquarters.Launch(startTokenSource ?? new());
 

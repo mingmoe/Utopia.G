@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Buffers;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Net;
@@ -13,7 +14,7 @@ public interface IPacketFormatter
 {
     Guuid Id { get; }
 
-    object GetValue(byte[] packet);
+    object GetValue(Guuid packetId,ReadOnlySequence<byte> packet);
 
-    byte[] ToPacket(object value);
+    Memory<byte> ToPacket(Guuid packetId, object value);
 }

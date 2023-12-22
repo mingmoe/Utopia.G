@@ -56,7 +56,7 @@ public interface IConstruction : IConstructionInfo
 public class EmptyWorldInfo
 {
 #pragma warning disable CA1822 // Mark members as static
-    public ITranslatedString Name => new TranslatedString("Empty World Info for DEBUG");
+    public string Name => new string("Empty World Info for DEBUG");
 
     public Guuid ID => Guuid.NewUtopiaGuuid("world", "empty");
 #pragma warning restore CA1822 // Mark members as static

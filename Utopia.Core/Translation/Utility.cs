@@ -6,8 +6,5 @@ namespace Utopia.Core.Translation;
 
 public static class Utility
 {
-    public static ITranslatedString Activate(this TranslateManager manager,
-        TranslateKey key,
-        TranslateIdentifence id,
-        object data) => new ICUTranslatedString(key, manager, id, data);
+
 }

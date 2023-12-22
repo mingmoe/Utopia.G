@@ -41,7 +41,8 @@ public class Generator : IWorldGenerator
             areaLayer.Fill(
                 (b, i) =>
                 {
-                    return _entityManager.Create(ResourcePack.Entity.GrassEntity.ID, null);
+                    _entityManager.TryGet(ResourcePack.Entity.GrassEntity.ID, out var entity);
+                    return entity.Item2.Create(ResourcePack.Entity.GrassEntity.ID, null);
                 }
             );
         }
@@ -56,7 +57,8 @@ public class Generator : IWorldGenerator
             areaLayer.Fill(
                 (b, i) =>
                 {
-                    return _entityManager.Create(ResourcePack.Entity.GrassEntity.ID, null);
+                    _entityManager.TryGet(ResourcePack.Entity.GrassEntity.ID, out var entity);
+                    return entity.Item2.Create(ResourcePack.Entity.GrassEntity.ID, null);
                 }
             );
         }

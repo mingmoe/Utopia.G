@@ -5,7 +5,7 @@
 using Utopia.Core.Map;
 using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
-using Utopia.Server.Map;
+using Utopia.Server.Entity;
 
 namespace Utopia.Server.Plugin.Entity;
 
@@ -14,7 +14,9 @@ namespace Utopia.Server.Plugin.Entity;
 /// </summary>
 public class GrassEntity : IEntity
 {
-    public ITranslatedString Name { get; init; }
+    public string Name { get; init; }
+
+    public string Description => "no";
 
     public bool Accessible => false;
 
@@ -28,7 +30,7 @@ public class GrassEntity : IEntity
     {
         //        this.Name = new ICUTranslatedString(ResourcePack.Entity.GrassEntity.TranslateKey, msg, id, new object());
         WorldPosition = new WorldPosition(1, 1, 1, 1);
-        Name = new TranslatedString("translated");
+        Name = "translated";
     }
 
     public void LogicUpdate()

@@ -19,7 +19,8 @@ public static class AreaInformation
 /// </summary>
 public interface IPrecipitationInfo
 {
-    ITranslatedString Name { get; }
+    string Name { get; }
+
     Guuid ID { get; }
 }
 
@@ -28,7 +29,8 @@ public interface IPrecipitationInfo
 /// </summary>
 public interface IElevationInfo
 {
-    ITranslatedString Name { get; }
+    string Name { get; }
+
     Guuid ID { get; }
 }
 
@@ -37,7 +39,7 @@ public interface IElevationInfo
 /// </summary>
 public interface ITemperatureInfo
 {
-    ITranslatedString Name { get; }
+    string Name { get; }
 
     Guuid ID { get; }
 }
@@ -47,7 +49,7 @@ public interface ITemperatureInfo
 /// </summary>
 public interface IBiomeInfo
 {
-    ITranslatedString Name { get; }
+    string Name { get; }
     Guuid ID { get; }
 }
 
@@ -56,6 +58,6 @@ public interface IBiomeInfo
 /// </summary>
 public interface IConstructionInfo
 {
-    ITranslatedString Name { get; }
+    string Name { get; }
     Guuid ID { get; }
 }

@@ -44,6 +44,13 @@ public class Dispatcher : IDispatcher
             (id) => { var l = new List<Action<object>> { handler }; return l; },
             (id, list) => { list.Add(handler); return list; });
 
-    public void UnregisterHandler(Guuid packetTypeId, Action<object> handler) => _handlers.TryRemove(packetTypeId, out List<Action<object>>? _);
+    public void UnregisterHandler(Guuid packetTypeId, Action<object> handler)
+    {
+        if(_handlers.TryGetValue(packetTypeId,out var list)){
+            list.Remove(handler);
+        }
+
+        return;
+    }
 }
 

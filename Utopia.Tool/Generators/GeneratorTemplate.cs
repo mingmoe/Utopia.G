@@ -6,7 +6,6 @@ public class GeneratorTemplate {
 
     public const string ServerPluginClassTemplate =
         """
-        using Autofac;
         using Utopia.Core;
         using Utopia.Core.Events;
         using Utopia.Core.Plugin;
@@ -96,7 +95,7 @@ public class GeneratorTemplate {
             /// <summary>
             /// Fire <see cref="PluginLifeCycle.Created"/> events and call handler methods(with <see cref="LifecycleHandlerAttribute"/>).
             /// </summary>
-            protected void Created()
+            private void Created()
             {
                 void @switch() => _SwitchLifecycle(PluginLifeCycle.Created);
 

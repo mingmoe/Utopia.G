@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using Utopia.Server.Entity;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
 

@@ -261,7 +261,7 @@ public readonly struct Guuid : IEnumerable<string>
     /// e.g. `a:b:c:d` is a child guuid of `a:b:c:d` or `a:b:c` or `a:b`.
     /// </summary>
     /// <returns>true if another guuid is the child of this.</returns>
-    public bool IsChild(in Guuid id)
+    public bool HasChild(in Guuid id)
     {
         var node = id.GetEnumerator();
         node.MoveNext();
@@ -281,6 +281,20 @@ public readonly struct Guuid : IEnumerable<string>
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Get an root of the guuid
+    /// </summary>
+    /// <returns></returns>
+    public Guuid? GetParent()
+    {
+        if(Nodes.Length == 1)
+        {
+            return null;
+        }
+
+        return new Guuid(Root, Nodes[..(Nodes.Length - 1)]);
     }
 }
 

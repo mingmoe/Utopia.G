@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO.Hashing;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Net.Sockets.Kcp;
@@ -41,6 +42,8 @@ public sealed class KcpSocket : ISocket, IKcpCallback
     }
 
     public bool Alive { get; private set; } = true;
+
+    public EndPoint? RemoteAddress => _socket.RemoteAddress;
 
     private readonly ISocket _socket;
 

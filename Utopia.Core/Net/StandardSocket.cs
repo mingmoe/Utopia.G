@@ -61,6 +61,8 @@ public class StandardSocket(Socket socket) : ISocket
         }
     }
 
+    public EndPoint? RemoteAddress => _socket.RemoteEndPoint;
+
     public void Dispose()
     {
         Dispose(true);

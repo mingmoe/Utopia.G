@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
 using Utopia.Core.Utilities;
 
@@ -38,4 +39,6 @@ public interface IConnectHandler : IDisposable
     Task InputLoop();
 
     void Disconnect();
+
+    IEventManager<IEventWithParam<Exception?>> SocketDisconnectEvent { get; }
 }

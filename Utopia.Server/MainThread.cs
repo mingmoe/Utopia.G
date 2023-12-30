@@ -23,6 +23,8 @@ using Autofac;
 using SharpCompress;
 using System.Reflection;
 using Utopia.Core.IO;
+using Autofac.Core;
+using System.Xml.Linq;
 
 namespace Utopia.Server;
 
@@ -153,6 +155,8 @@ public sealed class MainThread
 
         Thread.CurrentThread.Name = "Server Main Thread";
 
+        FileSystem.CreateIfNotExist();
+
         void changeLifecycle(LifeCycle lifeCycle, Action action)
         {
             LifeCycleEvent<LifeCycle>.EnterCycle(
@@ -195,9 +199,13 @@ public sealed class MainThread
             changeLifecycle(LifeCycle.LoadSavings, _LoadSave);
 
             // 设置逻辑线程
+            TimeUtilities.SetAnNoticeWhenCancel(
+                Logger, "Logic Thread", _logicThreadStartWaitTokenSource);
             changeLifecycle(LifeCycle.StartLogicThread, _StartLogicThread);
 
             // 设置网络线程
+            TimeUtilities.SetAnNoticeWhenCancel(
+                Logger, "Internet Thread", _internetThreadStartWaitTokenSource);
             changeLifecycle(LifeCycle.StartNetThread, _StartNetworkThread);
 
             var wait = new SpinWait();

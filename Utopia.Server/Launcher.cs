@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using Autofac;
@@ -27,7 +28,7 @@ namespace Utopia.Server;
 /// <summary>
 /// 服务器启动器
 /// </summary>
-public static class Launcher
+public class Launcher
 {
     public interface ILauncherOption {
         /// <summary>
@@ -103,7 +104,7 @@ public static class Launcher
     /// 使用字符串参数启动服务器
     /// </summary>
     /// <param name="args">命令行参数</param>
-    public static MainThread LaunchWithArguments(string[] args)
+    public static void LaunchWithArguments(string[] args)
     {
         ArgumentNullException.ThrowIfNull(args, nameof(args));
 
@@ -148,28 +149,14 @@ public static class Launcher
             }
         }
 
-        return Launch(option);
-    }
-
-    private class ContainerHolder
-    {
-        public IContainer Container { get; set; } = null!;
+        Launch(option);
     }
 
     private static IContainer _CreateContainer(LauncherOption option)
     {
         Guard.IsNotNull(option);
 
-        ContainerHolder holder = new();
-
         ContainerBuilder builder = new();
-        builder
-            .Register(context =>
-        {
-            ContainerHolder container = holder;
-            return container.Container;
-        })
-            .SingleInstance();
         builder
             .RegisterInstance(option)
             .SingleInstance()
@@ -231,9 +218,7 @@ public static class Launcher
             .AsSelf()
             .SingleInstance();
 
-        holder.Container = builder.Build();
-
-        return holder.Container;
+        return builder.BuildWithIContainer();
     }
     /// <summary>
     /// 
@@ -241,7 +226,7 @@ public static class Launcher
     /// <param name="option"></param>
     /// <param name="startTokenSource">when the server started,cancel the token</param>
     /// <returns></returns>
-    public static MainThread Launch(LauncherOption option,CancellationTokenSource? startTokenSource = null)
+    public static void Launch(LauncherOption option,CancellationTokenSource? startTokenSource = null)
     {
         ArgumentNullException.ThrowIfNull(option);
         if(option.LogOption != null)
@@ -253,9 +238,13 @@ public static class Launcher
 
         var headquarters = container.Resolve<MainThread>();
 
-        headquarters.Launch(startTokenSource ?? new());
+        startTokenSource ??= new();
 
-        return headquarters;
+        // set an timer
+        TimeUtilities.SetAnNoticeWhenCancel(
+            container.Resolve<ILogger<Launcher>>(), "Server", startTokenSource);
+
+        headquarters.Launch(startTokenSource);
     }
 
     private static void Main(string[] args) => LaunchWithArguments(args);

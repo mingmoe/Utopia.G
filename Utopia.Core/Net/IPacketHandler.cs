@@ -2,17 +2,16 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-using System.Buffers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Net;
 
-/// <summary>
-/// 包格式化器
-/// </summary>
-public interface IPacketFormatter
+public interface IPacketHandler
 {
-    object GetValue(Guuid packetId,ReadOnlySequence<byte> packet);
-
-    Memory<byte> ToPacket(Guuid packetId, object value);
+    public Task Handle(Guuid packetId, object packet);
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,4 +23,9 @@ public interface ISocket : IDisposable
     void Shutdown();
 
     bool Alive { get; }
+
+    /// <summary>
+    /// If null,the socket may not based on real socket and has no real remote address
+    /// </summary>
+    EndPoint? RemoteAddress { get; }
 }

@@ -7,6 +7,8 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -42,7 +44,8 @@ public class FakeSocket(PipeReader reader,PipeWriter writer) : ISocket
 
         _disposed = true;
     }
-    
+
+    public EndPoint? RemoteAddress => null;
 
     public Task<int> Read(Memory<byte> dst)
     {

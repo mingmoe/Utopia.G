@@ -24,9 +24,7 @@ public class LoginPacket
 
 public class LoginPacketFormatter : IPacketFormatter
 {
-    public static readonly Guuid PacketTypeId = Guuid.NewUtopiaGuuid("net", "packet", "login");
-
-    public Guuid Id => PacketTypeId;
+    public static readonly Guuid PacketTypeId = Guuid.NewUtopiaGuuid("Net", "Packet", "Login");
 
     public object GetValue(Guuid _, ReadOnlySequence<byte> packet) => MessagePackSerializer.Deserialize<LoginPacket>(packet);
 

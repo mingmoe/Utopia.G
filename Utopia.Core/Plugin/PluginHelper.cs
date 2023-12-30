@@ -148,7 +148,7 @@ public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBa
         builder
             .Register((c) =>
             {
-                var @class = (PluginT)c.Resolve(pluginType);
+                var @class = c.Resolve<PluginT>();
 
                 return CreatePluginFileSystem(
                                         pluginRoot,

@@ -10,6 +10,7 @@ using System.Threading;
 using Autofac;
 using Godot;
 using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 using Utopia.Core;
 using Utopia.Core.Events;
 using Utopia.Core.IO;
@@ -24,7 +25,7 @@ namespace Utopia.G.Game;
 
 public class Client
 {
-    public required ILogger Logger { get; init; }
+    public required ILogger<Client> Logger { get; init; }
 
     public required IEventBus EventBus { get; init; }
 
@@ -100,6 +101,14 @@ public class Client
 
         // register
         builder
+            .RegisterType<NLogLoggerFactory>()
+            .SingleInstance()
+            .As<ILoggerFactory>();
+        builder
+            .RegisterGeneric(typeof(Logger<>))
+            .As(typeof(ILogger<>))
+            .SingleInstance();
+        builder
             .RegisterType<FileSystem>()
             .SingleInstance()
             .As<IFileSystem>();
@@ -136,7 +145,7 @@ public class Client
             .SingleInstance()
             .AsSelf();
 
-        return builder.Build();
+        return builder.BuildWithIContainer();
     }
 
     public void Start(Uri server, IContainer container)

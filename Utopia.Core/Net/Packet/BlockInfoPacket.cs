@@ -30,7 +30,7 @@ public class BlockInfoPacket
 
 public class BlockInfoPacketFormatter : IPacketFormatter
 {
-    public static readonly Guuid PacketTypeId = Guuid.NewUtopiaGuuid("net", "packet", "query_block");
+    public static readonly Guuid PacketTypeId = Guuid.NewUtopiaGuuid("Net", "Packet", "BlockInformation");
 
     public Guuid Id => PacketTypeId;
 

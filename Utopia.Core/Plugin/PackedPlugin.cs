@@ -60,7 +60,7 @@ public class PackedPlugin
     {
         // pack files
         using var tar = new TarWriter
-            (outputStream,new TarWriterOptions(SharpCompress.Common.CompressionType.None, true)
+            (outputStream,new TarWriterOptions(CompressionType.None, true)
             {
                 ArchiveEncoding = new ArchiveEncoding(Encoding.UTF8, Encoding.UTF8),
                 LeaveStreamOpen = leaveStreamOpen
@@ -124,7 +124,9 @@ public class PackedPlugin
         });
 
         var items = tar.Entries.ToDictionary((e) => e.Key);
-        if (!(items.ContainsKey(nameof(Manifest)) && items.ContainsKey(nameof(Contents))))
+        if (!(items.Keys.ToArray().Length == 2 &&
+            items.ContainsKey(nameof(Manifest)) &&
+            items.ContainsKey(nameof(Contents))))
         {
             throw new FormatException("the packed plugin was broken");
         }
@@ -144,13 +146,13 @@ public class PackedPlugin
         // get contents
         if (outputDirectory is not null)
         {
-            items[nameof(Contents)].WriteToDirectory(outputDirectory,
-                new ExtractionOptions()
-                {
-                    Overwrite = true,
-                    PreserveAttributes = true,
-                    PreserveFileTime = false
-                });
+            TarReader contentReader = TarReader.Open(items[nameof(Contents)].OpenEntryStream(), new()
+            {
+                ArchiveEncoding = new(Encoding.UTF8, Encoding.UTF8),
+                LeaveStreamOpen = true,
+            });
+
+            contentReader.WriteEntryToDirectory(outputDirectory);
         }
 
         return manifest;

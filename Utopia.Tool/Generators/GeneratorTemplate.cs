@@ -20,7 +20,7 @@ public class GeneratorTemplate {
                 
             public required ILogger<PluginForServer> Logger { private get; init; }
 
-            public required TranslateManager TranslateManager { private get; init; }
+            public required ITranslateManager TranslateManager { private get; init; }
 
             protected readonly EventManager<LifeCycleEvent<PluginLifeCycle>> _lifecycleEvent = new();
 
@@ -41,7 +41,6 @@ public class GeneratorTemplate {
             
             public PluginForServer()
             {
-                Created();
             }
 
             private void _SwitchLifecycle(PluginLifeCycle cycle)
@@ -75,6 +74,8 @@ public class GeneratorTemplate {
 
             public void Activate()
             {
+                Created();
+
                 void @switch() => _SwitchLifecycle(PluginLifeCycle.Activated);
 
                 void lifecycleCode() => _CallLifecycleHandlers(PluginLifeCycle.Activated);
@@ -95,7 +96,7 @@ public class GeneratorTemplate {
             /// <summary>
             /// Fire <see cref="PluginLifeCycle.Created"/> events and call handler methods(with <see cref="LifecycleHandlerAttribute"/>).
             /// </summary>
-            private void Created()
+            public void Created()
             {
                 void @switch() => _SwitchLifecycle(PluginLifeCycle.Created);
 

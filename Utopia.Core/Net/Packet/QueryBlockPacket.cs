@@ -22,9 +22,7 @@ public class QueryBlockPacket
 
 public class QueryBlockPacketFormatter : IPacketFormatter
 {
-    public static readonly Guuid PacketTypeId = Guuid.NewUtopiaGuuid("net", "packet", "query_block");
-
-    public Guuid Id => PacketTypeId;
+    public static readonly Guuid PacketTypeId = Guuid.NewUtopiaGuuid("Net", "Packet", "QueryBlock");
 
     public object GetValue(Guuid _, ReadOnlySequence<byte> packet) => MessagePackSerializer.Deserialize<QueryBlockPacket>(packet);
 

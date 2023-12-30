@@ -4,6 +4,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Autofac;
+using Autofac.Core.Lifetime;
 using Godot;
 using Utopia.Core;
 using Utopia.Core.Events;
@@ -31,6 +33,8 @@ public class CorePlugin : PluginInformation, IPlugin
     public required ISocketConnecter SocketConnecter { get; init; }
 
     public required Node Node { get; init; }
+
+    public required ILifetimeScope LifetimeScope { private get; init; }
 
     public PluginLifeCycle CurrentCycle => throw new NotImplementedException();
 
@@ -67,6 +71,17 @@ public class CorePlugin : PluginInformation, IPlugin
                 // process
                 ISocketConnecter connecter = SocketConnecter;
 
+                var container = LifetimeScope.BeginLifetimeScope((builder) =>
+                {
+                    builder.RegisterInstance(connecter);
+                    builder.RegisterType<BlockInfoPacketHandler>();
+                });
+
+                connecter.ConnectHandler?.SocketDisconnectEvent.Register((_) =>
+                {
+                    container.Dispose();
+                });
+
                 connecter.ConnectHandler!.Packetizer.TryAdd(QueryBlockPacketFormatter.PacketTypeId,
                     new QueryBlockPacketFormatter());
                 connecter.ConnectHandler!.Packetizer.TryAdd(LoginPacketFormatter.PacketTypeId,
@@ -74,23 +89,8 @@ public class CorePlugin : PluginInformation, IPlugin
                 connecter.ConnectHandler!.Packetizer.TryAdd(BlockInfoPacketFormatter.PacketTypeId,
                     new BlockInfoPacketFormatter());
 
-                connecter.ConnectHandler!.Dispatcher.RegisterHandler(
-                    BlockInfoPacketFormatter.PacketTypeId, (packet) =>
-                    {
-                        var pack = (BlockInfoPacket)packet;
-
-                        for (int index = 0; index != pack.Entities.Length; index++)
-                        {
-                            Core.Utilities.Guuid entity = pack.Entities[index];
-                            byte[] data = pack.EntityData[index];
-
-                            IGodotEntity got = EntityManager.Create(entity, data);
-
-                            Node? tile = got.Render(pack.Position, ((Main)node).Map);
-
-                            node.AddChild(tile);
-                        }
-                    });
+                connecter.ConnectHandler!.Dispatcher.TryAdd(
+                    BlockInfoPacketFormatter.PacketTypeId, container.Resolve<BlockInfoPacketHandler>());
 
                 _ = Task.Run(() =>
                 {

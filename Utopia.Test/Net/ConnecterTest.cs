@@ -20,12 +20,13 @@ public class ConnecterTest
     [Fact]
     public async void ConnectHandlerTest()
     {
+        // prepare
         var (client, server) = FakeSocket.Create();
 
         using var clientHandler = new ConnectHandler(client)
-        { logger = ContainerManager.Container.Value.Resolve<ILogger<ConnectHandler>>() };
+        { Logger = ContainerManager.Container.Value.Resolve<ILogger<ConnectHandler>>() };
         using var serverHandler = new ConnectHandler(server)
-        { logger = ContainerManager.Container.Value.Resolve<ILogger<ConnectHandler>>() };
+        { Logger = ContainerManager.Container.Value.Resolve<ILogger<ConnectHandler>>() };
 
         var clientTask = Task.Run(clientHandler.InputLoop);
         var serverTask = Task.Run(serverHandler.InputLoop);
@@ -49,17 +50,21 @@ public class ConnecterTest
 
         serverHandler.Packetizer.TryAdd(packet, formatter.Object);
         clientHandler.Packetizer.TryAdd(packet, formatter.Object);
+        bool received = false;
 
-        bool check = false;
-
-        serverHandler.Dispatcher.RegisterHandler(packet, (rev) =>
-        {
-            if (Enumerable.SequenceEqual((byte[])rev,data))
+        Mock<IPacketHandler> handler = new();
+        handler.Setup((h) => h.Handle(It.IsAny<Guuid>(), It.IsAny<object>()))
+            .Returns((object rev) =>
             {
-                check = true;
-            }
-        });
+                if (Enumerable.SequenceEqual((byte[])rev, data))
+                {
+                    received = true;
+                }
+            });
 
+        serverHandler.Dispatcher.TryAdd(packet, handler.Object);
+
+        // write
         Thread.Sleep(500);
 
         Assert.True(serverHandler.Running);
@@ -74,7 +79,8 @@ public class ConnecterTest
 
         await all;
 
-        Assert.True(check);
+        // check
+        Assert.True(received);
 
         Assert.False(serverHandler.Running);
         Assert.False(clientHandler.Running);

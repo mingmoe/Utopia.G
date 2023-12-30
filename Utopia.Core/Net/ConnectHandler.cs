@@ -10,13 +10,19 @@ using System.Text;
 using CommunityToolkit.Diagnostics;
 using CommunityToolkit.HighPerformance;
 using Microsoft.Extensions.Logging;
+using Utopia.Core.Events;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Net;
 
 public class ConnectHandler : IConnectHandler
 {
-    public required ILogger<ConnectHandler> logger { protected get; init; }
+    public required ILogger<ConnectHandler> Logger { protected get; init; }
+
+    /// <summary>
+    /// once true,never false
+    /// </summary>
+    private volatile bool _eventFired = false;
 
     private volatile bool _disposed = false;
 
@@ -53,6 +59,9 @@ public class ConnectHandler : IConnectHandler
     public IDispatcher Dispatcher { get; } = new Dispatcher();
 
     public IPacketizer Packetizer { get; } = new Packetizer();
+
+    public IEventManager<IEventWithParam<Exception?>> SocketDisconnectEvent { get; } = 
+        new EventManager<IEventWithParam<Exception?>>();
 
     private async Task _ReadLoop(CancellationToken token)
     {
@@ -159,7 +168,22 @@ public class ConnectHandler : IConnectHandler
 
             reader.AdvanceTo(got.Buffer.GetPosition(length));
             // release
-            _ = Dispatcher.DispatchPacket(id, packet);
+            new Task(async () =>
+            {
+                try
+                {
+                    var handled = await Dispatcher.DispatchPacket(id, packet);
+
+                    if (!handled)
+                    {
+                        Logger.LogWarning("Packet with id {} has no handler", id);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Logger.LogError(ex,"Error when handle packet {}", id);
+                }
+            }).Start();
         }
     }
 
@@ -167,7 +191,8 @@ public class ConnectHandler : IConnectHandler
     {
         lock (_lock)
         {
-            if (_running)
+            // if it is running now or the disconnect event was fired,not start again
+            if (_running || _eventFired)
             {
                 return;
             }
@@ -195,17 +220,36 @@ public class ConnectHandler : IConnectHandler
         }
         catch(Exception e)
         {
-            logger.LogError(e, "Socket Connection Error");
+            Logger.LogError(e, "Socket Connection Error");
+
+            // fire event
+            lock (_lock)
+            {
+                if (!_eventFired)
+                {
+                    _eventFired = true;
+                    EventWithParam<Exception?> @event = new(e);
+                    SocketDisconnectEvent.Fire(@event);
+                }
+            }
         }
 
         // shutdown
         lock (_lock)
         {
             _running = false;
+
+            // fire event
+            if (!_eventFired)
+            {
+                _eventFired = true;
+                EventWithParam<Exception?> @event = new(null);
+                SocketDisconnectEvent.Fire(@event);
+            }
+
+            Disconnect();
         }
     }
-
-    private void _UnlockWrite(Memory<byte> bytes) => _socket.Write(bytes);
 
     public void WritePacket(Guuid packetTypeId, object obj)
     {
@@ -224,10 +268,10 @@ public class ConnectHandler : IConnectHandler
                     IPAddress.HostToNetworkOrder(encoderedId.Length)
                 );
 
-            _UnlockWrite(length);
-            _UnlockWrite(idLength);
-            _UnlockWrite(encoderedId);
-            _UnlockWrite(data);
+            _socket.Write(length);
+            _socket.Write(idLength);
+            _socket.Write(encoderedId);
+            _socket.Write(data);
         }
     }
 

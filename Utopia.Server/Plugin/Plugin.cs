@@ -6,6 +6,7 @@ using Autofac;
 using NLog;
 using Utopia.Core;
 using Utopia.Core.Collections;
+using Utopia.Core.Net;
 using Utopia.Core.Net.Packet;
 using Utopia.Core.Plugin;
 using Utopia.Core.Utilities;
@@ -20,7 +21,7 @@ public class Plugin : PluginForServer
 {
     public required ISafeDictionary<Guuid, IWorldFactory> WorldFactories { private get; init; }
 
-    public required ISafeDictionary<long,World> Worlds { private get; init; }
+    public required ISafeDictionary<long,IWorld> Worlds { private get; init; }
 
     public required IEntityManager EntityManager { private get; init; }
 
@@ -53,7 +54,18 @@ public class Plugin : PluginForServer
         InternetMain.ClientCreatedEvent.Register(
                 (e) =>
                 {
-                    Core.Net.IConnectHandler handler = e.Result!;
+                    IConnectHandler handler = e.Result!;
+
+                    var container = Container.BeginLifetimeScope((builder) =>
+                    {
+                        builder.RegisterInstance(handler);
+                        builder.RegisterType<QueryBlockPacketHandler>().AsSelf();
+                    });
+
+                    handler.SocketDisconnectEvent.Register((_) =>
+                    {
+                        container.Dispose();
+                    });
 
                     handler.Packetizer.TryAdd(QueryBlockPacketFormatter.PacketTypeId,
                         new QueryBlockPacketFormatter());
@@ -62,37 +74,8 @@ public class Plugin : PluginForServer
                     handler.Packetizer.TryAdd(BlockInfoPacketFormatter.PacketTypeId,
                         new BlockInfoPacketFormatter());
 
-                    handler.Dispatcher.RegisterHandler(QueryBlockPacketFormatter.PacketTypeId,
-                        (object packet) =>
-                        {
-                            var query = (QueryBlockPacket)packet;
-
-                            Task.Run(() =>
-                            {
-                                if(!Worlds.TryGetValue(query.QueryPosition.Id,out World? world))
-                                {
-                                    return;
-                                }
-
-                                if (world!.TryGetBlock(query.QueryPosition.ToPos(), out IBlock? block))
-                                {
-                                    using var _ = block!.EnterWriteLock();
-
-                                    var packet = new BlockInfoPacket();
-                                    IReadOnlyCollection<IEntity> entities = block!.GetAllEntities();
-                                    packet.Collidable = block.HasCollision;
-                                    packet.Accessible = block.Accessible;
-                                    packet.Position = query.QueryPosition;
-                                    packet.Entities = entities.Select((i) => i.Id).ToArray();
-                                    packet.EntityData = entities.Select((i) => i.ClientOnlyData()).ToArray();
-
-                                    handler.WritePacket(BlockInfoPacketFormatter.PacketTypeId,
-                                        packet
-                                        );
-                                }
-                            });
-                        });
-
+                    handler.Dispatcher.TryAdd(QueryBlockPacketFormatter.PacketTypeId,
+                        container.Resolve<QueryBlockPacketHandler>());
                 }
                 );
 

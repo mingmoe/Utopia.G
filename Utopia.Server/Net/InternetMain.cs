@@ -44,7 +44,7 @@ internal sealed class InternetMain : IInternetMain
             {
                 _ = Thread.Yield();
             }
-            if (!StopTokenSource.IsCancellationRequested)
+            if (StopTokenSource.IsCancellationRequested)
             {
                 accept.Dispose();
                 return;
@@ -59,7 +59,7 @@ internal sealed class InternetMain : IInternetMain
 
             _clients.EnterSync((IList<IConnectHandler> l) =>
             {
-                if (StopTokenSource.IsCancellationRequested)
+                if (!StopTokenSource.IsCancellationRequested)
                 {
                     _clients.Add(client);
                 }
@@ -69,7 +69,6 @@ internal sealed class InternetMain : IInternetMain
                     socket.Dispose();
                     return;
                 }
-
             });
             Task.Run(client.InputLoop);
         }

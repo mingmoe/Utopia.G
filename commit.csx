@@ -33,7 +33,7 @@ Console.WriteLine("----BEGIN----");
 Console.WriteLine($"{output}");
 Console.WriteLine("-----END-----");
 
-var commit = AnsiConsole.Confirm("[blue]Make a commit?[/]?");
+var commit = AnsiConsole.Confirm("[blue]Make a commit[/]?");
 
 if(commit){
     try

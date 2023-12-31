@@ -14,7 +14,7 @@ namespace Utopia.BuildScript;
 interface INativeBuild : INukeBuild
 {
     [PathVariable("cmake")]
-    Tool CMake => null!;
+    Tool CMake { get; set; }
 
     Target CompileNativeLibraries => (_) =>
     {

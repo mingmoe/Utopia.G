@@ -15,6 +15,11 @@ using static Nuke.Common.IO.PathConstruction;
 
 namespace Utopia.BuildScript;
 
+/// <summary>
+/// TODO:
+/// Add `Benchmark` and `Process Assets` and `Pack Release` targets.
+/// Add version managment using GitVersion.
+/// </summary>
 class Build : NukeBuild , INativeBuild
 {
     /// Support plugins are available for:
@@ -24,6 +29,9 @@ class Build : NukeBuild , INativeBuild
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
     public static int Main () => Execute<Build>(x => x.UnitTest);
+
+    [PathVariable("cmake")]
+    public Tool CMake { get; set; }
 
     [GitVersion]
     readonly GitVersion GitVersion;
@@ -111,10 +119,13 @@ class Build : NukeBuild , INativeBuild
         .DependsOn(CompileAll);
     };
 
+    /// <summary>
+    /// TODO
+    /// </summary>
     Target Release => (_) =>
     {
         return _
-        .Description("release game")
+        .Description("release game into directory")
         .Requires(() => Configuration.Mode == nameof(Configuration.Release))
         .DependsOn(CompileAll);
     };

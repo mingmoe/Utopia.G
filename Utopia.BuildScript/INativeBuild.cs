@@ -4,13 +4,38 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Nuke.Common;
+using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 
 namespace Utopia.BuildScript;
+
+interface INativeRelease : INukeBuild
+{
+    [Parameter] AbsolutePath ReleasePath { get; set; }
+
+    Target ReleaseNativeLibraries => (_) =>
+    {
+        return _
+        .Description("release native libraries")
+        .Requires(() => ReleasePath)
+        .DependsOn<INativeBuild>()
+        .Executes(() =>
+        {
+            var path = RootDirectory / "precompiled-library" / "Release";
+
+            foreach(var fs in path.GetFiles())
+            {
+                File.Copy(fs, ReleasePath / fs.Name);
+            }
+        });
+    };
+}
+
 interface INativeBuild : INukeBuild
 {
     [PathVariable("cmake")]

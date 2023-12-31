@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using Nuke.Common;
 using Nuke.Common.CI;
@@ -20,7 +21,7 @@ namespace Utopia.BuildScript;
 /// Add `Benchmark` and `Process Assets` and `Pack Release` targets.
 /// Add version managment using GitVersion.
 /// </summary>
-class Build : NukeBuild , INativeBuild
+class Build : NukeBuild, INativeBuild, INativeRelease
 {
     /// Support plugins are available for:
     ///   - JetBrains ReSharper        https://nuke.build/resharper
@@ -29,6 +30,9 @@ class Build : NukeBuild , INativeBuild
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
     public static int Main () => Execute<Build>(x => x.UnitTest);
+
+    [Parameter]
+    public AbsolutePath ReleasePath { get; set; }
 
     [PathVariable("cmake")]
     public Tool CMake { get; set; }
@@ -119,14 +123,29 @@ class Build : NukeBuild , INativeBuild
         .DependsOn(CompileAll);
     };
 
-    /// <summary>
-    /// TODO
-    /// </summary>
-    Target Release => (_) =>
+    Target ReleaseClient => (_) =>
     {
         return _
-        .Description("release game into directory")
-        .Requires(() => Configuration.Mode == nameof(Configuration.Release))
-        .DependsOn(CompileAll);
+        .Description("release the client of the game")
+        .DependsOn<INativeRelease>()
+        .Requires(() => ReleasePath)
+        .Executes(() =>
+        {
+            Directory.CreateDirectory(ReleasePath.ToString() + "/");
+        })
+        .Requires(() => Configuration.Mode == nameof(Configuration.Release));
+    };
+
+    Target ReleaseServer => (_) =>
+    {
+        return _
+        .Description("release the server of the game")
+        .DependsOn<INativeRelease>()
+        .Executes(() =>
+        {
+            Directory.CreateDirectory(ReleasePath.ToString() + "/");
+        })
+        .Requires(() => ReleasePath)
+        .Requires(() => Configuration.Mode == nameof(Configuration.Release));
     };
 }

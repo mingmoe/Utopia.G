@@ -1,7 +1,7 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET
+name: Build-And-Test
 
 on:
   push:
@@ -19,13 +19,22 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
     - name: Setup .NET ${{ matrix.version }}
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: ${{ matrix.version }}
-    - name: Setup nuke
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v1.14
+      with:
+        cmake-version: 'latest'
+    - name: Setup Nuke
       run: dotnet tool install Nuke.GlobalTool --global
+    - name: Restore
+      run: |
+        dotnet restore
+        nuke Restore
     - name: Build
       run: nuke CompileAll
     - name: Test

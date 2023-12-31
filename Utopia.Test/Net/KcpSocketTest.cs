@@ -44,6 +44,12 @@ public class KcpSocketTest
         Assert.Equal(0, await serverKcp.Read(new byte[1]));
         Assert.Equal(output.ToArray(), [1,1,4,5,1,4]);
 
+        client.Shutdown();
+        server.Shutdown();
+
+        Assert.False(client.Alive);
+        Assert.False(server.Alive);
+
         client.Dispose();
         server.Dispose();
 

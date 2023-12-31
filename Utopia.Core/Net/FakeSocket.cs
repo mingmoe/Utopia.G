@@ -39,6 +39,7 @@ public class FakeSocket(PipeReader reader,PipeWriter writer) : ISocket
 
         if (disposing)
         {
+            Shutdown();
             Alive = false;
         }
 

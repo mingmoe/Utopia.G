@@ -17,7 +17,13 @@ public static class ContainerManager
 {
     public static readonly Lazy<IContainer> Container = new(() =>
     {
-        LogManager.Init(LogManager.LogOption.CreateDefault());
+    LogManager.Init(new LogManager.LogOption()
+    {
+        ColorfulOutput = false,
+        EnableConsoleDebugOutput = false,
+        EnableDateRegexColor = false,
+        EnableConsoleOutput = false
+    });
 
         ContainerBuilder builder = new();
 

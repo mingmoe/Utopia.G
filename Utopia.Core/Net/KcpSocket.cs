@@ -214,6 +214,12 @@ public sealed class KcpSocket : ISocket, IKcpCallback
 
     public async void Output(IMemoryOwner<byte> buffer, int avalidLength)
     {
+        // write nothing
+        if (!_socket.Alive)
+        {
+            return;
+        }
+
         using var b = buffer;
         // socket.send should be thread-safe
         await _socket.Write(b.Memory.Slice(0,avalidLength));

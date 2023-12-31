@@ -1,4 +1,4 @@
-﻿<Project Sdk="Kawayi.Utopia.Sdk">
+<Project Sdk="Kawayi.Utopia.Sdk">
 
 	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
 
@@ -6,10 +6,6 @@
 	<OutputType>Exe</OutputType>
 	<StartupObject>Utopia.Server.Launcher</StartupObject>
 	</PropertyGroup>
-
-	<Target Name="GenerateSource" AfterTargets="Build;Rebuild">
-		<RunUtopiaToolTask RunFromProject="$(MSBuildThisFileDirectory)/../Utopia.Tool" ConfigurationFilePath="$(MSBuildThisFileDirectory)/../utopia.xml" ProjectPath="$(MSBuildThisFileDirectory)/../" />
-	</Target>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Utopia.Core\Utopia.Core.csproj" />

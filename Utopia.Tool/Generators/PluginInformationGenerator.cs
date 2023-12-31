@@ -56,7 +56,6 @@ public class PluginInformationGenerator : IGenerator
         var builder = new CsBuilder(null, inputVersion);
 
         builder.Using.Add("Utopia.Core.Plugin");
-        builder.Using.Add("Utopia.Core.Transition");
         builder.Using.Add("Utopia.Core.Utilities");
         builder.Namespace = option.CurrentProject.Configuration.RootNamespace;
 

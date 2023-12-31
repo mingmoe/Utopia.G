@@ -21,6 +21,8 @@ public static class LogManager
     /// </summary>
     public class LogOption
     {
+        public bool EnableConsoleOutput { get; set; } = true;
+
         public bool ColorfulOutput { get; set; }
 
         /// <summary>
@@ -28,9 +30,9 @@ public static class LogManager
         /// </summary>
         public bool EnableDateRegexColor { get; set; }
 
-        public bool DetailCmdOutput { get; set; }
+        public bool EnableConsoleDebugOutput { get; set; }
 
-        private LogOption() { }
+        public LogOption() { }
 
         /// <summary>
         /// Create a new default log option. e.g. use colorful output.
@@ -40,7 +42,7 @@ public static class LogManager
         {
             ColorfulOutput = true,
             EnableDateRegexColor = true,
-            DetailCmdOutput = false,
+            EnableConsoleDebugOutput = false,
         };
 
         /// <summary>
@@ -51,7 +53,7 @@ public static class LogManager
         {
             ColorfulOutput = false,
             EnableDateRegexColor = false,
-            DetailCmdOutput = true,
+            EnableConsoleDebugOutput = true,
         };
     }
 
@@ -186,11 +188,11 @@ public static class LogManager
         logconsole.Layout = @"[${longdate}][${level}][${threadname}::${logger}]:${message}${onexception:inner=${newline}${demystifiedException}}";
 
         // set up
-        if (option.DetailCmdOutput)
+        if (option.EnableConsoleOutput && option.EnableConsoleDebugOutput)
         {
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
         }
-        else
+        else if(option.EnableConsoleOutput)
         {
             config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
         }

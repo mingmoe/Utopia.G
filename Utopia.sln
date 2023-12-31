@@ -40,7 +40,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Sdk", "Utopia.Sdk\Ut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.G.Plugin", "Utopia.G.Plugin\Utopia.G.Plugin.csproj", "{491FE769-7394-4401-AAE8-960A3531F1A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Kcp.Wrapper", "Utopia.Kcp.Wrapper\Utopia.Kcp.Wrapper.csproj", "{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Kcp.Wrapper", "Utopia.Kcp.Wrapper\Utopia.Kcp.Wrapper.csproj", "{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.BuildScript", "Utopia.BuildScript\Utopia.BuildScript.csproj", "{1BA35AA2-2093-4176-B851-C446E4312921}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -146,6 +148,12 @@ Global
 		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F35312DE-E88E-43DA-A66B-D7E4A6D9B2D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BA35AA2-2093-4176-B851-C446E4312921}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BA35AA2-2093-4176-B851-C446E4312921}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BA35AA2-2093-4176-B851-C446E4312921}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{1BA35AA2-2093-4176-B851-C446E4312921}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{1BA35AA2-2093-4176-B851-C446E4312921}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{1BA35AA2-2093-4176-B851-C446E4312921}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

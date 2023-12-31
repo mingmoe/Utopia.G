@@ -43,8 +43,9 @@ public class ConnecterTest
             return a.ToArray();
         });
         formatter.Setup((f) => f.ToPacket(It.IsAny<Guuid>(),It.IsAny<object>()))
-            .Returns((Guuid _, object a) =>
+            .Returns((Guuid id, object a) =>
             {
+                Assert.Equal(packet, id);
                 return (Memory<byte>)(byte[])a;
             });
 
@@ -54,12 +55,14 @@ public class ConnecterTest
 
         Mock<IPacketHandler> handler = new();
         handler.Setup((h) => h.Handle(It.IsAny<Guuid>(), It.IsAny<object>()))
-            .Returns((object rev) =>
+            .Returns((Guuid id,object rev) =>
             {
+                Assert.Equal(packet, id);
                 if (Enumerable.SequenceEqual((byte[])rev, data))
                 {
                     received = true;
                 }
+                return Task.CompletedTask;
             });
 
         serverHandler.Dispatcher.TryAdd(packet, handler.Object);

@@ -14,7 +14,7 @@ jobs:
     strategy:
         matrix:
             os: [ubuntu-latest, windows-latest]
-            version: ['8.0.x','7.0.x']
+            version: ['8.0.x']
 
     runs-on: ${{ matrix.os }}
 
@@ -24,9 +24,9 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: ${{ matrix.version }}
-    - name: Restore dependencies
-      run: dotnet restore
+    - name: Setup nuke
+      run: dotnet tool install Nuke.GlobalTool --global
     - name: Build
-      run: dotnet build --no-restore
+      run: nuke CompileAll
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: nuke UnitTest

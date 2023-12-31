@@ -7,7 +7,6 @@
     <Utopia_ModModlue>enable</Utopia_ModModlue>
   </PropertyGroup>
 
-
   <ItemGroup Condition="'$(Utopia_UtilityModule)' == 'enable'">
     <PackageReference Include="Autofac" Version="7.1.0" />
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />

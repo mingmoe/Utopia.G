@@ -10,6 +10,8 @@ public class GeneratorTemplate {
         using Utopia.Core.Events;
         using Utopia.Core.Plugin;
         using System.CodeDom.Compiler;
+        using Microsoft.Extensions.Logging;
+        using Utopia.Core.Translation;
         $PluginInformationNamespace$
         namespace Utopia.Server.Plugin;
 

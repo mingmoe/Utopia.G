@@ -44,6 +44,13 @@
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="1" name="TargetNamespace" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="TargetClass" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="DefaultTranslationProviderId">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="^[a-zA-Z]{1}[a-zA-Z0-9]*(\.[a-zA-Z]{1}[a-zA-Z0-9]*)+$" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="TranslationProviderConfiguration">

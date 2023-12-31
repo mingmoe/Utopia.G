@@ -35,5 +35,11 @@
         <Content Include="$(OutputPath)\Sdk.props" PackagePath="Sdk\" />
         <Content Include="$(ProjectDir)\Sdk\Sdk.targets" PackagePath="Sdk\" />
     </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
+        <PrivateAssets>All</PrivateAssets>
+      </PackageReference>
+    </ItemGroup>
   
 </Project>

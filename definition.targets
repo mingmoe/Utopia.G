@@ -4,6 +4,7 @@
 		<Authors>MingMoe</Authors>
 		<Copyright>Copyright ©MingMoe 2023</Copyright>
 		<PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+    <DisableAutoVersionFileRead>true</DisableAutoVersionFileRead>
 		<UtopiaVersionFilePath>$(MSBuildThisFileDirectory)/version.txt</UtopiaVersionFilePath>
 	</PropertyGroup>
 

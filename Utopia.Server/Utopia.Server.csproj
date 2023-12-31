@@ -13,6 +13,10 @@
 		<ProjectReference Include="..\Utopia.ResourcePack\Utopia.ResourcePack.csproj" />
 	</ItemGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)/../dependencies.targets" />
+	<ItemGroup>
+    <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+	</ItemGroup>
   
 </Project>

@@ -14,6 +14,9 @@
     <ProjectReference Include="..\Utopia.Server\Utopia.Server.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
     <PackageReference Update="Godot.SourceGenerators" Version="4.0.3" />
   </ItemGroup>
   <ItemGroup>
@@ -22,6 +25,5 @@
   <ItemGroup>
     <PackageReference Update="GodotSharpEditor" Version="4.0.3" />
   </ItemGroup>
-  <Import Project="$(MSBuildThisFileDirectory)/../dependencies.targets" />
   <Import Sdk="Kawayi.Utopia.Sdk" Project="Sdk.targets" />
 </Project>

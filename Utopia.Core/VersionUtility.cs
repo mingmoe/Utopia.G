@@ -2,25 +2,40 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
+using SemanticVersioning;
 
 namespace Utopia.Core;
 
-/// <summary>
-/// 
-/// </summary>
 public static class VersionUtility
 {
-    private static Lazy<Version> _version = new(() =>
+    private static Lazy<SemanticVersioning.Version> _version = new(() =>
     {
-        return typeof(VersionUtility).Assembly.GetName().Version ?? new Version(0, 1, 0, 0);
+        // try get from GitVersion first
+        var assembly = Assembly.GetCallingAssembly();
+        var assemblyName = assembly.GetName().Name;
+        var gitVersionInformationType = assembly.GetType("GitVersionInformation");
+
+        if(gitVersionInformationType is null)
+        {
+            goto from_assembly;
+        }
+
+        var fields = gitVersionInformationType.GetFields().ToDictionary((field) => field.Name);
+
+        if(fields.TryGetValue("SemVer", out var info))
+        {
+            return SemanticVersioning.Version.Parse((string?)info.GetValue(null) ?? string.Empty);
+        }
+
+    from_assembly:
+
+        var v = assembly.GetName().Version ?? new System.Version(0, 1, 0, 0);
+
+        return SemanticVersioning.Version.Parse($"{v.Major}.{v.Minor}.{v.Revision}-{v.Build}");
     }, true);
 
-    public static Version UtopiaCoreVersion { get {
+    public static SemanticVersioning.Version UtopiaCoreVersion { get {
             return _version.Value;
         }
     }

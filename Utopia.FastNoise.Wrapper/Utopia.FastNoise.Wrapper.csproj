@@ -11,9 +11,10 @@
     <UseUtopiaSdk>false</UseUtopiaSdk>
   </PropertyGroup>
 
-  <Target Name="CopyNoiseNativeLibraries" BeforeTargets="Compile">
-      <Copy Condition="'$(OS)' == 'Windows_NT'" SourceFiles="$(MSBuildThisFileDirectory)/../precompiled-library/FastNoise.dll" DestinationFolder="$(OutputPath)" />
-      <Copy Condition="'$(OS)' == 'Unix'" SourceFiles="$(MSBuildThisFileDirectory)/../precompiled-library/libFastNoise.so" DestinationFolder="$(OutputPath)" />
-  </Target>
+  <ItemGroup>
+    <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 
 </Project>

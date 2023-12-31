@@ -39,3 +39,24 @@ jobs:
       run: nuke CompileAll
     - name: Test
       run: nuke UnitTest
+
+  mark-tag:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore
+      run: |
+        dotnet tool restore
+    - name: Tag
+      run: |
+        git tag -a $(dotnet gitversion -showvariable SemVer) -m "nightly version"
+    - name: Push
+      run: |
+        git push --tags

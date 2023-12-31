@@ -4,8 +4,8 @@
 
 using Markdig;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.DocAsCode;
-using Microsoft.DocAsCode.Dotnet;
+using Docfx;
+using Docfx.Dotnet;
 
 namespace Utopia.Tools;
 

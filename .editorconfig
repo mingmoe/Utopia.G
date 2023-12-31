@@ -20,6 +20,7 @@ end_of_line = lf
 generated_code = false
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
 tab_width = 4
+dotnet_style_coalesce_expression = true:suggestion
 
 # C# files
 [*.cs]

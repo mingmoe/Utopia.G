@@ -56,7 +56,7 @@ jobs:
         dotnet tool restore
     - name: Tag
       run: |
-        git tag -a $(dotnet gitversion -showvariable SemVer) -m "nightly version"
+        git tag -a v$(dotnet gitversion -showvariable SemVer) -m "nightly version"
     - name: Push
       run: |
         git push --tags

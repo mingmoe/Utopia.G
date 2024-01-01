@@ -30,12 +30,12 @@ jobs:
       with:
         cmake-version: 'latest'
     - name: Setup Nuke
-      run: dotnet tool install Nuke.GlobalTool --global
+      run: dotnet tool install Nuke.GlobalTool --local
     - name: Restore
       run: |
         git submodule update --init --recursive
         dotnet restore
-        nuke Restore
+        dotnet nuke Restore
     - name: Build
       run: nuke CompileAll
     - name: Test

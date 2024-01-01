@@ -10,7 +10,7 @@ add_library("Utopia.Kcp" SHARED "${CMAKE_CURRENT_SOURCE_DIR}/kcp/ikcp.c")
 if (MSVC)
     target_compile_options("Utopia.Kcp" PUBLIC /w /std:c11 /utf-8 /O2 /permissive-)
 else()
-    target_compile_options("Utopia.Kcp" PUBLIC -w -O3 std=c11)
+    target_compile_options("Utopia.Kcp" PUBLIC -w -O3 -std=c11)
 endif()
 
 target_compile_definitions("Utopia.Kcp" PUBLIC "NDEBUG" "NODEBUG")

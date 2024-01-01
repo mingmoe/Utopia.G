@@ -43,7 +43,7 @@ jobs:
   mark-tag:
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
-    needs: [ build-and-run ]
+    needs: [ build-and-test ]
 
     steps:
     - name: Checkout

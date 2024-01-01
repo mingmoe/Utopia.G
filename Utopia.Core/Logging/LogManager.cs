@@ -7,6 +7,7 @@ using System.Text;
 using NLog;
 using NLog.Layouts;
 using NLog.Targets;
+using Spectre.Console;
 
 namespace Utopia.Core.Logging;
 
@@ -23,26 +24,27 @@ public static class LogManager
     {
         public bool EnableConsoleOutput { get; set; } = true;
 
+        /// <summary>
+        /// This option is only for Console Output.
+        /// </summary>
         public bool ColorfulOutput { get; set; }
 
         /// <summary>
-        /// <see cref="ColorfulOutput"/> must be ture to enable this.
+        /// Enable debug level output.
+        /// This option is only for Console Output.
         /// </summary>
-        public bool EnableDateRegexColor { get; set; }
-
         public bool EnableConsoleDebugOutput { get; set; }
 
         public LogOption() { }
 
         /// <summary>
-        /// Create a new default log option. e.g. use colorful output.
+        /// Create a new default log option. e.g. enable colorful output.
         /// </summary>
         /// <returns></returns>
         public static LogOption CreateDefault() => new()
         {
             ColorfulOutput = true,
-            EnableDateRegexColor = true,
-            EnableConsoleDebugOutput = false,
+            EnableConsoleDebugOutput = true,
         };
 
         /// <summary>
@@ -52,20 +54,91 @@ public static class LogManager
         public static LogOption CreateBatch() => new()
         {
             ColorfulOutput = false,
-            EnableDateRegexColor = false,
             EnableConsoleDebugOutput = true,
         };
     }
 
-    /// <summary>
-    /// 初始化日志
-    /// </summary>
-    /// <param name="enableRegexColored">是否启用正则表达式进行着色，这会导致性能降低，但是输出将会变得beautiful</param>
-    public static void Init(LogOption option)
+    private class StandardConsoleTarget : Target
     {
-        var config = new NLog.Config.LoggingConfiguration();
+        /// <summary>
+        /// No readonly
+        /// </summary>
+        private SpinLock _spin = new();
 
-        // config file
+        protected override void Write(LogEventInfo logEvent)
+        {
+            bool taken = false;
+            try
+            {
+                _spin.Enter(ref taken);
+
+                var logMessage = Markup.Escape(logEvent.FormattedMessage);
+
+                Markup level;
+
+                if(logEvent.Level == LogLevel.Trace)
+                {
+                    level = new("[gray]Trace[/]");
+                }
+                else if(logEvent.Level == LogLevel.Debug)
+                {
+                    level = new("[blue underline]Debug[/]");
+                }
+                else if(logEvent.Level == LogLevel.Info)
+                {
+                    level = new("Info");
+                }
+                else if (logEvent.Level == LogLevel.Warn)
+                {
+                    level = new("[yellow]Warn[/]");
+                }
+                else if (logEvent.Level == LogLevel.Error)
+                {
+                    level = new("[red]Error[/]");
+                }
+                else // Fatal
+                {
+                    level = new("[red bold underline]Fatal[/]");
+                }
+
+                var datetime = new Markup($"[blue]{logEvent.TimeStamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss:ffff")}[/]");
+
+                var threadName = new Markup($"{Thread.CurrentThread.Name}");
+                var loggerName = new Markup($"{logEvent.LoggerName}");
+
+                AnsiConsole.Write('[');
+                AnsiConsole.Write(datetime);
+                AnsiConsole.Write(']');
+                AnsiConsole.Write('[');
+                AnsiConsole.Write(level);
+                AnsiConsole.Write(']');
+                AnsiConsole.Write('[');
+                AnsiConsole.Write(threadName);
+                AnsiConsole.Write('-');
+                AnsiConsole.Write(loggerName);
+                AnsiConsole.Write(']');
+                AnsiConsole.Write(':');
+                AnsiConsole.Write(logMessage);
+                AnsiConsole.WriteLine();
+
+                if (logEvent.Exception != null)
+                {
+                    logEvent.Exception.PrintColoredStringDemystified();
+                    AnsiConsole.WriteLine();
+                }
+            }
+            finally
+            {
+                if (taken)
+                {
+                    _spin.Exit();
+                }
+            }            
+        }
+    }
+
+    private static Target SetupFileTarget(LogOption option)
+    {
         var logfile = new FileTarget("logfile")
         {
             FileName = "Log/Current.log",
@@ -80,72 +153,6 @@ public static class LogManager
             ArchiveEvery = FileArchivePeriod.Day
         };
 
-        // config console
-        TargetWithLayoutHeaderAndFooter logconsole = null!;
-
-        // detect color option
-        if (option.ColorfulOutput)
-        {
-            var colorConsole = new ColoredConsoleTarget("logconsole")
-            {
-                UseDefaultRowHighlightingRules = false,
-                Encoding = Encoding.UTF8,
-                EnableAnsiOutput = true
-            };
-            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-            {
-                Condition = "level == LogLevel.Debug",
-                ForegroundColor = ConsoleOutputColor.Blue,
-            });
-            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-            {
-                Condition = "level == LogLevel.Trace",
-                ForegroundColor = ConsoleOutputColor.Cyan,
-            });
-            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-            {
-                Condition = "level == LogLevel.Info",
-                ForegroundColor = ConsoleOutputColor.White,
-            });
-            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-            {
-                Condition = "level == LogLevel.Warn",
-                ForegroundColor = ConsoleOutputColor.Yellow,
-            });
-            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-            {
-                Condition = "level == LogLevel.Error",
-                ForegroundColor = ConsoleOutputColor.Red,
-            });
-            colorConsole.RowHighlightingRules.Add(new ConsoleRowHighlightingRule()
-            {
-                Condition = "level == LogLevel.Fatal",
-                ForegroundColor = ConsoleOutputColor.DarkRed,
-            });
-            logconsole = colorConsole;
-        }
-        else
-        {
-            var console = new ConsoleTarget("logconsole")
-            {
-                Encoding = Encoding.UTF8,
-            };
-            logconsole = console;
-        }
-
-        if (logconsole is ColoredConsoleTarget colored && option.EnableDateRegexColor)
-        {
-            // colored datetime
-            colored.WordHighlightingRules.Add(new ConsoleWordHighlightingRule()
-            {
-                BackgroundColor = ConsoleOutputColor.Blue,
-                ForegroundColor = ConsoleOutputColor.White,
-                CompileRegex = true,
-                Regex = @"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4}\]"
-            });
-        }
-
-        // setup output file format
         logfile.Layout = new JsonLayout()
         {
             Attributes =
@@ -172,31 +179,54 @@ public static class LogManager
             IndentJson = true,
         };
 
-        // 设置更好的异常格式
-        _ = NLog.LogManager.Setup().SetupExtensions((e) =>
-        {
-            _ = e.RegisterLayoutRenderer("demystifiedException", (e) =>
-            {
-                if (e.Exception != null)
-                {
-                    e.Exception = e.Exception.Demystify();
-                    return e.Exception.ToStringDemystified();
-                }
-                return string.Empty;
-            });
-        });
-        logconsole.Layout = @"[${longdate}][${level}][${threadname}::${logger}]:${message}${onexception:inner=${newline}${demystifiedException}}";
+        return logfile;
+    }
 
+    private static Target SetupConsoleTarget(LogOption option)
+    {
+        Target logconsole = null!;
+
+        // detect color option
+        if (option.ColorfulOutput)
+        {
+            logconsole = new StandardConsoleTarget()
+            {
+                Name = nameof(logconsole)
+            };
+        }
+        else
+        {
+            var console = new ConsoleTarget(nameof(logconsole))
+            {
+                Encoding = Encoding.UTF8,
+                Layout = @"[${longdate}][${level}][${threadname}::${logger}]:${message}${onexception:inner=${newline}${exception}}"
+            };
+            logconsole = console;
+        }
+
+        return logconsole;
+    }
+
+    /// <summary>
+    /// 初始化日志
+    /// </summary>
+    /// <param name="enableRegexColored">是否启用正则表达式进行着色，这会导致性能降低，但是输出将会变得beautiful</param>
+    public static void Init(LogOption option)
+    {
+        var config = new NLog.Config.LoggingConfiguration();
+        
         // set up
         if (option.EnableConsoleOutput && option.EnableConsoleDebugOutput)
         {
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, SetupConsoleTarget(option));
+            ;
         }
         else if(option.EnableConsoleOutput)
         {
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, SetupConsoleTarget(option));
         }
-        config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
+
+        config.AddRule(LogLevel.Debug, LogLevel.Fatal, SetupFileTarget(option));
 
         NLog.LogManager.Configuration = config;
         NLog.LogManager.ReconfigExistingLoggers();

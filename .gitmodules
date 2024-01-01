@@ -4,3 +4,6 @@
 [submodule "Utopia.FastNoise/fastnoise"]
 	path = Utopia.FastNoise/fastnoise
 	url = https://github.com/Auburn/FastNoise2
+[submodule "Utopia.Demystifier"]
+	path = Utopia.Demystifier
+	url = https://github.com/mingmoe/Utopia.Demystifier

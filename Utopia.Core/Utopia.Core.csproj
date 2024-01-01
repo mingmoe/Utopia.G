@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="7.1.0" />
-    <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="CommunityToolkit.Common" Version="8.2.1" />
     <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.1" />
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.1" />
@@ -40,6 +39,9 @@
     <PackageReference Include="MessageFormat" Version="7.0.0" />
     <PackageReference Include="Lib.Harmony" Version="2.2.2" />
     <PackageReference Include="SemanticVersioning" Version="2.0.2" />
+    <PackageReference Include="Spectre.Console" Version="0.48.0" />
+
+    <ProjectReference Include="..\Utopia.Demystifier\src\Ben.Demystifier\Utopia.Demystifier.csproj" />
   </ItemGroup>
 
   <ItemGroup>

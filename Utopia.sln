@@ -45,6 +45,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Kcp.Wrapper", "Utopi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.BuildScript", "Utopia.BuildScript\Utopia.BuildScript.csproj", "{1BA35AA2-2093-4176-B851-C446E4312921}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Demystifier", "Utopia.Demystifier\src\Ben.Demystifier\Utopia.Demystifier.csproj", "{5AAC05CD-4683-4AC0-9159-19A58E71CA73}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -155,6 +157,14 @@ Global
 		{1BA35AA2-2093-4176-B851-C446E4312921}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
 		{1BA35AA2-2093-4176-B851-C446E4312921}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{1BA35AA2-2093-4176-B851-C446E4312921}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AAC05CD-4683-4AC0-9159-19A58E71CA73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AAC05CD-4683-4AC0-9159-19A58E71CA73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AAC05CD-4683-4AC0-9159-19A58E71CA73}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AAC05CD-4683-4AC0-9159-19A58E71CA73}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{5AAC05CD-4683-4AC0-9159-19A58E71CA73}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{5AAC05CD-4683-4AC0-9159-19A58E71CA73}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{5AAC05CD-4683-4AC0-9159-19A58E71CA73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AAC05CD-4683-4AC0-9159-19A58E71CA73}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

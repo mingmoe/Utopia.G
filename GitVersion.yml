@@ -2,7 +2,6 @@ mode: ContinuousDeployment
 tag-prefix: '[vV]'
 update-build-number: true
 continuous-delivery-fallback-tag: nightly
-branches: {}
 ignore:
   sha: []
 merge-message-formats: {}

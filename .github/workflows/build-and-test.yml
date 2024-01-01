@@ -37,9 +37,9 @@ jobs:
         dotnet restore
         dotnet nuke Restore
     - name: Build
-      run: nuke CompileAll
+      run: dotnet nuke CompileAll
     - name: Test
-      run: nuke UnitTest
+      run: dotnet nuke UnitTest
 
   mark-tag:
     if: ${{ github.event_name == 'push' }}

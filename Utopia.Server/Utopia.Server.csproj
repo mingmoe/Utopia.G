@@ -1,6 +1,6 @@
 <Project Sdk="Kawayi.Utopia.Sdk">
 
-	<Import Project="$(MSBuildThisFileDirectory)/../Definition.targets" />
+	<Import Project="$(MSBuildThisFileDirectory)/../definition.targets" />
 
 	<PropertyGroup>
 	<OutputType>Exe</OutputType>

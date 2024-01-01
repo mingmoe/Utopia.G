@@ -1,5 +1,5 @@
 {
     "msbuild-sdks": {
-        "Kawayi.Utopia.Sdk": "0.1.14"
+        "Kawayi.Utopia.Sdk": "0.2.0-nightly.97"
     }
 }

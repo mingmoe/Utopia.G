@@ -33,6 +33,7 @@ jobs:
       run: dotnet tool install Nuke.GlobalTool --global
     - name: Restore
       run: |
+        git submodule update --init --recursive
         dotnet restore
         nuke Restore
     - name: Build
@@ -54,6 +55,7 @@ jobs:
         dotnet-version: 8.0.x
     - name: Restore
       run: |
+        git submodule update --init --recursive
         dotnet tool restore
     - name: Tag
       run: |

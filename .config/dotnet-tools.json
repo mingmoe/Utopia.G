@@ -13,6 +13,12 @@
       "commands": [
         "dotnet-script"
       ]
+    },
+    "nuke.globaltool": {
+      "version": "7.0.6",
+      "commands": [
+        "nuke"
+      ]
     }
   }
 }

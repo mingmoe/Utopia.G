@@ -21,6 +21,8 @@ namespace Utopia.Core.Plugin;
 /// </summary>
 public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBase
 {
+    public required LanguageID CurrentLanguage { get; init; }
+
     public required IFileSystem FileSystem { get; init; }
 
     public required IContainer Container { get; init; }
@@ -175,6 +177,18 @@ public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBa
         // PluginContext
         builder
             .RegisterType<PluginContext<PluginT>>()
+            .SingleInstance()
+            .AsSelf();
+
+        // ITranslationManager
+        builder
+            .RegisterType<TranslationManager>()
+            .SingleInstance()
+            .As<ITranslationManager>();
+
+        // LanguageID
+        builder
+            .RegisterInstance(CurrentLanguage)
             .SingleInstance()
             .AsSelf();
 

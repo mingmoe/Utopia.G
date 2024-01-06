@@ -5,7 +5,9 @@
 using System.Text;
 using McMaster.Extensions.CommandLineUtils;
 using NLog;
+using SemanticVersioning;
 using Utopia.Tools.Generators;
+using Version = SemanticVersioning.Version;
 
 namespace Utopia.Tools;
 
@@ -68,7 +70,7 @@ public class Program
 
     public static Version GetVersion()
     {
-        return typeof(Program).Assembly.GetName().Version ?? new Version(1, 1, 0, 1);
+        return VersionUtility.UtopiaCoreVersion;
     }
 
     public static string GetProgramName()
@@ -94,11 +96,11 @@ public class Program
         foreach (string arg in args)
         {
             _ = sb.Append("\",\"");
-            _ = sb.Append(arg);
+            _ = sb.Append(arg.Replace("\"","\\\""));
         }
         _ = sb.Append("\" ]");
 
-        _Logger.Debug("arguments: {args}", sb.ToString());
+        Console.WriteLine("args: {0}",sb.ToString());
 
         var app = new CommandLineApplication
         {
@@ -107,7 +109,7 @@ public class Program
         };
 
         // build command
-        _ = app.Command("extract-translate", TranslationFinder.Command);
+        _ = app.Command("extract-translation", TranslationFinder.Command);
         _ = app.Command("docs", GenerateDocs.Command);
         _ = app.Command("generate", GenerationCommand.Command);
 

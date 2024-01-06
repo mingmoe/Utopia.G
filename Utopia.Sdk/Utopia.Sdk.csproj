@@ -12,6 +12,7 @@
 
       <UseUtopiaSdk>false</UseUtopiaSdk>
       <UseUtopiaBuild>false</UseUtopiaBuild>
+      <RecommendUtopiaNetOption>false</RecommendUtopiaNetOption>
   </PropertyGroup>
 
     <!-- generate .dep.json -->

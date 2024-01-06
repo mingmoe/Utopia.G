@@ -38,7 +38,7 @@ public class Plugin : PluginForServer
     }
 
     [LifecycleHandler(PluginLifeCycle.Activated)]
-    public void ActivateEventHandler(ContainerBuilder builder)
+    public void ActivateEventHandler()
     {
         WorldFactories.TryAdd(
                    IDs.WorldType,

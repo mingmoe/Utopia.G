@@ -3,6 +3,7 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 using NLog;
 
@@ -12,22 +13,25 @@ public class Utility
 {
     private static readonly Logger s_logger = LogManager.GetCurrentClassLogger();
 
-    public static Microsoft.CodeAnalysis.Project[] OpenSlnToProject(string sln, string? projGuuid)
+    public static Project[] OpenSlnToProject(string sln)
     {
         var msWorkspace = MSBuildWorkspace.Create();
-        Task<Solution> t = msWorkspace.OpenSolutionAsync(sln!);
-        t.Wait();
-        Solution solution = t.Result;
+        var solution = msWorkspace.OpenSolutionAsync(sln!);
 
-        Project[] projs = projGuuid == null ? solution.Projects.ToArray() :
-            new Microsoft.CodeAnalysis.Project[1]
-            { solution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projGuuid)))
-                ?? throw new ArgumentException($"the project guuid {projGuuid} not found") };
+        solution.Wait();
 
-        return projs;
+        return solution.Result.Projects.ToArray();
     }
 
-    public static async Task<Compilation[]> GetCompilation(Microsoft.CodeAnalysis.Project[] projects)
+    public static Project OpenProject(string project)
+    {
+        var msWorkspace = MSBuildWorkspace.Create();
+        var t = msWorkspace.OpenProjectAsync(project);
+        t.Wait();
+        return t.Result;
+    }
+
+    public static Compilation[] GetCompilation(params Project[] projects)
     {
         List<Task<Compilation?>> compilations = new();
 
@@ -35,7 +39,7 @@ public class Utility
         {
             compilations.Add(project.GetCompilationAsync());
         }
-        _ = await Task.WhenAll(compilations.ToArray());
+        Task.WhenAll(compilations.ToArray()).Wait();
 
         List<Compilation> result = new();
         for (int index = 0; index != projects.Length; index++)

@@ -3,6 +3,10 @@
     "Call Tool": {
       "commandName": "Project",
       "commandLineArgs": "generate\r\n--configuration\r\nC:\\Users\\mingm\\Projects\\utopia-godot/utopia.xml\r\n--project\r\nC:\\Users\\mingm\\Projects\\utopia-godot/"
+    },
+    "Extract Translation": {
+      "commandName": "Project",
+      "commandLineArgs": "extract-translation\r\nC:\\Users\\mingm\\Projects\\utopia-godot\\Utopia.Server\\Utopia.Server.csproj"
     }
   }
 }

@@ -12,48 +12,50 @@ using SharpCompress;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Translation;
+
 public class TranslationGetter : ITranslationGetter
 {
-    public required ITranslateManager TranslateManager { private get; init; }
+    public ITranslationManager Manager { get; init; }
 
-    private readonly object _lock = new();
+    public LanguageID CurrentLanguage { get; set; }
 
-    private MessageFormatter? _messageFormatter = null;
+    private System.Lazy<MessageFormatter> _messageFormatter;
 
-    private MessageFormatter _GetFormatter()
+    public TranslationGetter(ITranslationManager manager,LanguageID id)
     {
-        lock (_lock)
+        Manager = manager;
+        CurrentLanguage = id;
+        _messageFormatter = new(() =>
         {
-            if (_messageFormatter == null)
-            {
-                _messageFormatter = new(true, TranslateManager.CurrentLanguage.Language);
-            }
-
-            return _messageFormatter;
-        }
+            return new(true, CurrentLanguage.Location);
+        }, true);
     }
 
-    public Guuid? DefaultProvider { get; init; }
-
-    public string I18n(string text, string? comment, Guuid? provider)
+    public string I18n(string text, string comment)
     {
-        return I18nf(text, [],comment, provider);
+        if (Manager.TryGetTranslate(CurrentLanguage,
+            text,
+            out var msg
+            ))
+        {
+            return msg;
+        }
+
+        return text;
     }
 
     public string I18nf(string text,
         Dictionary<string,object?> args,
-        string? comment/* useful */ ,
-        Guuid? provider)
+        string comment/* useful */)
     {
-        if(!TranslateManager.TryGetTranslate(TranslateManager.CurrentLanguage,
-            provider,
+        if(Manager.TryGetTranslate(CurrentLanguage,
             text,
             out string? msg
             ))
         {
-            return _GetFormatter().FormatMessage(text, args);
+            return _messageFormatter.Value.FormatMessage(msg, args);
         }
 
-        return _GetFormatter().FormatMessage(msg!, args);
+        return _messageFormatter.Value.FormatMessage(text, args);
     }
 }

@@ -6,6 +6,9 @@ using Utopia.Core.Exceptions;
 
 namespace Utopia.Core.Events;
 
+/// <summary>
+/// The base event implement
+/// </summary>
 public class Event : IEvent
 {
     private volatile bool _canceled = false;
@@ -32,31 +35,24 @@ public class CancelableEvent : Event, IEvent, ICancelable
     public void SetCancel(bool isCancel) => Cancel = isCancel;
 }
 
-public class EventWithParam<ParamT> : Event, IEventWithParam<ParamT>
+public class EventWithParam<ParamT>(ParamT? parameter) : Event(), IEventWithParam<ParamT>
 {
-    public ParamT? Parameter { get; set; }
-
-    public EventWithParam(ParamT? parameter) : base() => Parameter = parameter;
-}
-public class CancelableEventWithParam<ParamT> : CancelableEvent, IEventWithParam<ParamT>
-{
-    public ParamT? Parameter { get; set; }
-
-    public CancelableEventWithParam(ParamT? parameter) : base() => Parameter = parameter;
+    public ParamT? Parameter { get; set; } = parameter;
 }
 
-public class EventWithResult<ResultT> : Event, IEventWithResult<ResultT>
+public class CancelableEventWithParam<ParamT>(ParamT? parameter) : CancelableEvent(), IEventWithParam<ParamT>
 {
-    public ResultT? Result { get; set; }
-
-    public EventWithResult(ResultT? result) : base() => Result = result;
+    public ParamT? Parameter { get; set; } = parameter;
 }
 
-public class CancelableEventWithResult<ResultT> : CancelableEvent, IEventWithResult<ResultT>
+public class EventWithResult<ResultT>(ResultT? result) : Event(), IEventWithResult<ResultT>
 {
-    public ResultT? Result { get; set; }
+    public ResultT? Result { get; set; } = result;
+}
 
-    public CancelableEventWithResult(ResultT? result) : base() => Result = result;
+public class CancelableEventWithResult<ResultT>(ResultT? result) : CancelableEvent(), IEventWithResult<ResultT>
+{
+    public ResultT? Result { get; set; } = result;
 }
 
 /// <summary>

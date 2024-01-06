@@ -9,7 +9,7 @@ namespace Utopia.Core.Translation;
 /// <summary>
 /// 翻译唯一标识符号，用于标识一个翻译。
 /// </summary>
-public readonly struct TranslateIdentifence
+public sealed class LanguageID
 {
     /// <summary>
     /// ISO 639-1所指定的两位字母语言编码。
@@ -21,7 +21,7 @@ public readonly struct TranslateIdentifence
     /// </summary>
     public readonly string Location;
 
-    public TranslateIdentifence()
+    public LanguageID()
     {
         Language = CultureInfo.CurrentCulture.TwoLetterISOLanguageName.ToLower();
         Location = RegionInfo.CurrentRegion.TwoLetterISORegionName.ToLower();
@@ -32,14 +32,14 @@ public readonly struct TranslateIdentifence
     /// [separator] can be '-' or '_' or ' '(SPACE).
     /// [LANGUAGE] and [LOCATION] obey the ISO 639-1 and ISO 3166-1 standard(Two letter version).
     /// </summary>
-    public static TranslateIdentifence Parse(string id) => !TryParse(id, out TranslateIdentifence? identifence)
+    public static LanguageID Parse(string id) => !TryParse(id, out LanguageID? identifence)
             ? throw new ArgumentException("the format of TranslateIdentifence is invalid")
-            : identifence!.Value;
+            : identifence!;
 
     /// <summary>
     /// see <see cref="Parse(string)"/>
     /// </summary>
-    public static bool TryParse(string id, out TranslateIdentifence? result)
+    public static bool TryParse(string id, out LanguageID? result)
     {
         ArgumentNullException.ThrowIfNull(id);
 
@@ -51,7 +51,7 @@ public readonly struct TranslateIdentifence
             return false;
         }
 
-        result = new TranslateIdentifence(parts[0], parts[1]);
+        result = new LanguageID(parts[0], parts[1]);
         return true;
     }
 
@@ -61,7 +61,7 @@ public readonly struct TranslateIdentifence
     /// <param name="language">ISO 639-1标准语言代码(Two letter)</param>
     /// <param name="location">ISO 3166-1标准地区代码(Two letter)</param>
     /// <exception cref="ArgumentException">如果参数不符合标准。</exception>
-    public TranslateIdentifence(string language, string location)
+    public LanguageID(string language, string location)
     {
         ArgumentNullException.ThrowIfNull(language);
         ArgumentNullException.ThrowIfNull(location);
@@ -91,18 +91,18 @@ public readonly struct TranslateIdentifence
         }
         if (obj.GetType().IsAssignableFrom(GetType()))
         {
-            var o = (TranslateIdentifence)obj;
+            var o = (LanguageID)obj;
             return o.Language == Language && o.Location == Location;
         }
         return false;
     }
 
-    public static bool operator ==(TranslateIdentifence left, TranslateIdentifence right)
+    public static bool operator ==(LanguageID left, LanguageID right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(TranslateIdentifence left, TranslateIdentifence right)
+    public static bool operator !=(LanguageID left, LanguageID right)
     {
         return !(left == right);
     }

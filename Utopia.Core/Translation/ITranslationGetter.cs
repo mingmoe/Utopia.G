@@ -11,11 +11,18 @@ using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Translation;
 
+/// <summary>
+/// The interface allows you to get the translation.
+/// And you should only get translation from this.
+/// The message will be formatted by <see cref="Jeffijoe.MessageFormat.IMessageFormatter"/>.
+/// </summary>
 public interface ITranslationGetter
 {
-    Guuid? DefaultProvider { get; }
+    ITranslationManager Manager { get; }
 
-    string I18n(string text,string? comment = null,Guuid? provider = null);
+    LanguageID CurrentLanguage { get; set; }
 
-    string I18nf(string text, Dictionary<string,object?> args, string? comment = null, Guuid? provider = null);
+    string I18n(string text,string comment);
+
+    string I18nf(string text, Dictionary<string,object?> args, string comment);
 }

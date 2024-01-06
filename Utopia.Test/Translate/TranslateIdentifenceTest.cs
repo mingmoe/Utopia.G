@@ -13,13 +13,13 @@ public class TranslateIdentifenceTest
     [InlineData("ASD", "321")]
     public void CheckTranslateIdConstruction(string first, string last) => Assert.Throws<ArgumentException>(() =>
                                                                                 {
-                                                                                    _ = new TranslateIdentifence(first, last);
+                                                                                    _ = new LanguageID(first, last);
                                                                                 });
 
     [Fact]
     public void CheckTranslateIdToString()
     {
-        var id = new TranslateIdentifence("zh", "cn");
+        var id = new LanguageID("zh", "cn");
 
         string str = id.ToString();
 
@@ -29,10 +29,10 @@ public class TranslateIdentifenceTest
     [Fact]
     public void TranslateIdParseTest()
     {
-        var originId = new TranslateIdentifence("zh", "cn");
+        var originId = new LanguageID("zh", "cn");
         string str = originId.ToString();
 
-        var id = TranslateIdentifence.Parse(str);
+        var id = LanguageID.Parse(str);
 
         Assert.Equal(originId, id);
         Assert.Equal(originId.ToString(), id.ToString());

@@ -60,7 +60,7 @@ public class SubprojectConfiguration
 /// <summary>
 /// This class is a configuration.
 /// </summary>
-[XmlRoot(Namespace = Xml.Namespace)]
+[XmlRoot(nameof(Configuration),Namespace = Xml.Namespace)]
 public class Configuration
 {
     /// <summary>

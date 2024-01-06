@@ -21,8 +21,8 @@ public class GeneratorTemplate {
             private readonly object _lock = new();
                 
             public required ILogger<PluginForServer> Logger { private get; init; }
-
-            public required ITranslateManager TranslateManager { private get; init; }
+                
+            public required ITranslationGetter I { protected get; init; }
 
             protected readonly EventManager<LifeCycleEvent<PluginLifeCycle>> _lifecycleEvent = new();
 

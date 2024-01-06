@@ -2,139 +2,267 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks.Dataflow;
+using System.Xml;
+using Esprima.Ast;
+using Humanizer.Localisation;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using NLog;
 using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
+using ArgumentSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax;
+using CompilationUnitSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax;
+using IdentifierNameSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax;
+using InvocationExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax;
+using LiteralExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.LiteralExpressionSyntax;
+using MemberAccessExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax;
 
 namespace Utopia.Tools;
 
 /// <summary>
 /// 翻译寻找器
 /// </summary>
-public class TranslationFinder
+public static class TranslationFinder
 {
+    private readonly static Logger Logger = LogManager.GetCurrentClassLogger();
 
-    private static readonly Lazy<Logger> s_logger = new(() => { return LogManager.GetLogger(typeof(TranslationFinder).FullName); });
-
-    private static Logger _Logger => s_logger.Value;
-
-    public record Item(
-        in string SlnFilePath,
-        in string ProjectGuid, in string SourceFilePath, in string SourceSpan,
-        in string TranslateGuuid,
-        in string? TranslateProviderGuuid,
-        in string TranslateComment)
+    public sealed class ExtractedItem
     {
+        public string Text { get; set; } = string.Empty;
+
+        public string Comment { get; set; } = string.Empty;
+
+        public TextSpan Place { get; set; }
+
+        public required Document Document { get; set; }
+
+        public bool WithFormat { get; set; } = false;
+
+        public static string WriteToXml(ExtractedItem[] items)
+        {
+            XmlWriterSettings settings = new()
+            {
+                Encoding = Encoding.UTF8,
+            };
+            settings.Async = false;
+            using var stream = new MemoryStream();
+
+            // format see class TranslationDeclare
+            using (XmlWriter writer = XmlWriter.Create(stream, settings))
+            {
+                writer.WriteStartDocument();
+                writer.WriteStartElement(nameof(TranslationDeclares), Xml.Namespace);
+
+                {
+                    foreach (var item in items)
+                    {
+                        writer.WriteStartElement(TranslationDeclares.TranslationItemElementName);
+
+                        var path =
+                            Path.GetRelativePath(Path.GetDirectoryName(item.Document.Project.FilePath)!, item.Document.FilePath!);
+
+                        writer.WriteComment($"At project {item.Document.Project.Name}:{path}");
+                        if (item.WithFormat)
+                        {
+                            writer.WriteComment($"Text will be formatted");
+                        }
+                        writer.WriteElementString(nameof(item.Text), item.Text);
+                        writer.WriteElementString(nameof(item.Comment), item.Comment);
+                        writer.WriteEndElement();
+                    }
+                }
+
+                writer.WriteFullEndElement();
+                writer.WriteEndDocument();
+            }
+
+            return Encoding.UTF8.GetString(stream.ToArray());
+        }
     }
 
-    private static async Task<Item[]> _WalkDocument(Document file, Compilation compilation)
+    public static class SyntaxInformation
     {
-        ArgumentNullException.ThrowIfNull(nameof(file));
-        ArgumentNullException.ThrowIfNull(nameof(compilation));
+        public static readonly HashSet<string?> CallerClassName = [
+            typeof(ITranslationGetter).FullName!,
+            typeof(TranslationGetter).FullName!
+            ];
 
-        List<Item> items = new();
-        // read source file and create semantic model
-        if (!file.TryGetText(out Microsoft.CodeAnalysis.Text.SourceText? text))
-        {
-            throw new InvalidOperationException($"failed to get the source of file {file.FilePath}");
-        }
+        public static readonly HashSet<string?> CallerMethod =
+            [
+                nameof(ITranslationGetter.I18n)
+            ];
 
+        public static readonly HashSet<string?> CallerFormatMethod =
+            [
+                nameof(ITranslationGetter.I18nf)
+            ];
+    }
+
+    private static readonly Logger _Logger = LogManager.GetCurrentClassLogger();
+
+    private static async Task<ExtractedItem[]> _WalkDocument(Document file, Compilation compilation)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        ArgumentNullException.ThrowIfNull(compilation);
+
+        List<ExtractedItem> items = new();
         SyntaxTree? tree = await file.GetSyntaxTreeAsync();
 
         if (tree == null)
         {
             _Logger.Info("skip file {file} because there is no syntax tree", file.FilePath);
-            return Array.Empty<Item>();
+            return Array.Empty<ExtractedItem>();
         }
-        /*
+
         CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
 
         SemanticModel model = compilation.GetSemanticModel(tree);
 
-        // find syntax
-        // TODO:FIX THIS
-        IEnumerable<CallStatementSyntax> nodes = root.DescendantNodes().OfType<CallStatementSyntax>();
-
-        // look up the name we want
-        foreach (CallStatementSyntax node in nodes)
-        {
-            SymbolInfo sym = model.GetSymbolInfo(node);
-            string? symName = sym.Symbol?.ContainingType.ToString();
-
-            // check name
-            if (symName == typeof().FullName)
+        var nodes = root
+            .DescendantNodes()
+            .OfType<InvocationExpressionSyntax>()
+            .Where(
+            (item) =>
             {
-                // find strings
-                LiteralExpressionSyntax[] translate = node.DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
-
-                if (translate.Length < 2)
+                // only access getter.I18n() an so on
+                if(item.Expression is MemberAccessExpressionSyntax syntax)
                 {
-                    _Logger.Error("the syntax is illegal(only support literal):at {file} {span}", file.FilePath, node.Span);
-                    return Array.Empty<Item>();
-                }
+                    var type = model.GetTypeInfo(syntax.Expression);
 
-                // check name
-                string id = translate[0].GetText().ToString().Trim('"');
-                string comment = translate[1].GetText().ToString().Trim('"');
-                string? provider = null;
-
-                // parse,there are two or three arguments we need to think
-                if (translate.Length > 2)
-                {
-                    provider = translate[2].GetText().ToString().Trim('"');
-                    if (!Guuid.CheckGuuid(provider))
+                    if(type.Type == null)
                     {
-                        _Logger.Error("the translate provider(guuid) is illegal:at {file} {span}", file.FilePath, node.Span);
+                        return false;
+                    }
+
+                    var trueType = $"{type.Type?.ContainingNamespace?.Name}.{type.Type?.Name}";
+
+                    foreach (var caller in SyntaxInformation.CallerClassName)
+                    {
+                        var callerName = caller ?? string.Empty;
+                        if(callerName.IndexOf(trueType) != -1)
+                        {
+                            return true;
+                        }
                     }
                 }
-                if (!Guuid.CheckGuuid(id))
+
+                // warn
+                if(item.Expression is IdentifierNameSyntax identifierName)
                 {
-                    _Logger.Error("the translate id(guuid) is illegal:at {file} {span}", file.FilePath, node.Span);
+                    var text = identifierName.Identifier.ValueText;
+
+                    if(SyntaxInformation.CallerFormatMethod.Contains(text)
+                    || SyntaxInformation.CallerMethod.Contains(text))
+                    {
+                        Logger.Warn(
+                            "The IdentifierNameSyntax calls for I18n/I18nf method are not accepted. Using xxx.I18n*() instead. at {document} {span}",
+                            file.FilePath,item.FullSpan.ToString());
+                    }
                 }
 
-                items.Add(new Item(
-                    file.Project.Solution.FilePath ?? "UNKNOWN",
-                    file.Project.Id.Id.ToString() ?? "UNKNOWN",
-                    file.FilePath ?? "UNKNOWN",
-                    node.Span.ToString(),
-                    id,
-                    provider,
-                    comment));
-                _Logger.Info("found translate item at {file}:{provider}->{translate} --{comment} ",
-                    file.FilePath, provider, id, comment);
+                return false;
+            });
+
+        foreach(var node in nodes)
+        {
+            bool CheckArgument(IReadOnlyList<ArgumentSyntax> args, int requireArguments, params Type?[] argumentTypes)
+            {
+                if (args.Count != requireArguments)
+                {
+                    Logger.Error("Need {require} arguments but get {actual} at {file} {span}",
+                        requireArguments,
+                        args.Count,
+                        file.FilePath,
+                        args.First().Span
+                        );
+                    return false;
+                }
+
+                for(var index = 0;index != argumentTypes.Length; index++)
+                {
+                    var arg = args[index];
+                    var type = argumentTypes[index];
+
+                    if(type == null)
+                    {
+                        continue;
+                    }
+
+                    if(!arg.ChildNodes().Any((node) => node.GetType().Equals(type))){
+                        Logger.Error("Need {type} syntax at argument but get none at {file} {span}",
+                            type,
+                            file.FilePath,
+                            arg.Span
+                            );
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            // get access method
+            var args = node.ArgumentList.Arguments;
+            var access = (MemberAccessExpressionSyntax)node.Expression;
+
+            var method = access.Name.Identifier.ValueText;
+
+            string text;
+            string comment;
+            bool formatted = false;
+
+            if (SyntaxInformation.CallerMethod.Contains(method))
+            {
+                // get arguments
+                if(!CheckArgument(args, 2, typeof(LiteralExpressionSyntax), typeof(LiteralExpressionSyntax)))
+                {
+                    continue;
+                }
+                // remove " in the beginning and the end
+                text = ((LiteralExpressionSyntax)args[0].Expression).GetText(Encoding.UTF8).ToString()[1..^1];
+                comment = ((LiteralExpressionSyntax)args[1].Expression).GetText(Encoding.UTF8).ToString()[1..^1];
+            }
+            else if(SyntaxInformation.CallerFormatMethod.Contains(method))
+            {
+                if (!CheckArgument(args, 3, typeof(LiteralExpressionSyntax),null, typeof(LiteralExpressionSyntax)))
+                {
+                    continue;
+                }
+                formatted = true;
+                // remove " in the beginning and the end
+                text = ((LiteralExpressionSyntax)args[0].Expression).GetText(Encoding.UTF8).ToString()[1..^1];
+                comment = ((LiteralExpressionSyntax)args[2].Expression).GetText(Encoding.UTF8).ToString()[1..^1];
             }
             else
             {
-                _Logger.Debug("except name {expect} but found {name} at {file} {line}",
-                    typeof(TranslateKey).FullName, symName,
-                    file.FilePath, node.Span);
+                Logger.Warn(
+                    "Unknown ITranslationGetter call at {file} {span}",
+                    file.FilePath, node.FullSpan.ToString());
+                continue;
             }
-        }*/
 
-        return items.ToArray();
-    }
-
-    public static async Task<Item[]> FindTranslateItem(Project project)
-    {
-        if (!project.TryGetCompilation(out Compilation? compilation))
-        {
-            return Array.Empty<Item>();
-        }
-
-        List<Item> items = new();
-
-        foreach (Document file in project.Documents)
-        {
-            items.AddRange(await _WalkDocument(file, compilation));
+            items.Add(new()
+            {
+                Text = text,
+                Comment = comment,
+                WithFormat = formatted,
+                Place = node.FullSpan,
+                Document = file
+            });
         }
 
         return items.ToArray();
@@ -144,47 +272,82 @@ public class TranslationFinder
     {
         configCmd.Description = "this subcommand will generate translation key from CSharp projects";
 
-        CommandOption<string> slnOpt = configCmd.Option<string>("-s|--sln", "the path to the .sln file", CommandOptionType.SingleValue).IsRequired();
-        CommandOption<string> projOpt = configCmd.Option<string>
-        ("-p|--project", "the project guid of the sln that you want to get translate item", CommandOptionType.SingleValue);
+        var projects = configCmd.Argument
+        ("Projects", "the project file path(.csproj or sln) that you want to get translation item from");
         CommandOption<string> optOpt = configCmd.Option<string>("-o|--output", "the output file", CommandOptionType.SingleValue);
 
-        projOpt.DefaultValue = null;
-        string defaultOpt = "./translate-items.json";
+        projects.MultipleValues = true;
+        string defaultOpt = "extracted-translations.xml";
         optOpt.DefaultValue = defaultOpt;
 
-        configCmd.OnExecute(async () =>
+        configCmd.OnExecute(() =>
         {
-            // Find MSBuild
-            _ = MSBuildLocator.RegisterDefaults();
+            // load MSBuild
+            MSBuildLocator.RegisterDefaults();
 
-            string? sln = slnOpt.Value();
-            string? projectOpt = projOpt.Value();
+            // Load projects
             string? opt = optOpt.Value();
 
-            _Logger.Info("load solution {sln}", sln);
+            List<Project> loadedProjects = new();
 
-            Project[] projects = Utility.OpenSlnToProject(sln!, projectOpt);
-            _ = await Utility.GetCompilation(projects);
-
-            var finder = new TranslationFinder();
-
-            List<Task<Item[]>> tasks = new();
-            foreach (Project item in projects)
+            foreach(var project in projects.Values)
             {
-                tasks.Add(FindTranslateItem(item));
+                if(project is null)
+                {
+                    return;
+                }
+
+                if (project.EndsWith(".sln"))
+                {
+                    loadedProjects.AddRange(Utility.OpenSlnToProject(project));
+                }
+                else
+                {
+                    loadedProjects.Add(Utility.OpenProject(project));
+                }
             }
-            Task.WaitAll(tasks.ToArray());
-            Item[] results = tasks.Select((t) => { return t.Result; }).Aggregate((old, n) =>
-            {
-                var ret = new Item[old.Length + n.Length];
-                Array.Copy(old, ret, old.Length);
-                Array.Copy(n, ret[old.Length..], n.Length);
-                return ret;
-            });
 
-            List<Item> items = new(results);
-            File.WriteAllText(opt!, JsonSerializer.Serialize(items), Encoding.UTF8);
+            // compile && process
+            ConcurrentBag<ExtractedItem> collected = [];
+            List<Task> tasks = [];
+            var compilations = Utility.GetCompilation(loadedProjects.ToArray());
+
+            for(int index =0;index != loadedProjects.Count;index++)
+            {
+                var project = loadedProjects[index];
+                var compilation = compilations[index];
+
+                foreach(var document in project.Documents)
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            Logger.Info("process {file}",document.FilePath);
+                            var items = await _WalkDocument(document, compilation);
+                            foreach(var item in items)
+                            {
+                                collected.Add(item);
+                            }
+                        }
+                        catch(Exception e)
+                        {
+                            Logger.Error(e,"Error when process {project} {file}",project.FilePath,document.FilePath);
+                        }
+                    }));
+                }
+            }
+
+            Task.WhenAll(tasks).Wait();
+
+            // Notice
+            Logger.Info("Found {itemCount} translations", collected.Count);
+
+            // write to
+            var xml = ExtractedItem.WriteToXml(collected.ToArray());
+            File.WriteAllText(opt!, xml);
+
+            Logger.Info("Write to {file}",opt!);
         });
 
     }

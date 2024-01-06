@@ -59,7 +59,7 @@ public class Launcher
         /// <summary>
         /// What language we want to use.
         /// </summary>
-        public TranslateIdentifence GlobalLanguage { get; }
+        public LanguageID GlobalLanguage { get; }
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class Launcher
         /// <summary>
         /// What language we want to use.
         /// </summary>
-        public TranslateIdentifence GlobalLanguage { get; set; } =
+        public LanguageID GlobalLanguage { get; set; } =
             new(CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
             RegionInfo.CurrentRegion.TwoLetterISORegionName);
     }
@@ -178,9 +178,9 @@ public class Launcher
             .SingleInstance()
             .As<IPluginLoader<IPlugin>>();
         builder.
-            RegisterType<TranslateManager>()
+            RegisterType<TranslationManager>()
             .SingleInstance()
-            .As<ITranslateManager>();
+            .As<ITranslationManager>();
         builder
             .RegisterType<StandardLogicThread>()
             .SingleInstance()

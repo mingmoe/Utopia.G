@@ -125,9 +125,9 @@ public class Client
             .SingleInstance()
             .As<ISocketConnecter>();
         builder
-            .RegisterType<TranslateManager>()
+            .RegisterType<TranslationManager>()
             .SingleInstance()
-            .As<ITranslateManager>();
+            .As<ITranslationManager>();
         builder
             .RegisterType<EntityManager>()
             .SingleInstance()

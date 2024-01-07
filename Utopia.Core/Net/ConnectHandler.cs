@@ -7,6 +7,7 @@ using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Autofac;
 using CommunityToolkit.Diagnostics;
 using CommunityToolkit.HighPerformance;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,8 @@ namespace Utopia.Core.Net;
 public class ConnectHandler : IConnectHandler
 {
     public required ILogger<ConnectHandler> Logger { protected get; init; }
+
+    public required ILifetimeScope Container { get; init; }
 
     /// <summary>
     /// once true,never false

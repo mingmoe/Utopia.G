@@ -3,13 +3,15 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using System.Text;
+using Utopia.Tool;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 public sealed class GeneratorOption(
     Configuration globalConfiguration,
     SubprojectConfiguration currentProject,
-    IPluginDevFileSystem currentFileSystem) : IDisposable
+    IPluginDevFileSystem currentFileSystem,
+    TranslateManager translate) : IDisposable
 {
     public Configuration Configuration { get; set; } = globalConfiguration;
 
@@ -17,7 +19,7 @@ public sealed class GeneratorOption(
 
     public IPluginDevFileSystem CurrentFileSystem { get; set; } = currentFileSystem;
 
-    public TranslateManager TranslateManager { get; set; } = new TranslateManager(globalConfiguration, currentFileSystem);
+    public TranslateManager TranslateManager { get; set; } = translate;
 
     public override string ToString()
     {

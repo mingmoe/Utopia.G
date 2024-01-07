@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using Autofac;
 using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
 using Utopia.Core.Utilities;
@@ -24,6 +25,11 @@ public interface IConnectHandler : IDisposable
     /// 包格式化器
     /// </summary>
     IPacketizer Packetizer { get; }
+
+    /// <summary>
+    /// The container the the connection
+    /// </summary>
+    ILifetimeScope Container { get; }
 
     /// <summary>
     /// Write a packet,but it wont covert the packet to bytes.You should do it first.

@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Autofac;
 using Utopia.Core.Configuration;
+using Utopia.Core.Events;
 using Utopia.Core.IO;
 using Utopia.Core.Translation;
 
@@ -21,20 +22,20 @@ namespace Utopia.Core.Plugin;
 /// </summary>
 public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBase
 {
-    public required LanguageID CurrentLanguage { get; init; }
+    public required IVariableEvent<LanguageID> CurrentLanguage { get; init; }
 
     public required IFileSystem FileSystem { get; init; }
 
     public required IContainer Container { get; init; }
 
-    public IEnumerable<PluginContext<PluginT>> LoadPackedPlugin(string packetPluginFile)
+    public IEnumerable<PluginT> LoadPackedPlugin(string packetPluginFile)
     {
         var pluginRoot = FileSystem.GetExtractedDirectoryOfPacketPlugin(packetPluginFile);
         var manifest = ExtractPackedPlugin(
             packetPluginFile,
             FileSystem.GetExtractedPluginLockFileOfPacketPlugin(packetPluginFile),
             pluginRoot);
-        List<PluginContext<PluginT>> plugins = [];
+        List<PluginT> plugins = [];
 
         // for every assembly
         foreach (var assembly in manifest.Assemblies)
@@ -66,7 +67,7 @@ public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBa
         return plugins;
     }
 
-    public PluginContext<PluginT> BuildPluginFromType(
+    public PluginT BuildPluginFromType(
         Type plugin,
         string pluginRoot,
         string? packedPluginFile,
@@ -99,7 +100,7 @@ public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBa
 
         try
         {
-            return container.Resolve<PluginContext<PluginT>>();
+            return container.Resolve<PluginT>();
         }
         catch (Exception)
         {
@@ -109,9 +110,9 @@ public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBa
         }
     }
 
-    public IEnumerable<PluginContext<PluginT>> LoadAllPackedPluginsFromDirectory(string directory)
+    public IEnumerable<PluginT> LoadAllPackedPluginsFromDirectory(string directory)
     {
-        List<PluginContext<PluginT>> plugins = [];
+        List<PluginT> plugins = [];
         foreach (var file in Directory.GetFiles(directory,"*.*", SearchOption.AllDirectories))
         {
             plugins.AddRange(LoadPackedPlugin(file));
@@ -174,12 +175,6 @@ public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBa
 
         // ILifetimeScope was registered automatically
 
-        // PluginContext
-        builder
-            .RegisterType<PluginContext<PluginT>>()
-            .SingleInstance()
-            .AsSelf();
-
         // ITranslationManager
         builder
             .RegisterType<TranslationManager>()
@@ -190,28 +185,13 @@ public class PluginHelper<PluginT> where PluginT : IPluginInformation, IPluginBa
         builder
             .RegisterInstance(CurrentLanguage)
             .SingleInstance()
-            .AsSelf();
+            .As<IVariableEvent<LanguageID>>();
 
         // ITranslationGetter
         builder
             .RegisterType<TranslationGetter>()
             .SingleInstance()
             .As<ITranslationGetter>();
-    }
-
-    public PluginContext<PluginT> CreatePluginContext(
-        PluginT plugin,
-        PackedPluginManifest manifest,
-        ILifetimeScope lifetimeScope,
-        IPluginFileSystem fileSystem
-        )
-    {
-        return new PluginContext<PluginT>(
-                fileSystem,
-                plugin,
-                manifest,
-                lifetimeScope
-                );
     }
 
     /// <summary>

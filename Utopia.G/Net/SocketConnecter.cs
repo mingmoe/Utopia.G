@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using Autofac;
 using Utopia.Core.Events;
 using Utopia.Core.Exceptions;
 using Utopia.Core.Net;
@@ -13,19 +14,24 @@ using Utopia.Core.Net;
 namespace Utopia.G.Net;
 
 /// <summary>
-/// 负责连接到服务器
+/// 负责连接到服务器,use UDP && KCP
 /// </summary>
 public class SocketConnecter : ISocketConnecter
 {
+    public required ILifetimeScope Container { private get; init; }
+
     private readonly object _lock = new();
-    private Socket? _socket = null;
+    private ISocket? _socket = null;
 
     public
-        IEventManager<IEventWithParamAndResult<Socket, IConnectHandler>> ConnectCreatedEvent
+        IEventManager<IEventWithParamAndResult<ISocket, IConnectHandler>> ConnectCreatedEvent
     { get; init; } = new
-        EventManager<IEventWithParamAndResult<Socket, IConnectHandler>>();
+        EventManager<IEventWithParamAndResult<ISocket, IConnectHandler>>();
 
     public IConnectHandler? ConnectHandler { get; private set; } = null;
+
+    public IEventManager<IEventWithParam<ContainerBuilder>> ConnectionContainerBuildingEvent { get; init; }
+    = new EventManager<IEventWithParam<ContainerBuilder>>();
 
     /// <summary>
     /// 链接到服务器
@@ -45,52 +51,53 @@ public class SocketConnecter : ISocketConnecter
                 throw new InvalidOperationException("the client has connected");
             }
 
-            // Get host related information.
-            IPHostEntry? hostEntry = Dns.GetHostEntry(host);
+            _socket = new KcpSocket(new UDPSocket(new IPEndPoint(IPAddress.Parse(host), port)));
 
-            Socket? tempSocket = null;
-
-            foreach (IPAddress address in hostEntry.AddressList)
+            // build container
+            try
             {
-                IPEndPoint ipe = new(address, port);
-                tempSocket =
-                    new(ipe.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-                tempSocket.Connect(ipe);
-
-                if (tempSocket.Connected)
+                var container = Container.BeginLifetimeScope((builder) =>
                 {
-                    break;
+                    builder.RegisterInstance(_socket).As<ISocket>();
+
+                    builder
+                    .RegisterType<ConnectHandler>()
+                    .SingleInstance()
+                    .As<IConnectHandler>();
+
+                    var @event = new EventWithParam<ContainerBuilder>(builder);
+                    ConnectionContainerBuildingEvent.Fire(@event);
+                });
+                // connect
+                try
+                {
+                    var @event = new ComplexEvent<ISocket, IConnectHandler>(_socket, container.Resolve<IConnectHandler>());
+
+                    ConnectCreatedEvent.Fire(@event);
+
+                    ConnectHandler = Event.GetResult(@event);
+
+                    return ConnectHandler;
                 }
-                else
+                catch
                 {
-                    continue;
+                    container.Dispose();
+                    throw;
                 }
             }
-
-            if (tempSocket == null)
+            catch
             {
-                throw new IOException("failed to connect the server:" + host);
+                _socket.Dispose();
+                throw;
             }
-
-            _socket = tempSocket;
-
-            var @event = new ComplexEvent<Socket, IConnectHandler>(tempSocket, null);
-
-            ConnectCreatedEvent.Fire(@event);
-
-            ConnectHandler = @event.Result ??
-                throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull);
-
-            return ConnectHandler;
-        }
+         }
     }
 
     public void Close()
     {
         lock (_lock)
         {
-            _socket?.Close();
+            _socket?.Shutdown();
             _socket = null;
         }
     }

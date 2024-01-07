@@ -1,8 +1,9 @@
 // This file was generated automatically
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
-public class GeneratorTemplate {
+public class GeneratorTemplate
+{
 
     public const string ServerPluginClassTemplate =
         """

@@ -10,6 +10,7 @@ using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
+using Serilog.Events;
 using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
@@ -42,6 +43,17 @@ class Build : NukeBuild, INativeBuild, INativeRelease
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+
+    Target GenerateVersionFile => (_) =>
+    {
+        return _
+        .Description("generate a version.txt from GitVersion")
+        .Executes(() =>
+        {
+            Serilog.Log.Write(LogEventLevel.Information,"Current version:{version}", GitVersion.SemVer);
+            File.WriteAllText(RootDirectory / "version.txt",GitVersion.SemVer,System.Text.Encoding.UTF8);
+        });
+    };
 
     Target Restore => (_) =>
     {
@@ -79,7 +91,8 @@ class Build : NukeBuild, INativeBuild, INativeRelease
                 .SetApplicationArguments($"generate --configuration {RootDirectory / "utopia.xml"} --project {RootDirectory}");
             });
         })
-        .DependsOn(Restore);
+        .DependsOn(Restore)
+        .DependsOn(GenerateVersionFile);
     };
 
     Target CompileCSharp => (_) =>

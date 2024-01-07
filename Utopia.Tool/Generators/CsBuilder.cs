@@ -5,7 +5,7 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 public class CsBuilder
 {
@@ -27,7 +27,7 @@ public class CsBuilder
         bool isPublic = false,
         bool isStatic = false,
         bool isPartial = false,
-        bool addGeneratedCodeAttribute = false,
+        bool addGeneratedCodeAttribute = true,
         params string[] parentClass)
     {
         string pub = isPublic ? "public" : string.Empty;
@@ -72,7 +72,7 @@ public class CsBuilder
     public void EmitComment(string comment, bool forceMultiline = false)
     {
         string[] lines = comment.Split(['\r', '\n']);
-        if (lines.Length == 1 && (!forceMultiline))
+        if (lines.Length == 1 && !forceMultiline)
         {
             Lines.Add($"{_Align}// {comment}");
         }
@@ -95,11 +95,13 @@ public class CsBuilder
         _alignCount = origin;
     }
 
-    public void EmitProperty(string accessibility, string type, string name, bool isStatic = false)
+    public void EmitProperty(string accessibility, string type, string name, string? accessor = null,bool isStatic = false,bool isRequired = false)
     {
-        string @static = isStatic ? "static" : string.Empty;
+        string @static = isStatic ? " static" : string.Empty;
+        string @required = isRequired ? " required" : string.Empty;
+        accessor ??= "{ get; set; }";
 
-        Lines.Add($"{_Align}{accessibility} {@static} {type} {name} {{ get; set; }}");
+        Lines.Add($"{_Align}{accessibility}{@required}{@static} {type} {name} {accessor}");
     }
 
     public void EmitField(string accessibility, string type, string name, string? defaultValue = null, bool isReadonly = false, bool isStatic = false)

@@ -2,7 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 public static class Utilities
 {

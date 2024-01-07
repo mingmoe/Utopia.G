@@ -5,11 +5,12 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.CodeAnalysis.CSharp;
 using NLog;
 using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 public class TranslationConfiguration
 {
@@ -20,7 +21,7 @@ public class TranslationConfiguration
     public string TargetClass { get; set; } = "TranslationKeys";
 
     [XmlElement]
-    public XmlGuuid? DefaultTranslationProviderId { get; set; } = null;
+    public string OutputFileClassification { get; set; } = "TranslationKeys";
 }
 
 public class TranslateKeyGenerator : IGenerator
@@ -29,83 +30,42 @@ public class TranslateKeyGenerator : IGenerator
 
     public string SubcommandName => "TranslateKeys";
 
-    /// <summary>
-    /// Generate translation for file
-    /// </summary>
-    private static string _GenerateFor(string source, TranslationDeclares items
-        , GeneratorOption option,ref bool addGeneratedCodeAttribute)
-    {
-        // set translation provider
-        string providerId =
-            GuuidManager.GetDefaultTranslateProviderGuuidOf(
-                option.Configuration.PluginInformation.Id.Guuid)
-            .ToString();
-
-        if (option.Configuration.TranslationConfiguration.DefaultTranslationProviderId != null)
-        {
-            providerId = option.Configuration.TranslationConfiguration.DefaultTranslationProviderId.Guuid.ToString();
-        }
-
-        // set builder
-        CsBuilder builder = new(null,source);
-
-        builder.Using.Add("Utopia.Core.Translation");
-        builder.Namespace = option.Configuration.TranslationConfiguration.TargetNamespace;
-
-        builder.EmitClass(option.Configuration.TranslationConfiguration.TargetClass,
-            isPartial: true, isStatic: true, isPublic: true,
-            addGeneratedCodeAttribute: addGeneratedCodeAttribute,parentClass: []);
-
-        addGeneratedCodeAttribute = false;
-
-        foreach (var item in items.Translations)
-        {
-            builder.EmitField("public", "(string Text,string Comment,string Provider)",
-                item.Text,
-                defaultValue: $"new(\"{item.Text}\",\"{item.Comment}\",\"{providerId}\")",
-                isReadonly: true, isStatic: true);
-        }
-
-        builder.CloseCodeBlock();
-
-        return builder.Generate();
-    }
-
     public void Execute(GeneratorOption option)
     {
-        // save changes
-        option.TranslateManager.Save();
-
-        // read all translation files in translate-root directory
-        string[] files = Directory.GetFiles(option.CurrentFileSystem.TranslationDirectory);
-
-        // process
-        XmlSerializer serializer = new(typeof(TranslationDeclares));
-        var fs = option.CurrentFileSystem;
-
-        bool addGeneratedCodeAttribute = true;
-
-        foreach (string file in files)
+        string getterName = "@_Getter_";
+        // generate source file
+        CsBuilder builder = new();
+        builder.Using.Add("Utopia.Core.Translation");
+        builder.Namespace = option.Configuration.TranslationConfiguration.TargetNamespace;
+        builder.EmitClass(
+            option.Configuration.TranslationConfiguration.TargetClass,
+            isPublic: true,
+            isStatic: false,
+            isPartial: false);
+        builder.EmitProperty(
+            "public",
+            "ITranslationGetter",
+            getterName,
+            accessor: "{ private get; init; }",
+            isRequired: true);
         {
-            try
+            var items = option.TranslateManager.Translations.ToArray();
+
+            foreach(var item in items)
             {
-                using var xml = File.OpenRead(file);
-                var declares = (TranslationDeclares?)serializer.Deserialize(xml)
-                    ?? throw new XmlException("XmlSerializer.Deserialize return null");
-
-                string output = fs.GetGeneratedCsFilePath(file);
-
-                Directory.CreateDirectory(Path.GetDirectoryName(output)!);
-
-                string generated = _GenerateFor(file, declares, option,ref addGeneratedCodeAttribute);
-
-                File.WriteAllText(output, generated, Encoding.UTF8);
-            }
-            catch (Exception ex)
-            {
-                s_logger.Error(ex, "get an error when process file {file}", file);
-                throw;
+                builder.EmitProperty(
+                    "public",
+                    "string",
+                    item.Key,
+                    $" => {getterName}.I18n({SymbolDisplay.FormatLiteral(item.Value.text,true)},{SymbolDisplay.FormatLiteral(item.Value.comment, true)});");
             }
         }
+        builder.CloseCodeBlock();
+
+        var got = builder.Generate();
+
+        var fs = option.CurrentFileSystem.GetGeneratedCsFilePath(option.Configuration.TranslationConfiguration.OutputFileClassification);
+
+        File.WriteAllText(fs, got, Encoding.UTF8);
     }
 }

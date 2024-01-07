@@ -2,8 +2,10 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Net;
 using System.Net.Sockets;
 using Utopia.Core.Events;
+using Utopia.Core.Net;
 
 namespace Utopia.Server.Net;
 
@@ -22,10 +24,14 @@ public interface IInternetListener : IDisposable
     /// </summary>
     public bool Working { get; }
 
-    public IEventManager<ComplexEvent<Socket, Socket>> AcceptEvent { get; }
+    /// <summary>
+    /// Accept到了一个新的链接，Socket为TCP，EndPoint为UDP，两者不可能同时置空
+    /// </summary>
+    public IEventManager<ComplexEvent<(Socket?,EndPoint?), ISocket>> AcceptEvent { get; }
 
     /// <summary>
     /// 链接并监听端口，一个INetServer只能监听一个端口。
+    /// UDP和TCP都适用。
     /// </summary>
     /// <param name="port">端口号</param>
     void Listen(int port);
@@ -34,10 +40,10 @@ public interface IInternetListener : IDisposable
     /// 接受新链接，必须监听一个端口号后才能调用。
     /// </summary>
     /// <returns></returns>
-    Task<Socket> Accept();
+    Task<ISocket> Accept();
 
     /// <summary>
-    /// 停机，释放资源。
+    /// 停机，释放资源。等价于调用<see cref="IDisposable.Dispose"/>
     /// </summary>
     void Shutdown();
 }

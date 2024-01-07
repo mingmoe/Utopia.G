@@ -16,8 +16,8 @@
     <Subproject>
       <Path>Utopia.ResourcePack</Path>
       <Generators>
-        <Generator>GitIgnore</Generator>
         <Generator>PluginInformation</Generator>
+        <Generator>EntityGenerator</Generator>
       </Generators>
       <Configuration>
         <RootNamespace>Utopia.ResourcePack</RootNamespace>
@@ -27,9 +27,7 @@
     <Subproject>
       <Path>Utopia.Server</Path>
       <Generators>
-        <Generator>GitIgnore</Generator>
         <Generator>ServerPlugin</Generator>
-        <Generator>ServerEntity</Generator>
       </Generators>
       <Configuration>
         <RootNamespace>Utopia.Server</RootNamespace>
@@ -38,11 +36,18 @@
 
     <Subproject>
       <Path>Utopia.G</Path>
-      <Generators>
-        <Generator>GitIgnore</Generator>
-      </Generators>
       <Configuration>
         <RootNamespace>Utopia.G</RootNamespace>
+      </Configuration>
+    </Subproject>
+
+    <Subproject>
+      <Path>Utopia.ResourcePack</Path>
+      <Generators>
+        <Generator>TranslateKeys</Generator>
+      </Generators>
+      <Configuration>
+        <RootNamespace>Utopia.ResourcePack</RootNamespace>
       </Configuration>
     </Subproject>
   </Subprojects>
@@ -51,10 +56,10 @@
     <TargetNamespace>Utopia.Resource.Translation</TargetNamespace>
   </TranslationConfiguration>
 
-  <ServerGeneratorConfiguration>
+  <ServerPluginClassConfiguration>
     <ServerNamespaceName>Utopia.Server.Plugin</ServerNamespaceName>
-    <ServerPluginInformationClass>Utopia.ResourcePack</ServerPluginInformationClass>
-  </ServerGeneratorConfiguration>
+    <PluginInformationClassNamespace>Utopia.ResourcePack</PluginInformationClassNamespace>
+  </ServerPluginClassConfiguration>
   
   <GenerateXmlSchemaFileTo>utopia.xsd</GenerateXmlSchemaFileTo>
 </Configuration>

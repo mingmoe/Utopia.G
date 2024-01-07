@@ -13,7 +13,6 @@ using System.Text.Json;
 using System.Threading.Tasks.Dataflow;
 using System.Xml;
 using Esprima.Ast;
-using Humanizer.Localisation;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
@@ -31,7 +30,7 @@ using InvocationExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.Invocati
 using LiteralExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.LiteralExpressionSyntax;
 using MemberAccessExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax;
 
-namespace Utopia.Tools;
+namespace Utopia.Tool;
 
 /// <summary>
 /// 翻译寻找器
@@ -65,12 +64,12 @@ public static class TranslationFinder
             using (XmlWriter writer = XmlWriter.Create(stream, settings))
             {
                 writer.WriteStartDocument();
-                writer.WriteStartElement(nameof(TranslationDeclares), Xml.Namespace);
+                writer.WriteStartElement(nameof(TranslationItems), Xml.Namespace);
 
                 {
                     foreach (var item in items)
                     {
-                        writer.WriteStartElement(TranslationDeclares.TranslationItemElementName);
+                        writer.WriteStartElement(TranslationItems.TranslationItemElementName);
 
                         var path =
                             Path.GetRelativePath(Path.GetDirectoryName(item.Document.Project.FilePath)!, item.Document.FilePath!);
@@ -139,11 +138,11 @@ public static class TranslationFinder
             (item) =>
             {
                 // only access getter.I18n() an so on
-                if(item.Expression is MemberAccessExpressionSyntax syntax)
+                if (item.Expression is MemberAccessExpressionSyntax syntax)
                 {
                     var type = model.GetTypeInfo(syntax.Expression);
 
-                    if(type.Type == null)
+                    if (type.Type == null)
                     {
                         return false;
                     }
@@ -153,7 +152,7 @@ public static class TranslationFinder
                     foreach (var caller in SyntaxInformation.CallerClassName)
                     {
                         var callerName = caller ?? string.Empty;
-                        if(callerName.IndexOf(trueType) != -1)
+                        if (callerName.IndexOf(trueType) != -1)
                         {
                             return true;
                         }
@@ -161,23 +160,23 @@ public static class TranslationFinder
                 }
 
                 // warn
-                if(item.Expression is IdentifierNameSyntax identifierName)
+                if (item.Expression is IdentifierNameSyntax identifierName)
                 {
                     var text = identifierName.Identifier.ValueText;
 
-                    if(SyntaxInformation.CallerFormatMethod.Contains(text)
+                    if (SyntaxInformation.CallerFormatMethod.Contains(text)
                     || SyntaxInformation.CallerMethod.Contains(text))
                     {
                         Logger.Warn(
                             "The IdentifierNameSyntax calls for I18n/I18nf method are not accepted. Using xxx.I18n*() instead. at {document} {span}",
-                            file.FilePath,item.FullSpan.ToString());
+                            file.FilePath, item.FullSpan.ToString());
                     }
                 }
 
                 return false;
             });
 
-        foreach(var node in nodes)
+        foreach (var node in nodes)
         {
             bool CheckArgument(IReadOnlyList<ArgumentSyntax> args, int requireArguments, params Type?[] argumentTypes)
             {
@@ -192,17 +191,18 @@ public static class TranslationFinder
                     return false;
                 }
 
-                for(var index = 0;index != argumentTypes.Length; index++)
+                for (var index = 0; index != argumentTypes.Length; index++)
                 {
                     var arg = args[index];
                     var type = argumentTypes[index];
 
-                    if(type == null)
+                    if (type == null)
                     {
                         continue;
                     }
 
-                    if(!arg.ChildNodes().Any((node) => node.GetType().Equals(type))){
+                    if (!arg.ChildNodes().Any((node) => node.GetType().Equals(type)))
+                    {
                         Logger.Error("Need {type} syntax at argument but get none at {file} {span}",
                             type,
                             file.FilePath,
@@ -228,7 +228,7 @@ public static class TranslationFinder
             if (SyntaxInformation.CallerMethod.Contains(method))
             {
                 // get arguments
-                if(!CheckArgument(args, 2, typeof(LiteralExpressionSyntax), typeof(LiteralExpressionSyntax)))
+                if (!CheckArgument(args, 2, typeof(LiteralExpressionSyntax), typeof(LiteralExpressionSyntax)))
                 {
                     continue;
                 }
@@ -236,9 +236,9 @@ public static class TranslationFinder
                 text = ((LiteralExpressionSyntax)args[0].Expression).GetText(Encoding.UTF8).ToString()[1..^1];
                 comment = ((LiteralExpressionSyntax)args[1].Expression).GetText(Encoding.UTF8).ToString()[1..^1];
             }
-            else if(SyntaxInformation.CallerFormatMethod.Contains(method))
+            else if (SyntaxInformation.CallerFormatMethod.Contains(method))
             {
-                if (!CheckArgument(args, 3, typeof(LiteralExpressionSyntax),null, typeof(LiteralExpressionSyntax)))
+                if (!CheckArgument(args, 3, typeof(LiteralExpressionSyntax), null, typeof(LiteralExpressionSyntax)))
                 {
                     continue;
                 }
@@ -290,9 +290,9 @@ public static class TranslationFinder
 
             List<Project> loadedProjects = new();
 
-            foreach(var project in projects.Values)
+            foreach (var project in projects.Values)
             {
-                if(project is null)
+                if (project is null)
                 {
                     return;
                 }
@@ -312,27 +312,27 @@ public static class TranslationFinder
             List<Task> tasks = [];
             var compilations = Utility.GetCompilation(loadedProjects.ToArray());
 
-            for(int index =0;index != loadedProjects.Count;index++)
+            for (int index = 0; index != loadedProjects.Count; index++)
             {
                 var project = loadedProjects[index];
                 var compilation = compilations[index];
 
-                foreach(var document in project.Documents)
+                foreach (var document in project.Documents)
                 {
                     tasks.Add(Task.Run(async () =>
                     {
                         try
                         {
-                            Logger.Info("process {file}",document.FilePath);
+                            Logger.Info("process {file}", document.FilePath);
                             var items = await _WalkDocument(document, compilation);
-                            foreach(var item in items)
+                            foreach (var item in items)
                             {
                                 collected.Add(item);
                             }
                         }
-                        catch(Exception e)
+                        catch (Exception e)
                         {
-                            Logger.Error(e,"Error when process {project} {file}",project.FilePath,document.FilePath);
+                            Logger.Error(e, "Error when process {project} {file}", project.FilePath, document.FilePath);
                         }
                     }));
                 }
@@ -347,7 +347,7 @@ public static class TranslationFinder
             var xml = ExtractedItem.WriteToXml(collected.ToArray());
             File.WriteAllText(opt!, xml);
 
-            Logger.Info("Write to {file}",opt!);
+            Logger.Info("Write to {file}", opt!);
         });
 
     }

@@ -9,10 +9,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Utopia.Core;
-using Utopia.Tools.Generators;
-using Utopia.Tools.Generators.Server;
+using Utopia.Tool.Generators;
+using Utopia.Tool.Generators.Server;
 
-namespace Utopia.Tools;
+namespace Utopia.Tool;
 
 public class ProjectConfiguration
 {
@@ -34,7 +34,7 @@ public class ProjectConfiguration
     [XmlElement]
     public string EntitiesDirectory { get; set; } = IPluginDevFileSystem.DefaultEntitiesDirectoryName;
 
-    public void ApplyToFileSystem(PluginDevFileSystem system,string backupVersionFile)
+    public void ApplyToFileSystem(PluginDevFileSystem system, string backupVersionFile)
     {
         system.AssetsDirectory = AssetsDirectory;
         system.TranslationDirectory = TransitionDirectory;
@@ -60,7 +60,7 @@ public class SubprojectConfiguration
 /// <summary>
 /// This class is a configuration.
 /// </summary>
-[XmlRoot(nameof(Configuration),Namespace = Xml.Namespace)]
+[XmlRoot(nameof(Configuration), Namespace = Xml.Namespace)]
 public class Configuration
 {
     /// <summary>
@@ -86,10 +86,7 @@ public class Configuration
     public TranslationConfiguration TranslationConfiguration { get; set; } = new();
 
     [XmlElement]
-    public TranslationProviderConfiguration TranslationProviderConfiguration { get; set; } = new();
-
-    [XmlElement]
-    public ServerGeneratorConfiguration ServerGeneratorConfiguration { get; set; } = new();
+    public ServerPluginClassConfiguration ServerPluginClassConfiguration { get; set; } = new();
 
     [XmlElement]
     public PluginInformation PluginInformation { get; set; } = new();

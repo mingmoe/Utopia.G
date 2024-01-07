@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Entity xmlns="http://utopia.kawayi.moe">
+  <EntityId>Moe:Kawayi:Utopia:Entities:Ground:Grass</EntityId>
+  <EntityName>草地</EntityName>
+  <EntityDescription>一块草地</EntityDescription>
+  <Collidable>false</Collidable>
+  <Accessible>true</Accessible>
+  
+  <Generators>
+    <Generator>
+      <GeneratorName>Utopia.Tool.Generators.EntityGenerators.CommonEntityGenerator</GeneratorName>
+      <Data></Data>
+    </Generator>
+  </Generators>
+</Entity>

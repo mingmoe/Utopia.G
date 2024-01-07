@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 public class TranslationProviderConfiguration
 {
@@ -31,16 +31,16 @@ public class TranslationLoaderGenerator : IGenerator
     {
         CsBuilder builder = new();
 
-        builder.Namespace = option.Configuration.TranslationProviderConfiguration.LoaderNamespace;
+        //builder.Namespace = option.Configuration.TranslationProviderConfiguration.LoaderNamespace;
 
         builder.Using.Add("Utopia.Core");
 
-        builder.EmitClass(option.Configuration.TranslationProviderConfiguration.LoaderClassName,
+        /*builder.EmitClass(option.Configuration.TranslationProviderConfiguration.LoaderClassName,
             isPublic: true,
             isStatic: false,
             isPartial: false,
             addGeneratedCodeAttribute: true,
-            parentClass: []);
+            parentClass: []);*/
 
         // read translations
         builder.EmitLine("public static ");

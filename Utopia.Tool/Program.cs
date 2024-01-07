@@ -6,15 +6,15 @@ using System.Text;
 using McMaster.Extensions.CommandLineUtils;
 using NLog;
 using SemanticVersioning;
-using Utopia.Tools.Generators;
+using Utopia.Tool.Generators;
 using Version = SemanticVersioning.Version;
 
-namespace Utopia.Tools;
+namespace Utopia.Tool;
 
 public class Program
 {
 
-    private static readonly Lazy<Logger> s_loggerHandler = new(() => { return NLog.LogManager.GetLogger(typeof(Program).FullName); });
+    private static readonly Lazy<Logger> s_loggerHandler = new(() => { return LogManager.GetLogger(typeof(Program).FullName); });
 
     private const string Art =
         """
@@ -96,11 +96,11 @@ public class Program
         foreach (string arg in args)
         {
             _ = sb.Append("\",\"");
-            _ = sb.Append(arg.Replace("\"","\\\""));
+            _ = sb.Append(arg.Replace("\"", "\\\""));
         }
         _ = sb.Append("\" ]");
 
-        Console.WriteLine("args: {0}",sb.ToString());
+        Console.WriteLine("args: {0}", sb.ToString());
 
         var app = new CommandLineApplication
         {

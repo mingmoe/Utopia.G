@@ -7,7 +7,7 @@ using McMaster.Extensions.CommandLineUtils;
 using Docfx;
 using Docfx.Dotnet;
 
-namespace Utopia.Tools;
+namespace Utopia.Tool;
 
 /// <summary>
 /// 生成文档

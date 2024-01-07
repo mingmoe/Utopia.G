@@ -24,9 +24,7 @@ public sealed class KcpSocket : ISocket, IKcpCallback
 {
     private bool _disposed = false;
 
-    private Task _task = Task.CompletedTask;
-
-    private CancellationTokenSource _updateLoopCancellationTokenSource = new();
+    private readonly CancellationTokenSource _updateLoopCancellationTokenSource = new();
 
     private SpinLock _lock = new();
 
@@ -64,21 +62,14 @@ public sealed class KcpSocket : ISocket, IKcpCallback
 
         _kcp = new PoolSegManager.Kcp(KcpConv.Value,this);
 
-        SwitchFastMode();
+        // common mode:
+        // _kcp.NoDelay(0, 40, 0, 0);
+        // fast mode:
+        _kcp.NoDelay(1, 10, 2, 1);
 
         _stopwatch.Start();
 
-        StartInputLoop();
-    }
-
-    public void SwitchFastMode()
-    {
-        _kcp.NoDelay(1, 10, 2, 1);
-    }
-
-    public void SwitchNormalMode()
-    {
-        _kcp.NoDelay(0, 40, 0, 0);
+        Task.Run(() => UpdateLoop(_updateLoopCancellationTokenSource.Token));
     }
 
     public Task<int> Read(Memory<byte> dst)
@@ -109,6 +100,7 @@ public sealed class KcpSocket : ISocket, IKcpCallback
     {
         // send is thread-safe
         int index = 0;
+        // send all
         while (true)
         {
             var err = _kcp.Send(data.Slice(index).Span);
@@ -145,7 +137,7 @@ public sealed class KcpSocket : ISocket, IKcpCallback
 
             try
             {
-                // receive is not thread-safe
+                // read is not thread-safe
                 // but we ensure that only we are call that
                 var length = await _socket.Read(rent);
 
@@ -180,14 +172,14 @@ public sealed class KcpSocket : ISocket, IKcpCallback
             }
             finally
             {
-                if(lockTaken)
+                if (lockTaken)
                     _lock.Exit();
             }
 
             // wait
-            while(next > Current)
+            while (next > Current)
             {
-                if(token.IsCancellationRequested || !Alive)
+                if (token.IsCancellationRequested || !Alive)
                 {
                     return;
                 }
@@ -200,18 +192,6 @@ public sealed class KcpSocket : ISocket, IKcpCallback
         }
     }
 
-    public CancellationTokenSource StartInputLoop()
-    {
-        // close before
-        _updateLoopCancellationTokenSource.Cancel();
-        _task.Wait();
-
-        // start new
-        _updateLoopCancellationTokenSource = new();
-        _task = Task.Run(() => UpdateLoop(_updateLoopCancellationTokenSource.Token));
-        return _updateLoopCancellationTokenSource;
-    }
-
     public async void Output(IMemoryOwner<byte> buffer, int avalidLength)
     {
         // write nothing
@@ -221,7 +201,7 @@ public sealed class KcpSocket : ISocket, IKcpCallback
         }
 
         using var b = buffer;
-        // socket.send should be thread-safe
+        // ensure that only this method call socket.write
         await _socket.Write(b.Memory.Slice(0,avalidLength));
     }
 

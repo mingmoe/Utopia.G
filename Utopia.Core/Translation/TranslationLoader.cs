@@ -16,17 +16,17 @@ namespace Utopia.Core.Translation;
 public static class TranslationLoader
 {
     /// <summary>
-    /// Load a .xml translation file,its type as <see cref="TranslationDeclares"/>
+    /// Load a .xml translation file,its type as <see cref="TranslationItems"/>
     /// </summary>
     public static Dictionary<string, string> LoadFromFile(string file)
     {
-        XmlSerializer serializer = new(typeof(TranslationDeclares));
+        XmlSerializer serializer = new(typeof(TranslationItems));
 
-        TranslationDeclares? declares = null;
+        TranslationItems? declares = null;
 
         using (var fs = File.OpenText(file))
         {
-            declares = (TranslationDeclares?)serializer.Deserialize(fs)
+            declares = (TranslationItems?)serializer.Deserialize(fs)
                 ?? throw new XmlException("XmlSerializer.Deserialize return null");
         }
 

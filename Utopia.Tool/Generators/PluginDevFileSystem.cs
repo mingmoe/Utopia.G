@@ -6,7 +6,7 @@ using System.Text;
 using Utopia.Core.IO;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 /// <summary>
 /// This class hint which file should be read.
@@ -44,14 +44,6 @@ public interface IPluginDevFileSystem
         return Path.Join(GeneratedDirectory, $"{origin}.generated.cs");
     }
     string GetGeneratedCsFilePath(string origin, string path, string classify = "") => Path.Join(GeneratedDirectory, Path.GetRelativePath(origin, path) + $".{classify}.generated.cs");
-
-    string GetTranslatedXmlFilePath(string origin)
-    {
-        origin = Path.GetFileName(origin);
-        return Path.Join(TranslationDirectory, $"{origin}.translation.xml");
-    }
-
-    string GetTranslatedXmlFilePath(TranslateItemType type) => GetTranslatedXmlFilePath(type.ToString());
 
     void CreateNotExistsDirectory()
     {

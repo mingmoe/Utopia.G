@@ -11,10 +11,9 @@ using McMaster.Extensions.CommandLineUtils;
 using NLog;
 using NLog.Fluent;
 using Utopia.Core;
-using Utopia.Tool.Generators;
-using Utopia.Tools.Generators.Server;
+using Utopia.Tool;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 public static class GenerationCommand
 {
@@ -26,7 +25,7 @@ public static class GenerationCommand
         {
             var schemas = Xml.GetXmlSchema<Configuration>();
 
-            using (FileStream writer = File.Open(path,FileMode.OpenOrCreate | FileMode.Truncate))
+            using (FileStream writer = File.Open(path, FileMode.OpenOrCreate | FileMode.Truncate))
             {
                 Xml.WriteXmlSchemas(schemas, writer);
             }
@@ -35,7 +34,7 @@ public static class GenerationCommand
         }
         catch (Exception ex)
         {
-            s_logger.Info(ex,"Error in generating XSD.");
+            s_logger.Info(ex, "Error in generating XSD.");
         }
     }
 
@@ -51,12 +50,12 @@ public static class GenerationCommand
             configuration = (Configuration)(serializer.Deserialize(reader) ?? throw new XmlException("The XmlSerializer.Deserialize return null"));
         }
 
-        if(configuration.RootDirectory == null)
+        if (configuration.RootDirectory == null)
         {
             configuration.RootDirectory = Path.GetDirectoryName(Path.GetFullPath(configFile));
         }
 
-        configuration.VersionFile = Path.GetFullPath(configuration.VersionFile,configuration.RootDirectory!);
+        configuration.VersionFile = Path.GetFullPath(configuration.VersionFile, configuration.RootDirectory!);
 
         return configuration;
     }
@@ -66,7 +65,7 @@ public static class GenerationCommand
         SubprojectConfiguration configuration,
         string backupVersionFile)
     {
-        var filesystem = new PluginDevFileSystem(Path.GetFullPath(configuration.Path,root));
+        var filesystem = new PluginDevFileSystem(Path.GetFullPath(configuration.Path, root));
 
         configuration.Configuration.ApplyToFileSystem(filesystem, backupVersionFile);
 
@@ -99,10 +98,9 @@ public static class GenerationCommand
             Dictionary<string, IGenerator> generators = new();
             foreach (IGenerator generator in (IGenerator[])[
                 new PluginInformationGenerator(),
-                new PluginGenerator(),
-                new ServerEntityGenerator(),
-                new TranslateKeyGenerator(),
-                new GitIgnoreGenerator()])
+                new Server.PluginGenerator(),
+                new EntityGenerator(),
+                new TranslateKeyGenerator()])
             {
                 generators.Add(generator.SubcommandName, generator);
             }
@@ -117,7 +115,7 @@ public static class GenerationCommand
 
             void cd(string path)
             {
-                path = Path.GetFullPath(path,configuration.RootDirectory!);
+                path = Path.GetFullPath(path, configuration.RootDirectory!);
                 if (changeDir)
                 {
                     s_logger.Info("change working directory to:{directory}", path);
@@ -134,6 +132,9 @@ public static class GenerationCommand
                 _GenerateXmlSchema(configuration.GenerateXmlSchemaFileTo);
             }
 
+            // get an translation manager
+            var translationManager = new TranslateManager();
+
             // process subprojects
             foreach (var subproject in configuration.Subprojects)
             {
@@ -142,11 +143,12 @@ public static class GenerationCommand
                 var option = new GeneratorOption(
                     configuration,
                     subproject,
-                    _GetFileSystem(configuration.RootDirectory!, subproject, configuration.VersionFile));
+                    _GetFileSystem(configuration.RootDirectory!, subproject, configuration.VersionFile),
+                    translationManager);
 
                 option.CurrentFileSystem.CreateNotExistsDirectory();
 
-                foreach(var generator in subproject.Generators)
+                foreach (var generator in subproject.Generators)
                 {
                     generators[generator].Execute(option);
                 }

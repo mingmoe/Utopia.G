@@ -59,7 +59,7 @@ public class TranslationManager : SafeList<ITranslationProvider>, ITranslationMa
 
     public bool Contains(LanguageID language, string item) => TryGetTranslate(language, item, out _);
 
-    public bool TryGetTranslate(LanguageID language, string item, [MaybeNullWhen(false)] out string? result)
+    public bool TryGetTranslate(LanguageID language, string item, [NotNullWhen(true)] out string? result)
     {
         ArgumentNullException.ThrowIfNull(language);
         ArgumentNullException.ThrowIfNull(item);

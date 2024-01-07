@@ -4,14 +4,16 @@
 
 using System;
 using System.Net.Sockets;
+using Autofac;
 using Utopia.Core.Events;
 using Utopia.Core.Net;
+using Utopia.Core.Plugin;
 
 namespace Utopia.G.Net;
 
 /// <summary>
 /// This class can connect to the game server.
-/// It also take responsibility for maintainning the socket link.
+/// It also take responsibility for maintain the socket link.
 /// </summary>
 public interface ISocketConnecter
 {
@@ -31,10 +33,16 @@ public interface ISocketConnecter
     IConnectHandler? ConnectHandler { get; }
 
     /// <summary>
+    /// <see cref="ISocket"/> and <see cref="IConnectHandler"/> was registered
+    /// </summary>
+    IEventManager<IEventWithParam<ContainerBuilder>> ConnectionContainerBuildingEvent
+    { get; }
+
+    /// <summary>
     /// 链接被创建事件.传入一个<see cref="Socket"/>,要求传出一个
     /// <see cref=" IConnectHandler"/>,事件不可取消
     /// </summary>
-    IEventManager<IEventWithParamAndResult<Socket, IConnectHandler>> ConnectCreatedEvent
+    IEventManager<IEventWithParamAndResult<ISocket, IConnectHandler>> ConnectCreatedEvent
     { get; }
 
     /// <summary>

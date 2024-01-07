@@ -20,7 +20,7 @@ public interface IPluginLoader<PluginT> : IDisposable where PluginT:IPluginBase,
     /// <summary>
     /// Loaded plugins
     /// </summary>
-    ImmutableArray<PluginContext<PluginT>> LoadedPlugins { get; }
+    ImmutableArray<PluginT> LoadedPlugins { get; }
 
     /// <summary>
     /// 激活插件时触发.
@@ -31,9 +31,9 @@ public interface IPluginLoader<PluginT> : IDisposable where PluginT:IPluginBase,
 
         public PluginT? PluginInstance { get; }
 
-        public IContainer? Container { get; }
+        public ILifetimeScope? Container { get; }
 
-        public ActivePluginEventArgs(PluginT plugin, Type pluginType, IContainer? container)
+        public ActivePluginEventArgs(PluginT plugin, Type pluginType, ILifetimeScope? container)
         {
             Guard.IsNotNull(pluginType);
             Guard.IsNotNull(plugin);
@@ -56,5 +56,5 @@ public interface IPluginLoader<PluginT> : IDisposable where PluginT:IPluginBase,
     /// <param name="type">插件类型，要求实现<see cref="PluginT"/>接口</param>
     void ActiveAllPlugins();
 
-    void AddPlugin(PluginContext<PluginT> loadedPlugin);
+    void AddPlugin(PluginT loadedPlugin);
 }

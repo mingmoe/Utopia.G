@@ -2,9 +2,14 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+
+// This file is a part of the project Utopia(Or is a part of its subproject).
+// Copyright 2020-2023 mingmoe(http://kawayi.moe)
+// The file was licensed under the AGPL 3.0-or-later license
+
 using Utopia.Core.Utilities;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 /// <summary>
 /// Use this class to get the guuids you need.
@@ -28,11 +33,11 @@ public static class GuuidManager
     /// </summary>
     public static Guuid GetDefaultTranslateProviderGuuidOf(Guuid pluginId) => pluginId.EnterGeneratedSpace().Append("TransitionsProvider");
 
-    public static Guuid GetPluginNameTranslateId(Guuid pluginId) => GetTranslationGuuidOf(pluginId,"PluginInformation","Name");
+    public static Guuid GetPluginNameTranslateId(Guuid pluginId) => GetTranslationGuuidOf(pluginId, "PluginInformation", "Name");
 
     public static Guuid GetPluginDescriptionTranslateId(Guuid pluginId) => GetTranslationGuuidOf(pluginId, "PluginInformation", "Description");
 
-    public static Guuid GetEntityNameTransitionOf(Guuid pluginId,Guuid entityId) => GetTranslationGuuidOf(pluginId, "Entity").Append(entityId).Append("Name");
+    public static Guuid GetEntityNameTransitionOf(Guuid pluginId, Guuid entityId) => GetTranslationGuuidOf(pluginId, "Entity").Append(entityId).Append("Name");
 
     public static Guuid GetEntityDescriptionTransitionOf(Guuid pluginId, Guuid entityId) => GetTranslationGuuidOf(pluginId, "Entity").Append(entityId).Append("Description");
 }

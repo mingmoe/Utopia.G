@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.Diagnostics.CodeAnalysis;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Translation;
@@ -18,7 +19,7 @@ public interface ITranslationProvider
     /// <param name="id">翻译条目Id</param>
     /// <param name="result">结果，如果条目不存在，返回null</param>
     /// <returns>如果获取成功，找到翻译条目，返回true。</returns>
-    bool TryGetItem(LanguageID language, string id, out string? result);
+    bool TryGetItem(LanguageID language, string id, [NotNullWhen(true)]out string? result);
 
     /// <summary>
     /// 查询编译条目是否存在

@@ -1,4 +1,4 @@
-<Project Sdk="Kawayi.Utopia.Sdk">
+﻿<Project Sdk="Kawayi.Utopia.Sdk">
 
 	<Import Project="$(MSBuildThisFileDirectory)/../definition.targets" />
 
@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Generated\" />
-    <Folder Include="Translation\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -21,9 +21,9 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
     private bool _disposed = false;
     private readonly object _locker = new();
 
-    private List<PluginContext<PluginT>> _LoadedPlugins { get; } = new();
+    private List<PluginT> _LoadedPlugins { get; } = new();
 
-    public ImmutableArray<PluginContext<PluginT>> LoadedPlugins
+    public ImmutableArray<PluginT> LoadedPlugins
     {
         get
         {
@@ -56,7 +56,7 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
             {
                 foreach (var plugin in _LoadedPlugins)
                 {
-                    plugin.Instance.Deactivate();
+                    plugin.Deactivate();
                 }
                 _LoadedPlugins.Clear();
             }
@@ -67,20 +67,20 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
 
     public void ActiveAllPlugins()
     {
-        PluginContext<PluginT>[] plugins;
+        PluginT[] plugins;
         lock (_locker)
         {
             plugins = this._LoadedPlugins.ToArray();
         }
         foreach(var plugin in plugins)
         {
-            if(plugin.Instance.CurrentCycle == PluginLifeCycle.Created)
+            if(plugin.CurrentCycle == PluginLifeCycle.Created)
             {
-                plugin.Instance.Activate();
+                plugin.Activate();
             }
         }
     }
-    public void AddPlugin(PluginContext<PluginT> loadedPlugin)
+    public void AddPlugin(PluginT loadedPlugin)
     {
         lock (_locker)
         {

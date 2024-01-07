@@ -4,9 +4,10 @@
 
 using System.Text;
 using System.Xml.Serialization;
+using Microsoft.CodeAnalysis.CSharp;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 public class PluginInformation
 {
@@ -44,12 +45,13 @@ public class PluginInformationGenerator : IGenerator
         string inputVersion = option.CurrentFileSystem.VersionFile;
         var info = option.Configuration.PluginInformation;
 
-        string version = File.ReadAllText(inputVersion, System.Text.Encoding.UTF8).Trim();
+        string version = File.ReadAllText(inputVersion, Encoding.UTF8).Trim();
 
         StringBuilder sb = new();
         foreach (var dep in info.Dependences)
         {
-            sb.Append($"Guuid.Parse(\"{dep.Guuid}\"),");
+            // the last ',' will be ignored by C#
+            sb.Append($"Guuid.Parse({SymbolDisplay.FormatLiteral(dep.Guuid.ToString(), true)}),");
         }
         string deps = sb.ToString();
 
@@ -59,14 +61,14 @@ public class PluginInformationGenerator : IGenerator
         builder.Using.Add("Utopia.Core.Utilities");
         builder.Namespace = option.CurrentProject.Configuration.RootNamespace;
 
-        builder.EmitClass("PluginInformation", isPublic: true, addGeneratedCodeAttribute: true,parentClass: ["IPluginInformation"]);
-        builder.EmitField("public", "Guuid", "ID", $"Guuid.Parse(\"{info.Id}\")", true, true);
-        builder.EmitField("public", "string", "NAME", $"\"{info.Name}\"", true, true);
-        builder.EmitField("public", "string", "DESC", $"\"{info.Description}\"", true, true);
-        builder.EmitField("public", "System.Version", "VER", $"Version.Parse(\"{version}\")", true, true);
-        builder.EmitField("public", "string", "HOMEPAGE", $"\"{info.Homepage}\"", true, true);
-        builder.EmitField("public", "string", "LICENSE", $"\"{info.License}\"", true, true);
-        builder.EmitField("public", "Guuid[]", "DEPENDENCES", $"[{deps}]",true,true);
+        builder.EmitClass("PluginInformation", isPublic: true, addGeneratedCodeAttribute: true, parentClass: ["IPluginInformation"]);
+        builder.EmitField("public", "Guuid", "ID", $"Guuid.Parse({SymbolDisplay.FormatLiteral(info.Id.ToString(), true)})", true, true);
+        builder.EmitField("public", "string", "NAME", $"{SymbolDisplay.FormatLiteral(info.Name, true)}", true, true);
+        builder.EmitField("public", "string", "DESC", $"{SymbolDisplay.FormatLiteral(info.Description, true)}", true, true);
+        builder.EmitField("public", "System.Version", "VER", $"Version.Parse({SymbolDisplay.FormatLiteral(version,true)})", true, true);
+        builder.EmitField("public", "string", "HOMEPAGE", $"{SymbolDisplay.FormatLiteral(info.Homepage, true)}", true, true);
+        builder.EmitField("public", "string", "LICENSE", $"{SymbolDisplay.FormatLiteral(info.License, true)}", true, true);
+        builder.EmitField("public", "Guuid[]", "DEPENDENCES", $"[{deps}]", true, true);
         builder.EmitLine($"string IPluginInformation.Name => NAME;");
         builder.EmitLine($"string IPluginInformation.Description => DESC;");
         builder.EmitLine($"Guuid IPluginInformation.Id => ID;");
@@ -77,8 +79,6 @@ public class PluginInformationGenerator : IGenerator
         builder.CloseCodeBlock();
 
         File.WriteAllText(output, builder.Generate(),
-            System.Text.Encoding.UTF8);
-
-        option.TranslateManager.EnsurePluginInformationTransition();
+            Encoding.UTF8);
     }
 }

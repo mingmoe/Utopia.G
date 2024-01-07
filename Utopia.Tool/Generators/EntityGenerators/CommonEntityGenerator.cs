@@ -9,16 +9,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Utopia.Tools.Generators.Server;
-public class CommonServerEntityGenerator : IServerEntityGenerator
+namespace Utopia.Tool.Generators.EntityGenerators;
+
+public class CommonEntityGenerator : IEntityGenerator
 {
-    public void Generate(string tomlPath, ServerEntityInfo info,XmlElement data, GeneratorOption option)
+    public void Generate(string sourcePath, EntityInformation info, XmlElement data, GeneratorOption option)
     {
         // no output any thing,but add transition
-        var adder = option.TranslateManager.GetTransitionAdder(TranslateItemType.Entity);
-
-        option.TranslateManager.Save();
-
+        option.TranslateManager.AddEntityTranslation(info);
         return;
     }
 }

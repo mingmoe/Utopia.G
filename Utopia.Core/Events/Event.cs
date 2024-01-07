@@ -22,12 +22,7 @@ public class Event : IEvent
     /// Get the retsult of the event, or throw a <see cref="EventAssertionException"/>
     /// with information.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="UT"></typeparam>
-    /// <param name="e"></param>
-    /// <returns></returns>
-    /// <exception cref="EventAssertionException"></exception>
-    public static UT GetResult<T, UT>(T e) where T : IEventWithResult<UT> => e.Result == null ? throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull) : e.Result;
+    public static T GetResult<T>(IEventWithResult<T> e) => e.Result == null ? throw new EventAssertionException(EventAssertionFailedCode.ResultIsNull) : e.Result;
 }
 
 public class CancelableEvent : Event, IEvent, ICancelable

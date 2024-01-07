@@ -5,15 +5,15 @@
 using System.Text;
 using System.Xml.Serialization;
 
-namespace Utopia.Tools.Generators.Server;
+namespace Utopia.Tool.Generators.Server;
 
-public class ServerGeneratorConfiguration
+public class ServerPluginClassConfiguration
 {
     [XmlElement]
     public string ServerNamespaceName { get; set; } = "global";
 
     [XmlElement]
-    public string? ServerPluginInformationClass { get; set; } = null;
+    public string? PluginInformationClassNamespace { get; set; } = null;
 }
 
 /// <summary>
@@ -27,12 +27,12 @@ public class PluginGenerator : IGenerator
     {
         var source = GeneratorTemplate.ServerPluginClassTemplate
             .Replace("$TARGET_NAMESPACE$",
-            option.Configuration.ServerGeneratorConfiguration.ServerNamespaceName)
+            option.Configuration.ServerPluginClassConfiguration.ServerNamespaceName)
             .Replace("$PluginInformationNamespace$",
-            option.Configuration.ServerGeneratorConfiguration.ServerPluginInformationClass != null
-            ? $"using {option.Configuration.ServerGeneratorConfiguration.ServerPluginInformationClass};" : string.Empty)
-            .Replace("$GENERATOR_NAME$",typeof(PluginGenerator).FullName)
-            .Replace("$GENERATOR_VERSION$",Program.GetVersion().ToString());
+            option.Configuration.ServerPluginClassConfiguration.PluginInformationClassNamespace != null
+            ? $"using {option.Configuration.ServerPluginClassConfiguration.PluginInformationClassNamespace};" : string.Empty)
+            .Replace("$GENERATOR_NAME$", typeof(PluginGenerator).FullName)
+            .Replace("$GENERATOR_VERSION$", Program.GetVersion().ToString());
 
         string output = option.CurrentFileSystem.GetGeneratedCsFilePath("Plugin");
 

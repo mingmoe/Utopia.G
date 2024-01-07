@@ -62,6 +62,9 @@
             "type": "string"
           }
         },
+        "ReleasePath": {
+          "type": "string"
+        },
         "Root": {
           "type": "string",
           "description": "Root directory during build execution"
@@ -76,7 +79,10 @@
               "CompileCSharp",
               "CompileNativeLibraries",
               "GenerateCodes",
-              "Release",
+              "GenerateVersionFile",
+              "ReleaseClient",
+              "ReleaseNativeLibraries",
+              "ReleaseServer",
               "Restore",
               "UnitTest"
             ]
@@ -92,7 +98,10 @@
               "CompileCSharp",
               "CompileNativeLibraries",
               "GenerateCodes",
-              "Release",
+              "GenerateVersionFile",
+              "ReleaseClient",
+              "ReleaseNativeLibraries",
+              "ReleaseServer",
               "Restore",
               "UnitTest"
             ]

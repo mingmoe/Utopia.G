@@ -25,23 +25,16 @@ public class StandardSocket(Socket socket) : ISocket
     {
         while (!_disposed)
         {
-            // try ping
-            try
+            if (!Alive)
             {
-                Ping pingTest = new();
-                PingReply reply = await pingTest.SendPingAsync(
-                    (_socket.RemoteEndPoint as IPEndPoint)?.Address
-                    ?? throw new IOException("Socket.RemoteEndPoint returns null"),
-                    // wait 2 seconds
-                    new TimeSpan(0, 0, 2));
-
-                if (reply.Status != IPStatus.Success)
-                {
-                    Alive = false;
-                    return;
-                }
+                return;
             }
-            catch (Exception)
+
+            // try ping
+            var result = await Utilities.TryPing((_socket.RemoteEndPoint as IPEndPoint)?.Address
+                ?? throw new NotImplementedException("not implement for no IpEndPoint"));
+
+            if(result == null)
             {
                 Alive = false;
                 return;
@@ -56,7 +49,7 @@ public class StandardSocket(Socket socket) : ISocket
             else
                 Alive = true;
 
-            // ping per five seconds
+            // ping per five seconds check once
             await Task.Delay(1000 * 5);
         }
     }
@@ -86,6 +79,11 @@ public class StandardSocket(Socket socket) : ISocket
 
     public async Task<int> Read(Memory<byte> dst)
     {
+        if (!Alive)
+        {
+            throw new IOException("the socket has closed");
+        }
+
         return await _socket.ReceiveAsync(dst);
     }
 
@@ -96,6 +94,11 @@ public class StandardSocket(Socket socket) : ISocket
 
     public async Task Write(ReadOnlyMemory<byte> data)
     {
+        if (!Alive)
+        {
+            throw new IOException("the socket has closed");
+        }
+
         await _socket.SendAsync(data);
     }
 }

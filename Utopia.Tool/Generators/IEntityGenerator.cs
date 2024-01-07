@@ -3,11 +3,11 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using System.Xml;
-using static Utopia.Tools.Generators.IPluginDevFileSystem;
+using static Utopia.Tool.Generators.IPluginDevFileSystem;
 
-namespace Utopia.Tools.Generators.Server;
+namespace Utopia.Tool.Generators;
 
-public interface IServerEntityGenerator
+public interface IEntityGenerator
 {
     /// <summary>
     /// Generate the entity.
@@ -17,5 +17,5 @@ public interface IServerEntityGenerator
     /// <param name="option">The generator options.</param>
     /// <param name="data">the data entity file provided</param>
     /// <param name="entityPath">The target directory to output the source files.</param>
-    void Generate(string sourcePath, ServerEntityInfo info,XmlElement data, GeneratorOption option);
+    void Generate(string sourcePath, EntityInformation info, XmlElement data, GeneratorOption option);
 }

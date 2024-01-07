@@ -16,4 +16,15 @@ public interface IEventManager<EventT>
     void ClearRegisters();
 
     void Fire(EventT e);
+
+    public event Action<EventT> Source {
+        add
+        {
+            Register(value);
+        }
+        remove
+        {
+            Unregister(value);
+        }
+    }
 }

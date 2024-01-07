@@ -20,7 +20,7 @@ public interface ITranslationGetter
 {
     ITranslationManager Manager { get; }
 
-    LanguageID CurrentLanguage { get; set; }
+    LanguageID CurrentLanguage { get; }
 
     string I18n(string text,string comment);
 

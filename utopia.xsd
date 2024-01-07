@@ -7,8 +7,7 @@
       <xs:element minOccurs="0" maxOccurs="1" name="VersionFile" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="Subprojects" type="tns:ArrayOfSubprojectConfiguration" />
       <xs:element minOccurs="0" maxOccurs="1" name="TranslationConfiguration" type="tns:TranslationConfiguration" />
-      <xs:element minOccurs="0" maxOccurs="1" name="TranslationProviderConfiguration" type="tns:TranslationProviderConfiguration" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ServerGeneratorConfiguration" type="tns:ServerGeneratorConfiguration" />
+      <xs:element minOccurs="0" maxOccurs="1" name="ServerPluginClassConfiguration" type="tns:ServerPluginClassConfiguration" />
       <xs:element minOccurs="0" maxOccurs="1" name="PluginInformation" type="tns:PluginInformation" />
       <xs:element minOccurs="1" maxOccurs="1" name="GenerateXmlSchemaFileTo" nillable="true" type="xs:string" />
     </xs:sequence>
@@ -44,26 +43,13 @@
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="1" name="TargetNamespace" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="TargetClass" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="DefaultTranslationProviderId">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:pattern value="^[a-zA-Z]{1}[a-zA-Z0-9]*(\.[a-zA-Z]{1}[a-zA-Z0-9]*)+$" />
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="OutputFileClassification" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="TranslationProviderConfiguration">
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="LoaderNamespace" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="LoaderClassName" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="LoadFromDirectory" type="xs:string" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="ServerGeneratorConfiguration">
+  <xs:complexType name="ServerPluginClassConfiguration">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="1" name="ServerNamespaceName" type="xs:string" />
-      <xs:element minOccurs="0" maxOccurs="1" name="ServerPluginInformationClass" type="xs:string" />
+      <xs:element minOccurs="0" maxOccurs="1" name="PluginInformationClassNamespace" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="PluginInformation">

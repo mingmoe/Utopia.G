@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 using NLog;
 
-namespace Utopia.Tools;
+namespace Utopia.Tool;
 
 public class Utility
 {

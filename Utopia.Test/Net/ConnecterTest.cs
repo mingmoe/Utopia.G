@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Autofac;
+using Autofac.Core;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Utopia.Core.Net;
@@ -24,9 +25,15 @@ public class ConnecterTest
         var (client, server) = FakeSocket.Create();
 
         using var clientHandler = new ConnectHandler(client)
-        { Logger = ContainerManager.Container.Value.Resolve<ILogger<ConnectHandler>>() };
+        {
+            Logger = ContainerManager.Container.Value.Resolve<ILogger<ConnectHandler>>(),
+            Container = null!
+        };
         using var serverHandler = new ConnectHandler(server)
-        { Logger = ContainerManager.Container.Value.Resolve<ILogger<ConnectHandler>>() };
+        {
+            Logger = ContainerManager.Container.Value.Resolve<ILogger<ConnectHandler>>(),
+            Container = null!
+        };
 
         var clientTask = Task.Run(clientHandler.InputLoop);
         var serverTask = Task.Run(serverHandler.InputLoop);

@@ -9,22 +9,25 @@ using System.Text;
 using System.Threading.Tasks;
 using Jeffijoe.MessageFormat;
 using SharpCompress;
+using Utopia.Core.Events;
 using Utopia.Core.Utilities;
 
 namespace Utopia.Core.Translation;
 
-public class TranslationGetter : ITranslationGetter
+public sealed class TranslationGetter : ITranslationGetter
 {
     public ITranslationManager Manager { get; init; }
 
-    public LanguageID CurrentLanguage { get; set; }
+    private IVariableEvent<LanguageID> Language { get; }
+
+    public LanguageID CurrentLanguage => Language.Value;
 
     private System.Lazy<MessageFormatter> _messageFormatter;
 
-    public TranslationGetter(ITranslationManager manager,LanguageID id)
+    public TranslationGetter(ITranslationManager manager, IVariableEvent<LanguageID> id)
     {
         Manager = manager;
-        CurrentLanguage = id;
+        Language = id;
         _messageFormatter = new(() =>
         {
             return new(true, CurrentLanguage.Location);

@@ -15,23 +15,19 @@ public interface IVariableEvent<T>
     /// <summary>
     /// 一个可以取消的事件
     /// </summary>
-    /// <typeparam name="VT"></typeparam>
-    public class VariavbleChangedEvent<VT> : Event
+    public class VariableChangedEvent : Event
     {
-        public readonly VT Old;
-        public readonly VT New;
+        public readonly T Old;
+        public readonly T New;
 
-        public VariavbleChangedEvent(VT old, VT @new)
+        public VariableChangedEvent(T old, T @new)
         {
             Old = old;
             New = @new;
         }
     }
 
-    /// <summary>
-    /// 事件可取消
-    /// </summary>
-    public IEventManager<VariavbleChangedEvent<T>> Event { get; }
+    public IEventManager<VariableChangedEvent> Event { get; }
 }
 
 public class VariableEvent<T> : IVariableEvent<T>
@@ -52,7 +48,7 @@ public class VariableEvent<T> : IVariableEvent<T>
         }
         set
         {
-            var @event = new IVariableEvent<T>.VariavbleChangedEvent<T>(_value, value);
+            var @event = new IVariableEvent<T>.VariableChangedEvent(_value, value);
             Event.Fire(@event);
             lock (_lock)
             {
@@ -61,6 +57,6 @@ public class VariableEvent<T> : IVariableEvent<T>
         }
     }
 
-    public IEventManager<IVariableEvent<T>.VariavbleChangedEvent<T>> Event { get; init; }
-    = new EventManager<IVariableEvent<T>.VariavbleChangedEvent<T>>();
+    public IEventManager<IVariableEvent<T>.VariableChangedEvent> Event { get; init; }
+    = new EventManager<IVariableEvent<T>.VariableChangedEvent>();
 }

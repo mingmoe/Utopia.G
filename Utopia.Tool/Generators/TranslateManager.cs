@@ -6,17 +6,11 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using Autofac.Core;
+using Utopia.Core.Collections;
 using Utopia.Core.Translation;
 using Utopia.Core.Utilities;
 
-namespace Utopia.Tools.Generators;
-
-public enum TranslateItemType
-{
-    PluginInformation,
-    Entity,
-    Other
-}
+namespace Utopia.Tool.Generators;
 
 /// <summary>
 /// This class will manage the translations files of the game/plugin.
@@ -26,167 +20,48 @@ public sealed class TranslateManager : IDisposable
 {
     private bool _disposed = false;
 
-    private readonly XmlSerializer _serializer = new(typeof(TranslationDeclares));
+    public readonly SafeDictionary<string, (string text,string comment)> Translations = new();
 
-    private readonly IPluginDevFileSystem _fileSystem;
-
-    private readonly Configuration _configuration;
-
-    private readonly Dictionary<TranslateItemType, Dictionary<string, TranslationItem>?> _translates = new();
-
-    private readonly TranslateItemType[] _keys;
-
-    /// <summary>
-    /// Ensure that all values of <see cref="_translates"/> is not null.
-    /// </summary>
-    private void _Read()
+    public string GetCSIdOfEntityName(Guuid entity)
     {
-        Dictionary<string, TranslationItem> read(TranslateItemType type)
-        {
-            string path = _fileSystem.GetTranslatedXmlFilePath(type);
-
-            if (_EnsureFile(path))
-            {
-                return new();
-            }
-
-            using var fs = new FileStream(path, FileMode.Open);
-
-            if(fs.Length == 0)
-            {
-                return new();
-            }
-
-            var obj = (TranslationDeclares)(_serializer.Deserialize(fs) ?? throw new XmlException("XmlSerializer.Deserialize returns null"));
-
-            return obj.Translations.ToDictionary((item) => { return item.Text; });
-        }
-
-        foreach (TranslateItemType key in _keys)
-        {
-            if (_translates[key] == null)
-            {
-                _translates[key] = read(key);
-            }
-        }
+        return entity.ToCsIdentifier() + "_NAME";
     }
 
-    private void _Write()
+    public string GetCSIdOfEntityDescription(Guuid entity)
     {
-        void write(TranslateItemType type, Dictionary<string, TranslationItem> model)
-        {
-            string path = _fileSystem.GetTranslatedXmlFilePath(type);
+        return entity.ToCsIdentifier() + "_DESCRIPTION";
+    }
 
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-            _EnsureFile(path);
+    public TranslationDeclareItem GetNameDeclareOfEntity(Guuid entityId,string text)
+    {
+        return new(text, $"The name of the entity:{entityId}.");
+    }
+    public TranslationDeclareItem GetDescriptionDeclareOfEntity(Guuid entityId,string text)
+    {
+        return new(text, $"The description of the entity:{entityId}.");
+    }
 
-            using var fs = new FileStream(path, FileMode.Open);
+    public void AddItem(string text, string comment,string csharpId)
+    {
+        Translations.TryAdd(csharpId, new(text, comment));
+    }
 
-            var declares = new TranslationDeclares();
-            foreach(KeyValuePair<string, TranslationItem> item in model)
-            {
-                declares.Translations.Add(item.Value);
-            }
-
-            _serializer.Serialize(fs, declares);
-        }
-
-        foreach (TranslateItemType key in _keys)
-        {
-            if (_translates[key] != null)
-            {
-                write(key, _translates[key]!);
-            }
-        }
+    public void AddItem(TranslationDeclareItem item,string csharpId)
+    {
+        Translations.TryAdd(csharpId, new(item.Text, item.Comment));
     }
 
     /// <summary>
-    /// Read translation files
+    /// Only add name and description translation for the entity.
     /// </summary>
-    public void Load() => _Read();
-
-    /// <summary>
-    /// Write translation files. This was called automatically when call <see cref="Dispose"/>
-    /// </summary>
-    public void Save() => _Write();
-
-    public TranslateManager(Configuration configuration,IPluginDevFileSystem fileSystem)
+    public void AddEntityTranslation(EntityInformation entity)
     {
-        _fileSystem = fileSystem;
-        _configuration = configuration;
-        _keys = Enum.GetValues<TranslateItemType>();
-
-        foreach (TranslateItemType item in _keys)
-        {
-            _translates.Add(item, null!);
-        }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="path"></param>
-    /// <returns>If return true, the file has existed</returns>
-    private static bool _EnsureFile(string path)
-    {
-        if (!File.Exists(path))
-        {
-            File.Create(path).Close();
-            return false;
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// Ensure the translate item exists in the toml table.
-    /// Otherwise create it.
-    /// </summary>
-    private static void _EnsureTranslateKey(IDictionary<string, TranslationItem> model, string item, string comment)
-    {
-        if (model.ContainsKey(item))
-        {
-            return;
-        }
-
-        model.Add(item, new TranslationItem
-        {
-            Text = item,
-            Comment = comment
-        });
-    }
-
-    public Action<string, string> GetTransitionAdder(TranslateItemType type)
-    {
-        _Read();
-
-        return (string id, string comment) =>
-        {
-            EnsureTranslate(type, id, comment);
-        };
-    }
-
-    public void EnsurePluginInformationTransition()
-    {
-        Action<string, string> adder = GetTransitionAdder(TranslateItemType.PluginInformation);
-
-        adder.Invoke(_configuration.PluginInformation.Name, "the translation of the name");
-        adder.Invoke(_configuration.PluginInformation.Description, "the translation of the description");
-        Save();
-    }
-
-    public void EnsureTranslate(TranslateItemType type, string item, string comment)
-    {
-        ArgumentNullException.ThrowIfNull(item);
-        ArgumentNullException.ThrowIfNull(comment);
-
-        _Read();
-
-        Guuid id = _configuration.PluginInformation.Id.Guuid;
-
-        _EnsureTranslateKey(_translates[type]!, item, comment);
+        AddItem(
+            GetNameDeclareOfEntity(entity.EntityId.Guuid, entity.EntityName),
+            GetCSIdOfEntityName(entity.EntityId.Guuid));
+        AddItem(
+            GetDescriptionDeclareOfEntity(entity.EntityId.Guuid, entity.EntityDescription),
+            GetCSIdOfEntityDescription(entity.EntityId.Guuid));
     }
 
     public void Dispose()
@@ -200,11 +75,6 @@ public sealed class TranslateManager : IDisposable
         if (_disposed)
         {
             return;
-        }
-
-        if (disposing)
-        {
-            Save();
         }
 
         _disposed = true;

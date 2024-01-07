@@ -4,7 +4,7 @@
 
 using McMaster.Extensions.CommandLineUtils;
 
-namespace Utopia.Tools.Generators;
+namespace Utopia.Tool.Generators;
 
 /// <summary>
 /// The same from Microsoft is shit. So use this.

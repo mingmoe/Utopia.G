@@ -12,6 +12,10 @@ using System.Xml.Serialization;
 
 namespace Utopia.Core.Translation;
 
+public record TranslationDeclareItem(string Text, string Comment)
+{
+}
+
 /// <summary>
 /// This class was used for code generated and human edit.
 /// </summary>
@@ -36,8 +40,8 @@ public sealed class TranslationItem
     public string Translated { get; set; } = string.Empty;
 }
 
-[XmlRoot(nameof(TranslationDeclares),Namespace = Xml.Namespace)]
-public class TranslationDeclares
+[XmlRoot(nameof(TranslationItems),Namespace = Xml.Namespace)]
+public class TranslationItems
 {
     public const string TranslationsElementName = "Translations";
 

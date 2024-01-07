@@ -11,7 +11,7 @@ using System.Xml;
 
 namespace Utopia.Tool.Generators.EntityGenerators;
 
-public class CommonEntityGenerator : IEntityGenerator
+public class EntityTranslationGenerator : IEntityGenerator
 {
     public void Generate(string sourcePath, EntityInformation info, XmlElement data, GeneratorOption option)
     {

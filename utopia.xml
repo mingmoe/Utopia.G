@@ -28,9 +28,12 @@
       <Path>Utopia.Server</Path>
       <Generators>
         <Generator>ServerPlugin</Generator>
+        <Generator>EntityGenerator</Generator>
+        <Generator>TranslateKeys</Generator>
       </Generators>
       <Configuration>
         <RootNamespace>Utopia.Server</RootNamespace>
+        <Type>Server</Type>
       </Configuration>
     </Subproject>
 
@@ -38,16 +41,19 @@
       <Path>Utopia.G</Path>
       <Configuration>
         <RootNamespace>Utopia.G</RootNamespace>
+        <Type>Client</Type>
       </Configuration>
     </Subproject>
 
     <Subproject>
       <Path>Utopia.ResourcePack</Path>
       <Generators>
+        <Generator>EntityGenerator</Generator>
         <Generator>TranslateKeys</Generator>
       </Generators>
       <Configuration>
         <RootNamespace>Utopia.ResourcePack</RootNamespace>
+        <Type>Neither</Type>
       </Configuration>
     </Subproject>
   </Subprojects>

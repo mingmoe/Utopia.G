@@ -14,10 +14,18 @@ using Utopia.Tool.Generators.Server;
 
 namespace Utopia.Tool;
 
+public enum ProjectType
+{
+    ShutdownEntityGenerator,Server,Client,Neither
+}
+
 public class ProjectConfiguration
 {
     [XmlElement]
     public string RootNamespace { get; set; } = "global";
+
+    [XmlElement]
+    public ProjectType Type { get; set; } = ProjectType.ShutdownEntityGenerator;
 
     [XmlElement]
     public string? VersionFile { get; set; } = null;

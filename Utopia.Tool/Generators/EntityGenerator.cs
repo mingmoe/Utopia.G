@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using System.Xml;
 using NLog;
+using System.Reflection;
+using System.Xml.Linq;
 
 namespace Utopia.Tool.Generators;
 
@@ -25,7 +27,11 @@ public class EntityGenerator : IGenerator
 
     public int ThreadCount { get; set; }
 
-    public ConcurrentDictionary<string, IEntityGenerator> CustomGenerators { get; } = new();
+    private ConcurrentDictionary<string, IEntityGenerator?> ServerGenerator { get; } = new();
+
+    private ConcurrentDictionary<string, IEntityGenerator?> ClientGenerator { get; } = new();
+
+    private ConcurrentDictionary<string, IEntityGenerator?> NeitherGenerator { get; } = new();
 
     public string SubcommandName => "EntityGenerator";
 
@@ -45,13 +51,111 @@ public class EntityGenerator : IGenerator
         }
     }
 
-    private IEntityGenerator _GetGenerator(string name)
+    private IEntityGenerator? GetUnknownType(string name)
     {
-        return CustomGenerators.GetOrAdd(name, (name) =>
+        return NeitherGenerator.GetOrAdd(name, (n) =>
         {
-            return (IEntityGenerator?)(Activator.CreateInstance(null!, name)?.Unwrap())
-            ?? throw new ArgumentException("Unknown IEntityGenerator name");
+            var assembly = Assembly.GetCallingAssembly();
+            var type = assembly.GetType($"Utopia.Tool.Generators.EntityGenerators.{name}", false, true);
+            type ??= assembly.GetType($"Utopia.Tool.Generators.EntityGenerators.{name}Generator", false, true);
+
+            if(type == null)
+            {
+                return null;
+            }
+
+            return (IEntityGenerator?)Activator.CreateInstance(type);
         });
+    }
+
+    private IEntityGenerator? GetServerType(string name)
+    {
+        return ServerGenerator.GetOrAdd(name, (n) =>
+        {
+            var assembly = Assembly.GetCallingAssembly();
+            var type = assembly.GetType($"Utopia.Tool.Generators.EntityGenerators.Server.{name}", false, true);
+            type ??= assembly.GetType($"Utopia.Tool.Generators.EntityGenerators.Server.{name}Generator", false, true);
+
+            if (type == null)
+            {
+                return null;
+            }
+
+            return (IEntityGenerator?)Activator.CreateInstance(type);
+        });
+    }
+
+    private IEntityGenerator? GetClientType(string name)
+    {
+        return ClientGenerator.GetOrAdd(name, (n) =>
+        {
+            var assembly = Assembly.GetCallingAssembly();
+            var type = assembly.GetType($"Utopia.Tool.Generators.EntityGenerators.Client.{name}", false, true);
+            type ??= assembly.GetType($"Utopia.Tool.Generators.EntityGenerators.Client.{name}Generator", false, true);
+
+            if (type == null)
+            {
+                return null;
+            }
+
+            return (IEntityGenerator?)Activator.CreateInstance(type);
+        });
+    }
+
+    private IEntityGenerator? _GetGenerator(string name,ProjectType type)
+    {
+        if(type == ProjectType.ShutdownEntityGenerator)
+        {
+            return null;
+        }
+        else if (type == ProjectType.Neither)
+        {
+            var got = GetUnknownType(name);
+
+            if (got != null)
+            {
+                return got;
+            }
+
+            // check other side
+            if((GetServerType(name) ?? GetClientType(name)) != null)
+            {
+                return null;
+            }
+        }
+        else if(type == ProjectType.Client)
+        {
+            var got = GetClientType(name);
+
+            if (got != null)
+            {
+                return got;
+            }
+
+            // check other side
+            if ((GetServerType(name) ?? GetUnknownType(name)) != null)
+            {
+                return null;
+            }
+        }
+        else if(type == ProjectType.Server)
+        {
+            var got = GetServerType(name);
+
+            if (got != null)
+            {
+                return got;
+            }
+
+            // check other side
+            if ((GetUnknownType(name) ?? GetClientType(name)) != null)
+            {
+                return null;
+            }
+        }
+
+        // fail,not found in Server,Client or Unknown
+        throw new TypeAccessException($"found no type as name:{name}");
     }
 
     public void Execute(GeneratorOption option)
@@ -81,7 +185,13 @@ public class EntityGenerator : IGenerator
 
                     foreach (var generator in obj.Generators)
                     {
-                        var gen = _GetGenerator(generator.GeneratorName);
+                        var gen = _GetGenerator(generator.GeneratorName, option.CurrentProject.Configuration.Type);
+
+                        // skip
+                        if(gen == null)
+                        {
+                            continue;
+                        }
 
                         gen.Generate(xmlDocument, obj, generator.Data, option);
                     }

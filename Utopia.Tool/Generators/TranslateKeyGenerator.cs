@@ -64,8 +64,26 @@ public class TranslateKeyGenerator : IGenerator
 
         var got = builder.Generate();
 
-        var fs = option.CurrentFileSystem.GetGeneratedCsFilePath(option.Configuration.TranslationConfiguration.OutputFileClassification);
+        var file = option.CurrentFileSystem.GetGeneratedCsFilePath(option.Configuration.TranslationConfiguration.OutputFileClassification);
 
-        File.WriteAllText(fs, got, Encoding.UTF8);
+        File.WriteAllText(file, got, Encoding.UTF8);
+    }
+
+    public static string AccessTranslation(GeneratorOption option,string cSharpId)
+    {
+        return $"{option.Configuration.TranslationConfiguration.TargetNamespace}" +
+            $".{option.Configuration.TranslationConfiguration.TargetClass}" +
+            $".{cSharpId}";
+    }
+
+    public static string InjectTranslationGetter(CsBuilder builder)
+    {
+        builder.EmitProperty(
+            "public",
+            "ITranslationGetter",
+            "_TranslationGetter_",
+            accessor: "{ private get; init; }",
+            isRequired: true);
+        return "_TranslationGetter_";
     }
 }

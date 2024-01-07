@@ -13,7 +13,7 @@ public class CsBuilder
 
     private string _Align => new(' ', _alignCount * 4);
 
-    public List<string> Using = ["System.CodeDom.Compiler"];
+    public HashSet<string> Using = ["System.CodeDom.Compiler"];
 
     public string? Namespace = null;
 

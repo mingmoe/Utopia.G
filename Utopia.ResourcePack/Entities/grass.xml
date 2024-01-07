@@ -8,7 +8,11 @@
   
   <Generators>
     <Generator>
-      <GeneratorName>Utopia.Tool.Generators.EntityGenerators.CommonEntityGenerator</GeneratorName>
+      <GeneratorName>EntityTranslation</GeneratorName>
+      <Data></Data>
+    </Generator>
+    <Generator>
+      <GeneratorName>BaseClass</GeneratorName>
       <Data></Data>
     </Generator>
   </Generators>

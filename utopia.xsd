@@ -32,6 +32,7 @@
   <xs:complexType name="ProjectConfiguration">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="1" name="RootNamespace" type="xs:string" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Type" type="tns:ProjectType" />
       <xs:element minOccurs="0" maxOccurs="1" name="VersionFile" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="AssetsDirectory" type="xs:string" />
       <xs:element minOccurs="0" maxOccurs="1" name="TransitionDirectory" type="xs:string" />
@@ -39,6 +40,14 @@
       <xs:element minOccurs="0" maxOccurs="1" name="EntitiesDirectory" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
+  <xs:simpleType name="ProjectType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ShutdownEntityGenerator" />
+      <xs:enumeration value="Server" />
+      <xs:enumeration value="Client" />
+      <xs:enumeration value="Neither" />
+    </xs:restriction>
+  </xs:simpleType>
   <xs:complexType name="TranslationConfiguration">
     <xs:sequence>
       <xs:element minOccurs="0" maxOccurs="1" name="TargetNamespace" type="xs:string" />
